@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-//import Series from './Series'
+import Series from './Series'
 //import Studies from './Studies'
 //import DisplayTables from './DisplayTables'
 //import Warnings from './Warnings'
@@ -15,14 +15,16 @@ import { combineReducers } from 'redux'
 //   Visits
 // })
 
-const appReducer =  combineReducers({})
+const appReducer =  combineReducers({
+    Series,
+})
 
 const rootReducer = (state, action) => {
-  if (action.type === 'RESET_REDUX') {
-    state = undefined
-  }
+    if (action.type === 'RESET_REDUX') {
+        state = undefined
+    }
 
-  return appReducer(state, action)
+    return appReducer(state, action)
 }
 
 export default rootReducer

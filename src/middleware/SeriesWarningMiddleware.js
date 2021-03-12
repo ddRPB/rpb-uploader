@@ -1,4 +1,4 @@
-import { TOGGLE_WARNING_SERIES,ADD_SERIES_READY, REMOVE_SERIES_READY } from '../actions/action-types'
+import { TOGGLE_WARNING_SERIES,ADD_SERIES_READY, REMOVE_SERIES_READY } from '../actions/actionTypes'
 
 const seriesWaringMiddleWare = store => next => action => {
     next(action)
