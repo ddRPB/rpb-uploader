@@ -21,20 +21,6 @@ export default class DicomFile {
     }
 
     /**
-     * Returns tag contain as a string or undefined
-     * @param {*} tag DICOM tag
-     */
-    _getDicomTag(tag) {
-        const element = this.dataSet.elements['x' + tag]
-        if (element !== undefined && element.length > 0) {
-            // Return the string value of the DICOM attribute
-            return this._getString(element)
-        } else {
-            return undefined
-        }
-    }
-
-    /**
      * Returns element content as a string
      * @param {*} element element from the data set
      */
@@ -63,6 +49,20 @@ export default class DicomFile {
         return result.trim()
     }
 
+    /**
+     * Returns tag contain as a string or undefined
+     * @param {*} tag DICOM tag
+     */
+    _getDicomTag(tag) {
+        const element = this.dataSet.elements['x' + tag]
+        if (element !== undefined && element.length > 0) {
+            // Return the string value of the DICOM attribute
+            return this._getString(element)
+        } else {
+            return undefined
+        }
+    }
+    
     readDicomFile() {
         let self = this
 

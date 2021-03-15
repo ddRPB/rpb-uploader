@@ -2,18 +2,20 @@ import { TOGGLE_WARNING_SERIES,ADD_SERIES_READY, REMOVE_SERIES_READY } from '../
 
 const seriesWaringMiddleWare = store => next => action => {
     next(action)
+
     // For Series warning event, mark series ready if no remaining warning
     // Remove series ready if reactivation of warning
     if (action.type === TOGGLE_WARNING_SERIES) {
+
         const seriesInstanceUID = action.payload.seriesInstanceUID
         const state = store.getState()
         const seriesWarnings = state.Warnings.warningsSeries[seriesInstanceUID]
-        if(isSeriesWarningsPassed(seriesWarnings)){
+        if (isSeriesWarningsPassed(seriesWarnings)) {
             store.dispatch({
                 type: ADD_SERIES_READY,
                 payload: { seriesInstanceUID: seriesInstanceUID}
             })
-        }else{
+        } else {
             if( state.DisplayTables.seriesReady.includes(seriesInstanceUID) ) {
                 store.dispatch({
                     type: REMOVE_SERIES_READY,
@@ -34,4 +36,5 @@ const isSeriesWarningsPassed = (seriesWarning) => {
     return true
 }
 
+// ES6 module system allowing to export the seriesWaringMiddleWare function
 export default seriesWaringMiddleWare

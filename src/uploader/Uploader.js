@@ -2,15 +2,27 @@
 import React, { Component, Fragment } from 'react'
 import { connect } from 'react-redux'
 
-// Boostrap GUI components
-import { Alert } from 'react-bootstrap'
+// Primereact
+import { Message } from 'primereact/message'
 
 // Custom GUI components
 import DicomDropZone from './DicomDropZone'
 import DicomParsingDetails from './DicomParsingDetails'
+import DicomBrowser from './DicomBrowser'
+
+// Action functions
+import { addStudy, setSlotID } from '../actions/Studies'
+import { addSeries } from '../actions/Series'
+import { addWarningsSeries, addWarningsStudy } from '../actions/Warnings'
+import { addSlot, resetRedux } from '../actions/Slots'
+import { selectStudy, addStudyReady } from '../actions/DisplayTables'
+import { addSeriesReady } from '../actions/DisplayTables'
+
+import { NULL_SLOT_ID, ALREADY_KNOWN_STUDY } from '../model/Warning'
 
 // DICOM processing
 import DicomFile from '../model/DicomFile'
+import DicomUploadDictionary from '../model/DicomUploadDictionary'
 
 /**
  * Uploader component
@@ -37,8 +49,29 @@ class Uploader extends Component {
         super(props)
 
         this.config = this.props.config
+        this.dicomUploadDictionary = new DicomUploadDictionary()
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
+    }
+
+    /**
+     * Init that fires once after HTML render
+     */
+    componentDidMount = () => {
+        this.loadAvailableUploadSlots()
+    }
+
+    componentWillUnmount = () => {
+        this.props.resetRedux()
+    }
+
+    loadAvailableUploadSlots = () => {
+        let uploadSlots = this.props.config.availableUploadSlots
+
+        // Add all available upload slots in slot reducer
+        uploadSlots.forEach(uploadSlot => {
+            this.props.addSlot(uploadSlot)
+        })
     }
 
     /**
@@ -76,8 +109,7 @@ class Uploader extends Component {
         // Once all promised resolved update state and refresh redux with parsing results
         Promise.all(readPromises).then(() => {
             this.setState({ isFilesLoaded: true, isParsingFiles: false })
-            //TODO: enabled once I understand the state handling
-            //this.checkSeriesAndUpdateRedux()
+            this.analyseDicomAndUpdateRedux()
         })
     }
 
@@ -90,42 +122,42 @@ class Uploader extends Component {
             let dicomFile = new DicomFile(file)
             await dicomFile.readDicomFile()
 
-            // Secondary capture or DicomDir do no register file
-            // if (dicomFile.isDicomDir()) {
-            //     throw Error('Dicomdir file')
-            // }
-            // if (dicomFile.isSecondaryCaptureImg()) {
-            //     throw Error('Secondary Capture Image')
-            // }
+            // DicomDir or Secondary capture do no register file
+            if (dicomFile.isDicomDir()) {
+                 throw Error('DICOMDIR')
+            }
+            if (dicomFile.isSecondaryCaptureImg()) {
+                 throw Error('Secondary Capture Image')
+            }
 
-            // Register Study, Series, Instance if new in model
-            // let studyInstanceUID = dicomFile.getStudyInstanceUID()
-            // let seriesInstanceUID = dicomFile.getSeriesInstanceUID()
-            //
-            // let study
-            // if (!this.uploadModel.isExistingStudy(studyInstanceUID)) {
-            //     study = this.uploadModel.addStudy(dicomFile.getStudyObject())
-            // } else {
-            //     study = this.uploadModel.getStudy(studyInstanceUID)
-            // }
-            //
-            // let series
-            // if (!study.isExistingSeries(seriesInstanceUID)) {
-            //     series = study.addSeries(dicomFile.getSeriesObject())
-            // } else {
-            //     series = study.getSeries(seriesInstanceUID)
-            // }
-            //
-            // series.addInstance(dicomFile.getInstanceObject())
+            // Register Study, Series, Instance in upload study dictionary
+            let studyInstanceUID = dicomFile.getStudyInstanceUID()
+            let seriesInstanceUID = dicomFile.getSeriesInstanceUID()
+
+            let study
+            if (!this.dicomUploadDictionary.studyExists(studyInstanceUID)) {
+                study = this.dicomUploadDictionary.addStudy(dicomFile.getStudyObject())
+            } else {
+                study = this.dicomUploadDictionary.getStudy(studyInstanceUID)
+            }
+
+            let series
+            if (!study.isExistingSeries(seriesInstanceUID)) {
+                 series = study.addSeries(dicomFile.getSeriesObject())
+            } else {
+                series = study.getSeries(seriesInstanceUID)
+            }
+
+            series.addInstance(dicomFile.getInstanceObject())
 
             this.setState((previousState) => {
                 return { fileParsed: ++previousState.fileParsed }
             })
-
+            
         } catch (error) {
-            //If exception register file in ignored file list
+            // In case of exception register file in ignored file list
 
-            //Save only message of error
+            // Save only message of error
             let errorMessage = error
             if (typeof error === 'object') {
                 errorMessage = error.message
@@ -137,6 +169,81 @@ class Uploader extends Component {
                         [file.name]: errorMessage
                     }
                 }
+            })
+        }
+    }
+
+    /**
+     * Analyse DICOM studies/series with warning and populate redux
+     */
+    analyseDicomAndUpdateRedux = async () => {
+        this.setState({ isCheckDone: false })
+
+        // Scan every study in Model
+        let studyArray = this.dicomUploadDictionary.getStudies()
+        for (let studyObject of studyArray) {
+
+            // If unknown studyInstanceUID, add it to Redux
+            if (!Object.keys(this.props.studies).includes(studyObject.getStudyInstanceUID())){
+                await this.registerStudyInRedux(studyObject)
+            }
+
+            // Scan every series in Model
+            let series = studyObject.getSeriesArray()
+            for (let seriesObject of series) {
+                if (!Object.keys(this.props.series).includes(seriesObject.getSeriesInstanceUID())){
+                    await this.registerSeriesInRedux(seriesObject)
+                }
+            }
+        }
+
+        //TODO: rename checkDone to analysisDone
+        // Mark check finished to make interface available and select the first study item
+        this.setState({ isCheckDone: true })
+
+        // When no study being selected, select the first one
+        if (this.props.selectedStudy === undefined && Object.keys(this.props.studies).length >= 1) {
+            this.props.selectStudy(this.props.studies[Object.keys(this.props.studies)[0]].studyInstanceUID)
+        }
+    }
+
+    /**
+     * Register a study of the dicom model to the redux
+     * @param {Study} studyToAdd
+     */
+    registerStudyInRedux = async (studyToAdd) => {
+        this.props.addStudy(
+            studyToAdd.getStudyInstanceUID(),
+            studyToAdd.getPatientFirstName(),
+            studyToAdd.getPatientLastName(),
+            studyToAdd.getPatientSex(),
+            studyToAdd.getPatientID(),
+            studyToAdd.getAcquisitionDate(),
+            studyToAdd.getAccessionNumber(),
+            studyToAdd.getPatientBirthDate(),
+            studyToAdd.getStudyDescription(),
+            studyToAdd.getOrthancStudyID(),
+            studyToAdd.getChildModalitiesArray()
+        )
+
+        const studyInstanceUID = studyToAdd.getStudyInstanceUID()
+
+        // Search for a perfect Match in visit candidates and assign it
+        let perfectMatchVisit = this.searchPerfectMatchStudy(studyInstanceUID)
+        if (perfectMatchVisit != null) {
+            this.props.setVisitID(studyInstanceUID, perfectMatchVisit.visitID)
+        }
+        // Add study warnings to Redux
+        let studyRedux = this.props.studies[studyInstanceUID]
+        let studyWarnings = await this.getStudyWarning(studyRedux)
+
+        // If no warning mark it as ready, if not add warning to redux
+        if (studyWarnings.length === 0) {
+            this.props.addStudyReady(studyInstanceUID)
+        }
+        else {
+            studyWarnings.forEach( (warning)=> {
+                this.props.addWarningsStudy(studyInstanceUID, warning)
             })
         }
     }
@@ -165,15 +272,14 @@ class Uploader extends Component {
                             fileParsed={this.state.fileParsed}
                             dataIgnoredFiles={this.state.ignoredFiles}
                         />
-                        {/*<Options />*/}
                     </div>
                     <div hidden={!this.state.isFilesLoaded}>
-                        {/*<ControllerStudiesSeries*/}
-                        {/*    isCheckDone={this.state.isCheckDone}*/}
-                        {/*    isUploadStarted={this.state.isUploadStarted}*/}
-                        {/*    multiUpload={this.config.availableVisits.length > 1}*/}
-                        {/*    selectedSeries={this.props.selectedSeries} */}
-                        {/*/>*/}
+                        <DicomBrowser
+                            isCheckDone={this.state.isCheckDone}
+                            isUploadStarted={this.state.isUploadStarted}
+                            multiUpload={this.config.availableUploadSlots.length > 1}
+                            selectedSeries={this.props.selectedSeries}
+                        />
                         {/*<ProgressUpload*/}
                         {/*    disabled={ this.state.isUploadStarted || Object.keys(this.props.studiesReady).length === 0 }*/}
                         {/*    isUploadStarted = {this.state.isUploadStarted}*/}
@@ -190,17 +296,39 @@ class Uploader extends Component {
                 </Fragment>
             )    
         } else {
-            return <Alert variant='success'> No upload slots available </Alert>
+            return <Message severity="warn" text="No upload slots available" />
         }
     }
 }
 
-const mapStateToProps = (state, ownProps) => ({
-    // ... computed data from state and optionally ownProps
-})
-
-const mapDispatchToProps = {
-    // ... normally is an object full of action creators
+// Defines which state from the Redux store should be pulled to the Uploader component
+const mapStateToProps = state => {
+    return {
+        slots: state.Slots.slots,
+        expectedSlot: state.Slots.expectedSlot,
+        studies: state.Studies.studies,
+        series: state.Series.series,
+        selectedSeries: state.DisplayTables.selectedSeries,
+        selectedStudy: state.DisplayTables.selectStudy,
+        seriesReady: state.DisplayTables.seriesReady,
+        studiesReady: state.DisplayTables.studiesReady,
+        warningsSeries: state.Warnings.warningsSeries,
+    }
 }
 
+// Access to Redux store dispatch methods
+const mapDispatchToProps = {
+    addStudy,
+    addSeries,
+    addWarningsStudy,
+    addWarningsSeries,
+    addSlot,
+    selectStudy,
+    addStudyReady,
+    addSeriesReady,
+    setSlotID,
+    resetRedux
+}
+
+// Connects Uploader component to Redux store
 export default connect(mapStateToProps, mapDispatchToProps)(Uploader)

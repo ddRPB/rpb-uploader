@@ -1,8 +1,9 @@
 // React
 import React, { Component } from 'react'
 
-// Boostrap GUI components
-import Badge from 'react-bootstrap/Badge'
+// Primereact
+import { Badge } from 'primereact/badge'
+import { Button } from 'primereact/button'
 
 // Custom GUI components
 import IgnoredFilesPanel from './IgnoredFilesPanel'
@@ -17,7 +18,7 @@ export default class DicomParsingDetails extends Component {
     }
 
     toggleShowIgnoredFile = () => {
-        this.setState((state) => {return {showIgnoredFiles : !state.showIgnoredFiles}})
+        this.setState((state) => { return { showIgnoredFiles : !state.showIgnoredFiles } })
     }
 
     /**
@@ -26,15 +27,22 @@ export default class DicomParsingDetails extends Component {
     render = () => {
         return (
             <>
-                <Badge variant='secondary'>{this.props.fileLoaded} File(s) loaded</Badge>
-                <Badge variant='success'>{this.props.fileParsed} File(s) parsed</Badge>
-                <Badge
-                    variant='warning'
-                    className='du-ignored-badge' 
+                <Button type="button" label="Loaded:" className="p-button-info">
+                    <Badge value={this.props.fileLoaded} />
+                </Button>
+                <Button type="button" label="Parsed:" className="p-button-success">
+                    <Badge value={this.props.fileParsed} />
+                </Button>
+                <Button
+                    type="button"
+                    label="Ignored (Click to show):" className="p-button-warning"
                     onClick={this.toggleShowIgnoredFile}
                     >
-                    {Object.keys(this.props.dataIgnoredFiles).length} File(s) ignored (Click to show)
-                </Badge>
+                    <Badge
+                        severity="danger"
+                        value={Object.keys(this.props.dataIgnoredFiles).length}
+                    />
+                </Button>
                 <IgnoredFilesPanel
                     display={this.state.showIgnoredFiles}
                     closeListener={this.toggleShowIgnoredFile}

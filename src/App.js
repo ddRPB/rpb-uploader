@@ -7,17 +7,24 @@ import thunk from 'redux-thunk'
 
 import { ToastContainer } from 'react-toastify'
 
+// Primereact styles
+import 'primeflex/primeflex.css'
+import 'primereact/resources/themes/saga-blue/theme.css'
+import 'primereact/resources/primereact.min.css'
+import 'primeicons/primeicons.css'
+
 // Boostrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css'
-// Boostrap Table CSS
-import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css'
-import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css'
+
 // Toastify CSS
 import 'react-toastify/dist/ReactToastify.css'
+
 // Custom RPB Uploader CSS
 import './assets/style/DicomUpload.css'
+
 // Uploader component
 import Uploader from './uploader/Uploader'
+
 // All reducers
 import reducers from './reducers'
 
@@ -28,9 +35,11 @@ import seriesWarningMiddleware from './middleware/SeriesWarningMiddleware'
  * @param {Object} props configuration properties provided by the backend
  */
 function App(props) {
-    
+
+    // Immutable global state with middleware for action creators
     const createStoreWithMiddleware =  applyMiddleware(thunk, seriesWarningMiddleware)(createStore)
 
+    // Provider with allowed Redux DevTools
     return (
         <Provider store={createStoreWithMiddleware(reducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())}>
             <ToastContainer
