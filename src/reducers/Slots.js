@@ -1,7 +1,7 @@
 import { ADD_SLOT, SET_USED_SLOT, SET_NOT_USED_SLOT } from '../actions/actionTypes'
 
 const initialState = {
-    visits: {}
+    slots: {}
 }
 
 export default function SlotsReducer(state = initialState, action) {
@@ -10,11 +10,11 @@ export default function SlotsReducer(state = initialState, action) {
 
         case ADD_SLOT:
             // Add visit to reducer
-            const visitObject = action.payload
+            const slotObject = action.payload
             return {
-                visits: {
-                    ...state.visits,
-                    [visitObject.slotID]: { ...visitObject }
+                slots: {
+                    ...state.slots,
+                    [slotObject.slotID]: { ...slotObject }
                 }
             }
 
@@ -24,10 +24,10 @@ export default function SlotsReducer(state = initialState, action) {
             const studyInstanceUID = action.payload.studyInstanceUID
 
             return {
-                visits: {
-                    ...state.visits,
+                slots: {
+                    ...state.slots,
                     [slotID]: {
-                        ...state.visits[slotID],
+                        ...state.slots[slotID],
                         studyInstanceUID: studyInstanceUID
                     }
                 }
@@ -37,10 +37,10 @@ export default function SlotsReducer(state = initialState, action) {
             const slotID2 = action.payload.slotID
 
             return {
-                visits: {
-                    ...state.visits,
+                slots: {
+                    ...state.slots,
                     [slotID2]: {
-                        ...state.visits[slotID2],
+                        ...state.slots[slotID2],
                         studyInstanceUID: undefined
                     }
                 }

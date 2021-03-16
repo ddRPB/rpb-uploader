@@ -4,12 +4,11 @@ import { ADD_SERIES } from './actionTypes'
  * Add series to Redux series Object
  * @param {Object} series
  */
-export function addSeries (instances, seriesInstanceUID, seriesNumber, seriesDate, seriesDescription, modality, studyInstanceUID) {
+export function addSeries(instances, seriesInstanceUID, seriesDate, seriesDescription, modality, studyInstanceUID) {
 
     let seriesObject = {
         instances : instances,
         seriesInstanceUID : seriesInstanceUID,
-        seriesNumber : seriesNumber,
         seriesDate : seriesDate,
         seriesDescription : seriesDescription,
         modality : modality,

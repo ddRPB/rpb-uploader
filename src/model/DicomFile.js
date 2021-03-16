@@ -1,10 +1,19 @@
 // Cornerstone dicomParser
 import dicomParser from 'dicom-parser'
 
+// DICOM domain model
+import DicomStudy from './DicomStudy'
+import DicomSeries from './DicomSeries'
+import DicomInstance from './DicomInstance'
+
 /**
  * DICOM file representation
  */
 export default class DicomFile {
+
+    dicomDirSopValues = [
+        '1.2.840.10008.1.3.10'
+    ]
 
     constructor(fileObject) {
         this.fileObject = fileObject
@@ -80,11 +89,82 @@ export default class DicomFile {
         })
     }
 
+    getStudyInstanceUID() {
+        return this._getDicomTag('0020000d')
+    }
+
     getSeriesInstanceUID() {
         return this._getDicomTag('0020000e')
     }
 
-    getStudyInstanceUID() {
-        return this._getDicomTag('0020000d')
+    getSOPInstanceUID() {
+        return this._getDicomTag('00080018')
     }
+
+    getSOPClassUID() {
+        return this._getDicomTag('00020002')
+    }
+
+    getStudyDate() {
+        return this._getDicomTag('00080020')
+    }
+
+    getStudyDescription() {
+        return this._getDicomTag('00081030')
+    }
+
+    getSeriesDate() {
+        return this._getDicomTag('00080021')
+    }
+
+    getSeriesDescription() {
+        return this._getDicomTag('0008103e')
+    }
+
+    getModality() {
+        return this._getDicomTag('00080060')
+    }
+
+    getPatientID() {
+        return this._getDicomTag('00100020')
+    }
+
+    getPatientName() {
+        return this._getDicomTag('00100010')
+    }
+
+    getPatientSex() {
+        return this._getDicomTag('00100040')
+    }
+    
+    getPatientBirthDate() {
+        return this._getDicomTag('00100030')
+    }
+
+    isDicomDir() {
+        return this.dicomDirSopValues.includes(this.getSOPClassUID())
+    }
+
+    getFilePath() {
+        let res = this.fileObject.path;
+        if (res === undefined) {
+            // Uploaded by folder selection,
+            //doesn't have a full path but has a webkitrelativepath
+            res = this.fileObject.webkitRelativePath;
+        }
+        return res;
+    }
+
+    getDicomStudyObject() {
+        return new DicomStudy(this.getStudyInstanceUID(), this.getStudyDate(), this.getStudyDescription(),  this.getPatientID(), this.getPatientName(), this.getPatientBirthDate(), this.getPatientSex())
+    }
+
+    getDicomSeriesObject() {
+        return new DicomSeries(this.getSeriesInstanceUID(), this.getSeriesDate(), this.getSeriesDescription(), this.getModality(), this.getStudyInstanceUID());
+    }
+
+    getDicomInstanceObject() {
+        return new DicomInstance(this.fileObject, this.getSOPInstanceUID())
+    }
+    
 }

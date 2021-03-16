@@ -51,7 +51,7 @@ function App(props) {
                 rtl={false}
                 pauseOnHover
             />
-        <Uploader {...props} />
+            <Uploader {...props} />
         </Provider>
     )
 }

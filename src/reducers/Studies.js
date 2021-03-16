@@ -21,23 +21,23 @@ export default function StudiesReducer(state = initialState, action) {
             }
 
         case SET_SLOT_ID:
-            // Set visitID for given study in reducer
+            // Set slotID for given study in reducer
             studyInstanceUID = action.payload.studyInstanceUID
-            const visitID = action.payload.visitID
+            const slotID = action.payload.slotID
             return {
                 studies: {
                     ...state.studies,
-                    [studyInstanceUID]: { ...state.studies[studyInstanceUID], visitID: visitID }
+                    [studyInstanceUID]: { ...state.studies[studyInstanceUID], slotID: slotID }
                 }
             }
 
         case UNSET_SLOT_ID:
-            // Set visitID for given study in reducer
+            // Set slotID for given study in reducer
             studyInstanceUID = action.payload.studyInstanceUID
             return {
                 studies: {
                     ...state.studies,
-                    [studyInstanceUID]: { ...state.studies[studyInstanceUID], visitID: null }
+                    [studyInstanceUID]: { ...state.studies[studyInstanceUID], slotID: null }
                 }
             }
 

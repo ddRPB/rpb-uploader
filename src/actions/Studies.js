@@ -2,27 +2,22 @@ import { ADD_STUDY, SET_SLOT_ID, SET_USED_SLOT, SET_NOT_USED_SLOT, UNSET_SLOT_ID
 import { NULL_SLOT_ID } from '../model/Warning'
 
 /**
- * Add study to Redux studies Object
+ * Add DICOM study to Redux studies Object
  * @param {Object} studyObject
  */
-export function addStudy(studyInstanceUID, patientFirstName, patientLastName, patientSex, patientID, acquisitionDate, accessionNumber, patientBirthDate, studyDescription, orthancStudyID, seriesModalitiesArray) {
+export function addStudy(patientSex, patientBirthDate, studyInstanceUID, studyDescription, studyDate, studyType, seriesModalitiesArray) {
 
     return {
         type: ADD_STUDY,
         payload: {
-            visitID : null,
-            patientFirstName : patientFirstName,
-            patientLastName : patientLastName,
-            patientName : patientFirstName+' '+patientLastName,
-            patientSex : patientSex,
-            patientID : patientID,
-            studyDescription : studyDescription,
-            acquisitionDate : acquisitionDate,
-            patientBirthDate : patientBirthDate,
-            accessionNumber : accessionNumber,
-            studyInstanceUID : studyInstanceUID,
-            orthancStudyID : orthancStudyID,
-            seriesModalitiesArray : seriesModalitiesArray
+            slotID: null,
+            patientSex: patientSex,
+            patientBirthDate: patientBirthDate,
+            studyInstanceUID: studyInstanceUID,
+            studyDescription: studyDescription,
+            studyDate: studyDate,
+            studyType: studyType,
+            seriesModalitiesArray: seriesModalitiesArray
         }
     }
 }
@@ -42,7 +37,7 @@ export function setSlotID(studyInstanceUID, slotID) {
                 type: SET_USED_SLOT,
                 payload: {
                     slotID: slotID,
-                    studyInstanceUID : studyInstanceUID
+                    studyInstanceUID: studyInstanceUID
                 }
             }
         )
