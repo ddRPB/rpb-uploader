@@ -6,6 +6,11 @@ import { connect } from 'react-redux'
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
+// Actions
+import { selectStudy, addStudyReady, removeStudyReady } from '../actions/DisplayTables'
+import { addSeriesReady, removeSeriesReady, selectSeries } from '../actions/DisplayTables'
+import { unsetSlotID } from '../actions/Studies'
+
 /**
  * Dicom Browser component
  */
@@ -27,13 +32,13 @@ class DicomBrowser extends Component {
 
     /**
      * Check the study status according to its warnings and its series warnings
-     * @param {Object} study
+     * @param {String} studyInstanceUID
      * @return {Boolean}
      */
     getStudyStatus(studyInstanceUID) {
 
         if ( this.props.warningsStudies[studyInstanceUID] === undefined ) {
-            //If no warning at study level, look if remaining warnings at series level
+            // If no warning at study level, look if remaining warnings at series level
             let seriesArray = this.getSeriesFromStudy(studyInstanceUID)
 
             for (let series of seriesArray ) {
@@ -41,11 +46,11 @@ class DicomBrowser extends Component {
                     return 'Incomplete'
                 }
             }
-            //If not, study is valid
+            // If not, study is valid
             return 'Valid'
 
         } else {
-            //If warning at study level return them as string
+            // If warning at study level return them as string
             if (this.props.warningsStudies[studyInstanceUID]['ALREADY_KNOWN_STUDY'] !== undefined) {
                 return 'Already Known'
             }
@@ -73,6 +78,30 @@ class DicomBrowser extends Component {
     }
 
     /**
+     * Fetch studies from Redux State to display in Series table
+     * @return {Object}
+     */
+    buildSeriesRows() {
+        let seriesArray = []
+
+        if (this.props.selectedStudy !== null) {
+
+            let seriesToDisplay = this.getSeriesFromStudy(this.props.selectedStudy)
+
+            seriesToDisplay.forEach( (series) => {
+                series.status = this.isSeriesWarningsPassed(series.seriesInstanceUID) ? 'Valid' : 'Rejected'
+                series.selectedSeries = this.props.seriesReady.includes(series.seriesInstanceUID)
+                seriesArray.push({
+                    ...series
+                })
+            })
+
+        }
+
+        return seriesArray
+    }
+    
+    /**
      * Check if the series warnings have been all passed
      * @param {Object} series
      * @return {Boolean}
@@ -87,29 +116,51 @@ class DicomBrowser extends Component {
     }
 
     /**
+     * Action to change the Redux state for selected study
+     * @param study
+     */
+    selectedStudyChanged(study) {
+        this.props.selectStudy(study.studyInstanceUID)
+    }
+
+    /**
+     * Action to change the Redux state for selected series
+     * @param series
+     */
+    selectedSeriesChanged(series) {
+        this.props.selectSeries(series.seriesInstanceUID)
+    }
+
+    /**
      * Render the component
      */
     render() {
         return (
-
+            // onSelectionChange={e => setSelectedProduct3(e.value)}
             <div disabled={ !this.props.isAnalysisDone || this.props.isUploadStarted }>
                 <DataTable
                     value={this.buildStudiesRows()}
+                    selection={this.props.selectedStudy}
+                    onSelectionChange={(e) => this.selectedStudyChanged(e.value)}
+                    dataKey="studyInstanceUID"
                     >
+                    <Column selectionMode="single" headerStyle={{width: '3em'}} />
                     <Column field="studyType" header="Type" />
                     <Column field="studyDescription" header="Description" />
                     <Column field="studyDate" header="Date" />
                 </DataTable>
+                <DataTable
+                    value={this.buildSeriesRows()}
+                    selection={this.props.selectedSeries}
+                    onSelectionChange={(e) => this.selectedSeriesChanged(e.value)}
+                    dataKey="seriesInstanceUID"
+                    selectionMode="single"
+                    >
+                    <Column field="modality" header="Modality" />
+                    <Column field="seriesDescription" header="Description" />
+                    <Column field="seriesDate" header="Date" />
+                </DataTable>
             </div>
-
-            // <div disabled={ !this.props.isAnalysisDone || this.props.isUploadStarted }>
-            //     <Row>
-            //         <DisplayStudies multiUpload={this.props.multiUpload} studiesRows={this.buildStudiesRows()} />
-            //     </Row>
-            //     <Row>
-            //         <DisplaySeries seriesRows={this.buildSeriesRows()} />
-            //     </Row>
-            // </div>
         )
     }
 }
@@ -127,4 +178,14 @@ const mapStateToProps = state => {
     }
 }
 
-export default connect(mapStateToProps, null)(DicomBrowser)
+const mapDispatchToProps = {
+    selectStudy,
+    addStudyReady,
+    removeStudyReady,
+    unsetSlotID,
+    addSeriesReady,
+    removeSeriesReady,
+    selectSeries
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(DicomBrowser)

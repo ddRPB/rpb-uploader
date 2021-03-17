@@ -224,7 +224,7 @@ class Uploader extends Component {
         // Mark check finished to make interface available and select the first study item
         this.setState({ isAnalysisDone: true })
 
-        // When no study being selected, select the first one
+        // When no study being selected, select the first one via action
         if (this.props.selectedStudy === undefined && Object.keys(this.props.studies).length >= 1) {
             this.props.selectStudy(this.props.studies[Object.keys(this.props.studies)[0]].studyInstanceUID)
         }
