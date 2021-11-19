@@ -55,6 +55,8 @@
     "@babel/preset-react": "^7.12.13",
     "@svgr/cli": "^5.4.0",
     "@svgr/webpack": "^5.4.0",
+    "@testing-library/jest-dom": "^5.15.0",
+    "@testing-library/react": "^12.1.2",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.2.2",
     "ignore-loader": "^0.1.2",
