@@ -135,9 +135,6 @@ export default class DicomFile {
                 case "x0020000e":
                     resultMap.set("SeriesInstanceUID", this._getString(element));
                     break;
-                // case "x00200052":
-                //     resultMap.set("FrameOfReferenceUID", this._getString(element));
-                //     break;
                 case "x30060002":
                     resultMap.set("StructureSetLabel", this._getString(element));
                     break;
@@ -152,7 +149,19 @@ export default class DicomFile {
                     break;
                 case "x30060020":
                     // "StructureSetROISequence"
-                    this.parseRtStructProperties(element.items[0].dataSet.elements, resultMap);
+
+                    let structureSetROISequenceArray = new Array();
+                    resultMap.set("StructureSetROISequence", structureSetROISequenceArray);
+
+                    for (let structureSetROISequenceItem of element.items) {
+                        let structureSetROIMap = new Map();
+                        structureSetROISequenceArray.push(structureSetROIMap)
+                        structureSetROIMap.set("ROINumber", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060022']));
+                        structureSetROIMap.set("ReferencedFrameOfReferenceUID", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060024']));
+                        structureSetROIMap.set("ROIName", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060026']));
+                        structureSetROIMap.set("ROIGenerationAlgorithm", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060036']));    
+                    }
+
                     break;
                 case "x30060022":
                     resultMap.set("ROINumber", this._getString(element));
@@ -174,7 +183,21 @@ export default class DicomFile {
                     break;
                 case "x30060080":
                     // "RTROIObservationsSequence"
-                    this.parseRtStructProperties(element.items[0].dataSet.elements, resultMap);
+
+                    let rTROIObservationsSequenceArray = new Array();
+                    resultMap.set("RTROIObservationsSequence", rTROIObservationsSequenceArray);
+
+                    for (let rTROIObservationsItem of element.items) {
+                        let rTROIObservationsMap = new Map();
+                        rTROIObservationsSequenceArray.push(rTROIObservationsMap)
+                        
+                        rTROIObservationsMap.set("ObservationNumber",this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060082']));
+                        rTROIObservationsMap.set("ReferencedROINumber",this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060084']));
+                        rTROIObservationsMap.set("ROIObservationLabel",this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060085']));
+                        rTROIObservationsMap.set("RTROIInterpretedType",this._getString(rTROIObservationsItem.dataSet.elements['x' + '300600a4']));
+                        rTROIObservationsMap.set("ROI Interpreter",this._getString(rTROIObservationsItem.dataSet.elements['x' + '300600a6']));
+                    }
+
                     break;
                 case "x30060082":
                     resultMap.set("ObservationNumber", this._getString(element));
@@ -193,26 +216,59 @@ export default class DicomFile {
                     break;
                 case "x30060010":
                     // "ReferencedFrameOfReferenceSequence"
-                    this.parseRtStructProperties(element.items[0].dataSet.elements, resultMap);
+                    let referencedFrameOfReferenceSequenceArray = new Array();
+                    resultMap.set("ReferencedFrameOfReferenceSequence", referencedFrameOfReferenceSequenceArray);
+
+                    for (let frameOfReferenceItem of element.items) {
+                        let frameOfReferenceMap = new Map();
+                        referencedFrameOfReferenceSequenceArray.push(frameOfReferenceMap);
+
+                        frameOfReferenceMap.set("FrameOfReferenceUID", this._getString(frameOfReferenceItem.dataSet.elements['x' + '00200052']));
+                        
+                        let referencedStudySequenceArray = new Array();
+                        frameOfReferenceMap.set("RTReferencedStudySequence", referencedStudySequenceArray);
+
+                        for (let rTReferencedStudyItem of frameOfReferenceItem.dataSet.elements['x' + '30060012'].items) {
+                            let rTReferencedStudyMap = new Map();
+                            referencedStudySequenceArray.push(rTReferencedStudyMap);
+
+                            rTReferencedStudyMap.set("ReferencedSOPClassUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081150']));
+                            rTReferencedStudyMap.set("ReferencedSOPInstanceUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081155']));
+
+                            let contourImageSequenceArray = new Array;
+                            rTReferencedStudyMap.set("ContourImageSequence", contourImageSequenceArray)
+
+                            for (let referencedContourImagesItem of rTReferencedStudyItem.dataSet.elements['x' + '30060014'].items) {
+                                let referencedContourImagesMap = new Map();
+                                contourImageSequenceArray.push(referencedContourImagesMap);
+
+                                referencedContourImagesMap.set("SeriesInstanceUID", this._getString(referencedContourImagesItem.dataSet.elements['x' + '0020000e']))
+
+                                let contourSequenceArray = new Array();
+                                referencedContourImagesMap.set("ContourSequence", contourSequenceArray);
+
+                                for (let contourSequenceItem of referencedContourImagesItem.dataSet.elements['x' + '30060016'].items) {
+                                    let contourMap = new Map();
+                                    contourSequenceArray.push(contourMap);
+                                    
+                                    contourMap.set("ReferencedSOPClassUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081150']));
+                                    contourMap.set("ReferencedSOPInstanceUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081155']));
+                                    
+                                }
+                                
+                            }
+
+                        }
+                    }
+
                     break;
                 case "x00200052":
                     resultMap.set("FrameOfReferenceUID", this._getString(element));
                     resultMap.set("ReferencedFrameOfReferenceUID", this._getString(element));
                     break;
-                case "x30060012":
-                    // "RTReferencedStudySequence"
-                    this.parseRtStructProperties(element.items[0].dataSet.elements, resultMap);
-                    break;
                 case "x00081155":
                     resultMap.set("ReferencedSOPInstanceUID", this._getString(element));
                     break;
-                case "x30060014":
-                    // "RTReferencedSeriesSequence"
-                    this.parseRtStructProperties(element.items[0].dataSet.elements, resultMap);
-                    break;
-                // case "x0020000e":
-                //     resultMap.set("SeriesInstanceUID", this._getString(element));
-                //     break;
                 default:
             }
         }
