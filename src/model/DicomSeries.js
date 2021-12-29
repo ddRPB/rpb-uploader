@@ -11,12 +11,13 @@ export default class DicomSeries {
 
     instances = {}
 
-    constructor(seriesInstanceUID, seriesDate, seriesDescription, modality, studyInstanceUID) {
+    constructor(seriesInstanceUID, seriesDate, seriesDescription, modality, studyInstanceUID, parameters) {
         this.seriesInstanceUID = seriesInstanceUID
         this.seriesDate = seriesDate
         this.seriesDescription = seriesDescription
         this.modality = modality
         this.studyInstanceUID = studyInstanceUID
+        this.parameters = parameters
     }
 
     getSeriesInstanceUID(){

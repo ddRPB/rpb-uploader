@@ -2,8 +2,6 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import App from './App'
 
-
-
 const config = {
   // Declare default config, we are fine with one patient/ one upload slots per upload
   //availableUploadSlots : [],
@@ -45,7 +43,7 @@ const config = {
   isNewStudy : async () => { return true }
 }
 
-test('renders learn react link', () => {
+test('renders DICOM Upload Slot headline', () => {
   const { getByText } = render(<App config={config} />)
   const linkElement = getByText(/DICOM Upload Slot/)
   expect(linkElement).toBeInTheDocument()

@@ -159,7 +159,7 @@ export default class DicomFile {
                         structureSetROIMap.set("ROINumber", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060022']));
                         structureSetROIMap.set("ReferencedFrameOfReferenceUID", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060024']));
                         structureSetROIMap.set("ROIName", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060026']));
-                        structureSetROIMap.set("ROIGenerationAlgorithm", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060036']));    
+                        structureSetROIMap.set("ROIGenerationAlgorithm", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060036']));
                     }
 
                     break;
@@ -190,12 +190,12 @@ export default class DicomFile {
                     for (let rTROIObservationsItem of element.items) {
                         let rTROIObservationsMap = new Map();
                         rTROIObservationsSequenceArray.push(rTROIObservationsMap)
-                        
-                        rTROIObservationsMap.set("ObservationNumber",this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060082']));
-                        rTROIObservationsMap.set("ReferencedROINumber",this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060084']));
-                        rTROIObservationsMap.set("ROIObservationLabel",this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060085']));
-                        rTROIObservationsMap.set("RTROIInterpretedType",this._getString(rTROIObservationsItem.dataSet.elements['x' + '300600a4']));
-                        rTROIObservationsMap.set("ROI Interpreter",this._getString(rTROIObservationsItem.dataSet.elements['x' + '300600a6']));
+
+                        rTROIObservationsMap.set("ObservationNumber", this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060082']));
+                        rTROIObservationsMap.set("ReferencedROINumber", this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060084']));
+                        rTROIObservationsMap.set("ROIObservationLabel", this._getString(rTROIObservationsItem.dataSet.elements['x' + '30060085']));
+                        rTROIObservationsMap.set("RTROIInterpretedType", this._getString(rTROIObservationsItem.dataSet.elements['x' + '300600a4']));
+                        rTROIObservationsMap.set("ROI Interpreter", this._getString(rTROIObservationsItem.dataSet.elements['x' + '300600a6']));
                     }
 
                     break;
@@ -224,7 +224,7 @@ export default class DicomFile {
                         referencedFrameOfReferenceSequenceArray.push(frameOfReferenceMap);
 
                         frameOfReferenceMap.set("FrameOfReferenceUID", this._getString(frameOfReferenceItem.dataSet.elements['x' + '00200052']));
-                        
+
                         let referencedStudySequenceArray = new Array();
                         frameOfReferenceMap.set("RTReferencedStudySequence", referencedStudySequenceArray);
 
@@ -235,7 +235,7 @@ export default class DicomFile {
                             rTReferencedStudyMap.set("ReferencedSOPClassUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081150']));
                             rTReferencedStudyMap.set("ReferencedSOPInstanceUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081155']));
 
-                            let contourImageSequenceArray = new Array;
+                            let contourImageSequenceArray = new Array();
                             rTReferencedStudyMap.set("ContourImageSequence", contourImageSequenceArray)
 
                             for (let referencedContourImagesItem of rTReferencedStudyItem.dataSet.elements['x' + '30060014'].items) {
@@ -250,12 +250,12 @@ export default class DicomFile {
                                 for (let contourSequenceItem of referencedContourImagesItem.dataSet.elements['x' + '30060016'].items) {
                                     let contourMap = new Map();
                                     contourSequenceArray.push(contourMap);
-                                    
+
                                     contourMap.set("ReferencedSOPClassUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081150']));
                                     contourMap.set("ReferencedSOPInstanceUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081155']));
-                                    
+
                                 }
-                                
+
                             }
 
                         }
@@ -269,7 +269,15 @@ export default class DicomFile {
                 case "x00081155":
                     resultMap.set("ReferencedSOPInstanceUID", this._getString(element));
                     break;
+                case "x00081030":
+                    resultMap.set("StudyDescription", this._getString(element));
+                    break;
+                case "x0008103e":
+                    resultMap.set("SeriesDescription", this._getString(element));
+                    break;
+
                 default:
+                // console.log(element.tag + ": " + this._getString(element));
             }
         }
     }
@@ -312,13 +320,29 @@ export default class DicomFile {
                     break;
                 case "x300c0060":
                     // "ReferencedStructureSetSequence"
-                    this.parseRtPlanProperties(element.items[0].dataSet.elements, resultMap);
+                    let referencedStructureSetSequenceArray = new Array();
+                    resultMap.set("ReferencedStructureSetSequence", referencedStructureSetSequenceArray);
+
+                    for (let referencedStructureSetItem of element.items) {
+                        let referencedStructureSetMap = new Map();
+                        referencedStructureSetSequenceArray.push(referencedStructureSetMap)
+
+                        referencedStructureSetMap.set("ReferencedSOPClassUID", this._getString(referencedStructureSetItem.dataSet.elements['x' + '00081150']));
+                        referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedStructureSetItem.dataSet.elements['x' + '00081155']));
+                    }
                     break;
                 case "x00081155":
                     resultMap.set("ReferencedSOPInstanceUID", this._getString(element));
                     resultMap.set("ReferencedRTPlanUID", this._getString(element));
                     break;
+                case "x00081030":
+                    resultMap.set("StudyDescription", this._getString(element));
+                    break;
+                case "x0008103e":
+                    resultMap.set("SeriesDescription", this._getString(element));
+                    break;
                 default:
+                    //console.log(element.tag + ": " + this._getString(element));
             }
         }
     }
@@ -357,14 +381,31 @@ export default class DicomFile {
                     resultMap.set("InstanceCreationDate", this._getString(element));
                     break;
                 case "x300c0002":
-                    // "ReferencedRTDoseSequence"
-                    this.parseRtDoseProperties(element.items[0].dataSet.elements, resultMap);
+                    // "ReferencedRTPlanSequence"
+                    let referenceRTPlanSequenceArray = [];
+                    resultMap.set("ReferencedRTPlanSequence", referenceRTPlanSequenceArray);
+
+                    for (let referencedRTPlanItem of element.items) {
+                        let referencedStructureSetMap = new Map();
+                        referenceRTPlanSequenceArray.push(referencedStructureSetMap)
+
+                        referencedStructureSetMap.set("ReferencedSOPClassUID", this._getString(referencedRTPlanItem.dataSet.elements['x' + '00081150']));
+                        referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedRTPlanItem.dataSet.elements['x' + '00081155']));
+                    }
+
                     break;
                 case "x00081155":
                     resultMap.set("ReferencedSOPInstanceUID", this._getString(element));
                     resultMap.set("ReferencedRTPlanUID", this._getString(element));
                     break;
+                case "x00081030":
+                    resultMap.set("StudyDescription", this._getString(element));
+                    break;
+                case "x0008103e":
+                    resultMap.set("SeriesDescription", this._getString(element));
+                    break;
                 default:
+                    // console.log(element.tag + ": " + this._getString(element));
             }
         }
     }
@@ -401,11 +442,27 @@ export default class DicomFile {
                     break;
                 case "x300c0002":
                     // "ReferencedRTPlanSequence"
-                    this.parseRtImageProperties(element.items[0].dataSet.elements, resultMap);
+                    let referenceRTPlanSequenceArray = [];
+                    resultMap.set("ReferencedRTPlanSequence", referenceRTPlanSequenceArray);
+
+                    for (let referencedRTPlanItem of element.items) {
+                        let referencedStructureSetMap = new Map();
+                        referenceRTPlanSequenceArray.push(referencedStructureSetMap)
+
+                        referencedStructureSetMap.set("ReferencedSOPClassUID", this._getString(referencedRTPlanItem.dataSet.elements['x' + '00081150']));
+                        referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedRTPlanItem.dataSet.elements['x' + '00081155']));
+                    }
+
                     break;
                 case "x00081155":
                     resultMap.set("ReferencedSOPInstanceUID", this._getString(element));
                     resultMap.set("ReferencedRTPlanUID", this._getString(element));
+                    break;
+                case "x00081030":
+                    resultMap.set("StudyDescription", this._getString(element));
+                    break;
+                case "x0008103e":
+                    resultMap.set("SeriesDescription", this._getString(element));
                     break;
                 default:
             }
@@ -433,7 +490,20 @@ export default class DicomFile {
                 case "x00020003":
                     resultMap.set("MediaStorageSOPInstanceUID", this._getString(element));
                     break;
+                case "x00180015":
+                    resultMap.set("BodyPartExamined", this._getString(element));
+                    break;
+                case "x00081030":
+                    resultMap.set("StudyDescription", this._getString(element));
+                    break;
+                case "x0008103e":
+                    resultMap.set("SeriesDescription", this._getString(element));
+                    break;
+                case "x00080008":
+                    resultMap.set("ImageType", this._getString(element));
+                    break;
                 default:
+                // console.log(element.tag + ": " + this._getString(element));
             }
         }
     }

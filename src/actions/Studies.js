@@ -1,11 +1,11 @@
-import { ADD_STUDY, SET_SLOT_ID, SET_USED_SLOT, SET_NOT_USED_SLOT, UNSET_SLOT_ID, REMOVE_WARNING_STUDY, ADD_WARNING_STUDY } from './actionTypes'
 import { NULL_SLOT_ID } from '../model/Warning'
+import { ADD_STUDY, ADD_WARNING_STUDY, REMOVE_WARNING_STUDY, SET_NOT_USED_SLOT, SET_SLOT_ID, SET_USED_SLOT, UNSET_SLOT_ID } from './actionTypes'
 
 /**
  * Add DICOM study to Redux studies Object
  * @param {Object} studyObject
  */
-export function addStudy(patientSex, patientBirthDate, studyInstanceUID, studyDescription, studyDate, studyType, seriesModalitiesArray) {
+export function addStudy(patientSex, patientBirthDate, studyInstanceUID, studyDescription, studyDate, studyType, seriesModalitiesArray, tree) {
 
     return {
         type: ADD_STUDY,
@@ -74,13 +74,13 @@ export function unsetSlotID(studyInstanceUID, slotID) {
         dispatch(
             {
                 type: SET_NOT_USED_SLOT,
-                payload: { slotID: slotID}
+                payload: { slotID: slotID }
             }
         )
 
         dispatch(
             {
-                type : UNSET_SLOT_ID,
+                type: UNSET_SLOT_ID,
                 payload: {
                     studyInstanceUID: studyInstanceUID
                 }

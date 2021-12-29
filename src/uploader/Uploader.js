@@ -1,45 +1,44 @@
 // React and Redux
-import React, { Component, Fragment } from 'react'
-import { connect } from 'react-redux'
-
 // Primereact
-import { Message } from 'primereact/message'
+import { Message } from 'primereact/message';
 import { Toast } from 'primereact/toast';
-
-// Custom GUI components
-import SlotPanel from './SlotPanel'
-import DicomDropZone from './DicomDropZone'
-import DicomParsingDetails from './DicomParsingDetails'
-import DicomBrowser from './DicomBrowser'
-
+import React, { Component, Fragment } from 'react';
+import { connect } from 'react-redux';
+import { addSeriesReady, addStudyReady, selectStudy } from '../actions/DisplayTables';
+import { addSeries } from '../actions/Series';
+import { addSlot, resetRedux } from '../actions/Slots';
 // Action functions
-import { addStudy, setSlotID } from '../actions/Studies'
-import { addSeries } from '../actions/Series'
-import { addWarningsSeries, addWarningsStudy } from '../actions/Warnings'
-import { addSlot, resetRedux } from '../actions/Slots'
-import { selectStudy, addStudyReady } from '../actions/DisplayTables'
-import { addSeriesReady } from '../actions/DisplayTables'
-
-import { NULL_SLOT_ID, ALREADY_KNOWN_STUDY } from '../model/Warning'
-
+import { addStudy, setSlotID } from '../actions/Studies';
+import { addWarningsSeries, addWarningsStudy } from '../actions/Warnings';
 // DICOM processing
-import DicomFile from '../model/DicomFile'
-import DicomUploadDictionary from '../model/DicomUploadDictionary'
-
+import DicomFile from '../model/DicomFile';
+import DicomUploadDictionary from '../model/DicomUploadDictionary';
+import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
+import TreeBuilder from '../util/TreeBuilder';
 // Util
-import Util from '../util/Util'
+import Util from '../util/Util';
+import DicomBrowser from './DicomBrowser';
+import DicomDropZone from './DicomDropZone';
+import DicomParsingDetails from './DicomParsingDetails';
+// Custom GUI components
+import SlotPanel from './SlotPanel';
+import { TreeSelection } from "./TreeSelection";
+
+
+
+
 
 /**
  * Uploader component
  */
 class Uploader extends Component {
-    
+
     state = {
         isFilesLoaded: false,
         isParsingFiles: false,
         isUnzipping: false,
         isUploadStarted: false,
-        isPaused : false,
+        isPaused: false,
         fileParsed: 0,
         fileLoaded: 0,
         zipProgress: 0,
@@ -47,7 +46,9 @@ class Uploader extends Component {
         studyProgress: 0,
         studyLength: 1,
         ignoredFiles: {},
-        isAnalysisDone: false
+        isAnalysisDone: false,
+        tree: {},
+        selectedNodeKeys: []
     }
 
     constructor(props) {
@@ -55,8 +56,14 @@ class Uploader extends Component {
 
         this.config = this.props.config
         this.dicomUploadDictionary = new DicomUploadDictionary()
+        this.selectNodes = this.selectNodes.bind(this);
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
+    }
+
+    selectNodes(e){
+        this.setState({ selectedNodeKeys: e.value })
+
     }
 
     /**
@@ -78,11 +85,14 @@ class Uploader extends Component {
      */
     loadAvailableUploadSlots = () => {
         let uploadSlots = this.props.config.availableUploadSlots
-        
+
         uploadSlots.forEach(uploadSlot => {
             this.props.addSlot(uploadSlot)
         })
     }
+
+    
+
 
     /**
      * Read dropped files (listen to DropZone event)
@@ -134,7 +144,7 @@ class Uploader extends Component {
 
             // DicomDir do no register file
             if (dicomFile.isDicomDir()) {
-                 throw Error('DICOMDIR')
+                throw Error('DICOMDIR')
             }
 
             // Register Study, Series, Instance in upload study dictionary
@@ -150,7 +160,7 @@ class Uploader extends Component {
 
             let series
             if (!study.seriesExists(seriesInstanceUID)) {
-                 series = study.addSeries(dicomFile.getDicomSeriesObject())
+                series = study.addSeries(dicomFile.getDicomSeriesObject())
             } else {
                 series = study.getSeries(seriesInstanceUID)
             }
@@ -160,7 +170,7 @@ class Uploader extends Component {
             this.setState((previousState) => {
                 return { fileParsed: ++previousState.fileParsed }
             })
-            
+
         } catch (error) {
             // In case of exception register file in ignored file list
 
@@ -193,7 +203,7 @@ class Uploader extends Component {
         // Check if study is already known by server
         let newStudy = await this.props.config.isNewStudy(studyRedux.studyInstanceUID)
         if (!newStudy) warnings.push(ALREADY_KNOWN_STUDY)
-        
+
         return warnings
     }
 
@@ -205,22 +215,29 @@ class Uploader extends Component {
 
         // Scan every study in Model
         let studyArray = this.dicomUploadDictionary.getStudies()
+
+        let treeBuilder = new TreeBuilder(studyArray);
+        this.setState({ tree: treeBuilder.build() });
+        // console.log(JSON.stringify(treeBuilder.build()));
+
         for (let studyObject of studyArray) {
 
+            const treeBuilder = new TreeBuilder([studyObject]);
+            studyObject.tree = treeBuilder.build();
             // If unknown studyInstanceUID, add it to Redux
-            if (!Object.keys(this.props.studies).includes(studyObject.getStudyInstanceUID())){
+            if (!Object.keys(this.props.studies).includes(studyObject.getStudyInstanceUID())) {
                 await this.registerStudyInRedux(studyObject)
             }
 
             // Scan every series in Model
             let series = studyObject.getSeriesArray()
             for (let seriesObject of series) {
-                if (!Object.keys(this.props.series).includes(seriesObject.getSeriesInstanceUID())){
+                if (!Object.keys(this.props.series).includes(seriesObject.getSeriesInstanceUID())) {
                     await this.registerSeriesInRedux(seriesObject)
                 }
             }
         }
-        
+
         // Mark check finished to make interface available and select the first study item
         this.setState({ isAnalysisDone: true })
 
@@ -236,7 +253,7 @@ class Uploader extends Component {
      * @param {object} slotObject
      */
     isApproximateMatch = (studyRedux, slotObject) => {
-        
+
         let birthDate = studyRedux.patientBirthDate
         let sex = studyRedux.patientSex
         let modalities = studyRedux.seriesModalitiesArray
@@ -257,7 +274,7 @@ class Uploader extends Component {
         let studyRedux = this.props.studies[studyInstanceUID]
 
         // Linear search through expected upload slots
-        for (let slotObject of Object.values(this.props.slots) ) {
+        for (let slotObject of Object.values(this.props.slots)) {
             if (this.isApproximateMatch(studyRedux, slotObject)) {
                 return slotObject;
             }
@@ -321,7 +338,7 @@ class Uploader extends Component {
 
         // Automatically add to Redux seriesReady if contains no warnings
         if (Util.isEmptyObject(seriesWarnings)) {
-            this.props.addSeriesReady(dicomSeries.getSeriesInstanceUID() )
+            this.props.addSeriesReady(dicomSeries.getSeriesInstanceUID())
         } else {
             // Add series related warnings to Redux
             this.props.addWarningsSeries(dicomSeries.getSeriesInstanceUID(), seriesWarnings)
@@ -349,7 +366,7 @@ class Uploader extends Component {
 
         if (studyUIDArray.length === 0) {
 
-            new Toast().show({severity:'error', summary: 'Error Message', detail:'No Selected Series to Upload', life: 3000})
+            new Toast().show({ severity: 'error', summary: 'Error Message', detail: 'No Selected Series to Upload', life: 3000 })
             //toast.error('No Selected Series to Upload')
             return
         }
@@ -376,7 +393,7 @@ class Uploader extends Component {
                 filesToUpload.push(...fileArray)
             })
 
-        //     uploader.addStudyToUpload(slotID, filesToUpload, studyOrthancID)
+            //     uploader.addStudyToUpload(slotID, filesToUpload, studyOrthancID)
         }
 
         // uploader.on('batch-zip-progress', (studyNumber, zipProgress) => {
@@ -409,7 +426,7 @@ class Uploader extends Component {
         // })
 
         // uploader.startUpload()
-        
+
         // this.setState({ isUploadStarted: true })
     }
 
@@ -441,6 +458,14 @@ class Uploader extends Component {
                             dataIgnoredFiles={this.state.ignoredFiles}
                         />
                     </div>
+                    <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
+                        <TreeSelection
+                            tree={this.state.tree}
+                            selectNodes={this.selectNodes}
+                            selectedNodeKeys={this.state.selectedNodeKeys}
+                            >
+                        </TreeSelection>
+                    </div>
                     <div hidden={!this.state.isFilesLoaded}>
                         <DicomBrowser
                             isCheckDone={this.state.isAnalysisDone}
@@ -462,7 +487,7 @@ class Uploader extends Component {
                         {/*/>*/}
                     </div>
                 </Fragment>
-            )    
+            )
         } else {
             return <Message severity="warn" text="No upload slots available" />
         }

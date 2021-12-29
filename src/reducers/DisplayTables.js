@@ -49,7 +49,7 @@ export default function DisplayTablesReducer(state = initialState, action) {
 
         case ADD_SERIES_READY:
             let seriesReady = [...state.seriesReady]
-            console.log(action)
+            //console.log(action)
             if (!seriesReady.includes(action.payload.seriesInstanceUID)) {
                 //add SeriesInstanceUID to selectedSeries
                 seriesReady.push(action.payload.seriesInstanceUID)
