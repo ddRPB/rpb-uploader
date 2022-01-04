@@ -1,7 +1,8 @@
 // React and Redux
 // Primereact
+import { Divider } from 'primereact/divider';
 import { Message } from 'primereact/message';
-import { Toast } from 'primereact/toast';
+import { TabMenu } from 'primereact/tabmenu';
 import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
 import { addSeriesReady, addStudyReady, selectStudy } from '../actions/DisplayTables';
@@ -20,6 +21,7 @@ import Util from '../util/Util';
 import DicomBrowser from './DicomBrowser';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingDetails from './DicomParsingDetails';
+import { DicomStudySelection } from "./DicomStudySelection";
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -47,9 +49,18 @@ class Uploader extends Component {
         studyLength: 1,
         ignoredFiles: {},
         isAnalysisDone: false,
-        tree: {},
-        selectedNodeKeys: []
+        // tree: {},
+        studyArray: [],
+        selectedNodeKeys: [],
+        selectedStudy: {},
+        seriesSelectionState: 0
     }
+
+    seriesSelectionMenuItems = [
+        { label: 'All Series', icon: 'pi pi-fw pi-home' },
+        { label: 'RT Series Tree View', icon: 'pi pi-fw pi-calendar' }
+
+    ];
 
     constructor(props) {
         super(props)
@@ -57,13 +68,20 @@ class Uploader extends Component {
         this.config = this.props.config
         this.dicomUploadDictionary = new DicomUploadDictionary()
         this.selectNodes = this.selectNodes.bind(this);
+        this.selectStudy = this.selectStudy.bind(this);
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
 
-    selectNodes(e){
-        this.setState({ selectedNodeKeys: e.value })
 
+
+    selectNodes(e) {
+        this.setState({ selectedNodeKeys: e.value })
+    }
+
+    selectStudy(e){
+        console.log("test");
+        this.setState({selectedStudy: e.value})
     }
 
     /**
@@ -91,7 +109,7 @@ class Uploader extends Component {
         })
     }
 
-    
+
 
 
     /**
@@ -130,6 +148,8 @@ class Uploader extends Component {
         Promise.all(readPromises).then(() => {
             this.setState({ isFilesLoaded: true, isParsingFiles: false })
             this.analyseDicomAndUpdateRedux()
+            // State setzen
+            this.setState({ studyArray: this.dicomUploadDictionary.getStudies()});
         })
     }
 
@@ -215,9 +235,10 @@ class Uploader extends Component {
 
         // Scan every study in Model
         let studyArray = this.dicomUploadDictionary.getStudies()
+        
 
-        let treeBuilder = new TreeBuilder(studyArray);
-        this.setState({ tree: treeBuilder.build() });
+        // let treeBuilder = new TreeBuilder(studyArray);
+        // this.setState({ tree: treeBuilder.build() });
         // console.log(JSON.stringify(treeBuilder.build()));
 
         for (let studyObject of studyArray) {
@@ -295,7 +316,8 @@ class Uploader extends Component {
             dicomStudy.getStudyDescription(),
             dicomStudy.getStudyDate(),
             dicomStudy.getStudyType(),
-            dicomStudy.getSeriesModalities()
+            dicomStudy.getSeriesModalities(),
+            dicomStudy.tree
         )
 
         const studyInstanceUID = dicomStudy.getStudyInstanceUID()
@@ -345,90 +367,6 @@ class Uploader extends Component {
         }
     }
 
-    /**
-     * Upload selected and validated series on click
-     */
-    onUploadClick = () => {
-
-        // Build array of series object to be uploaded
-        let seriesObjectArrays = this.props.seriesReady.map((seriesUID) => {
-            return this.props.series[seriesUID]
-        })
-
-        // Get unique StudyUID in series arrays
-        let studyUIDArray = seriesObjectArrays.map((seriesObject) => {
-            return seriesObject.studyInstanceUID
-        })
-        studyUIDArray = [...new Set(studyUIDArray)]
-
-        // Filter non selected studyUID
-        studyUIDArray = studyUIDArray.filter(studyUID => (this.props.studiesReady.includes(studyUID)))
-
-        if (studyUIDArray.length === 0) {
-
-            new Toast().show({ severity: 'error', summary: 'Error Message', detail: 'No Selected Series to Upload', life: 3000 })
-            //toast.error('No Selected Series to Upload')
-            return
-        }
-
-        // let uploader = new DicomMultiStudyUploader(this.uppy)
-
-        // Group series by studyUID
-        for (let studyInstanceUID of studyUIDArray) {
-
-            let slotID = this.props.studies[studyInstanceUID].slotID
-
-            let seriesInstanceUID = seriesObjectArrays.filter((seriesObject) => {
-                return (seriesObject.studyInstanceUID === studyInstanceUID)
-            })
-            //let studyOrthancID = this.dicomUploadDictionary.getStudy(studyInstanceUID).getOrthancStudyID()
-
-            let filesToUpload = []
-
-            seriesInstanceUID.forEach(seriesObject => {
-                let getSeriesObject = this.dicomUploadDictionary.getStudy(studyInstanceUID).getSeries(seriesObject.seriesInstanceUID)
-                let fileArray = getSeriesObject.getInstances().map(instance => {
-                    return instance.getFile()
-                })
-                filesToUpload.push(...fileArray)
-            })
-
-            //     uploader.addStudyToUpload(slotID, filesToUpload, studyOrthancID)
-        }
-
-        // uploader.on('batch-zip-progress', (studyNumber, zipProgress) => {
-        //     this.setState({
-        //         studyLength: studyUIDArray.length,
-        //         studyProgress: studyNumber,
-        //         zipProgress: zipProgress
-        //     })
-        //
-        // })
-
-        // uploader.on('batch-upload-progress', (studyNumber, uploadProgress) => {
-        //     this.setState({
-        //         studyLength: studyUIDArray.length,
-        //         studyProgress: studyNumber,
-        //         uploadProgress: uploadProgress
-        //     })
-        //
-        // })
-
-        // uploader.on('study-upload-finished', (slotID, numberOfFiles, successIDsUploaded, studyOrthancID) => {
-        //     console.log('study upload Finished')
-        //     this.config.onStudyUploaded( slotID, successIDsUploaded, numberOfFiles, studyOrthancID)
-        //
-        // })
-
-        // uploader.on('upload-finished', () => {
-        //     console.log('full upload Finished')
-        //     this.config.onUploadComplete()
-        // })
-
-        // uploader.startUpload()
-
-        // this.setState({ isUploadStarted: true })
-    }
 
     /**
      * Render the component
@@ -440,6 +378,7 @@ class Uploader extends Component {
                     <div>
                         <SlotPanel />
                     </div>
+                    <Divider />
                     <div>
                         <DicomDropZone
                             addFile={this.addFile}
@@ -451,6 +390,7 @@ class Uploader extends Component {
                             fileLoaded={this.state.fileLoaded}
                         />
                     </div>
+                    <Divider />
                     <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
                         <DicomParsingDetails
                             fileLoaded={this.state.fileLoaded}
@@ -458,35 +398,53 @@ class Uploader extends Component {
                             dataIgnoredFiles={this.state.ignoredFiles}
                         />
                     </div>
+                    <Divider />
                     <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
-                        <TreeSelection
-                            tree={this.state.tree}
-                            selectNodes={this.selectNodes}
-                            selectedNodeKeys={this.state.selectedNodeKeys}
+                        <DicomStudySelection
+                            studies={this.props.studies}
+                            selectStudy={this.selectStudy}
+                            selectedStudy={this.state.selectedStudy}
+                        />
+                    </div>
+                    <Divider />
+
+                    <div hidden={!this.state.isFilesLoaded}>
+                        <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
+                    </div>
+                    <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
+                        <div className="mb-3" hidden={!this.state.seriesSelectionState == 1}>
+                            <TreeSelection
+                                tree={this.state.tree}
+                                selectedStudy={this.state.selectedStudy}
+                                selectNodes={this.selectNodes}
+                                selectedNodeKeys={this.state.selectedNodeKeys}
                             >
-                        </TreeSelection>
+                            </TreeSelection>
+                        </div>
                     </div>
                     <div hidden={!this.state.isFilesLoaded}>
-                        <DicomBrowser
-                            isCheckDone={this.state.isAnalysisDone}
-                            isUploadStarted={this.state.isUploadStarted}
-                            multiUpload={this.config.availableUploadSlots.length > 1}
-                            selectedSeries={this.props.selectedSeries}
-                        />
-                        {/*<ProgressUpload*/}
-                        {/*    disabled={ this.state.isUploadStarted || Object.keys(this.props.studiesReady).length === 0 }*/}
-                        {/*    isUploadStarted = {this.state.isUploadStarted}*/}
-                        {/*    isPaused = {this.state.isPaused}*/}
-                        {/*    multiUpload={this.config.availableSlots.length > 1}*/}
-                        {/*    studyProgress={this.state.studyProgress}*/}
-                        {/*    studyLength={this.state.studyLength}*/}
-                        {/*    onUploadClick={this.onUploadClick}*/}
-                        {/*    onPauseClick = {this.onPauseUploadClick}*/}
-                        {/*    zipPercent={this.state.zipProgress}*/}
-                        {/*    uploadPercent={this.state.uploadProgress} */}
-                        {/*/>*/}
+                        <div className="mb-3" hidden={!this.state.seriesSelectionState == 0}>
+                            <DicomBrowser
+                                isCheckDone={this.state.isAnalysisDone}
+                                isUploadStarted={this.state.isUploadStarted}
+                                multiUpload={this.config.availableUploadSlots.length > 1}
+                                selectedSeries={this.props.selectedSeries}
+                            />
+                            {/*<ProgressUpload*/}
+                            {/*    disabled={ this.state.isUploadStarted || Object.keys(this.props.studiesReady).length === 0 }*/}
+                            {/*    isUploadStarted = {this.state.isUploadStarted}*/}
+                            {/*    isPaused = {this.state.isPaused}*/}
+                            {/*    multiUpload={this.config.availableSlots.length > 1}*/}
+                            {/*    studyProgress={this.state.studyProgress}*/}
+                            {/*    studyLength={this.state.studyLength}*/}
+                            {/*    onUploadClick={this.onUploadClick}*/}
+                            {/*    onPauseClick = {this.onPauseUploadClick}*/}
+                            {/*    zipPercent={this.state.zipProgress}*/}
+                            {/*    uploadPercent={this.state.uploadProgress} */}
+                            {/*/>*/}
+                        </div>
                     </div>
-                </Fragment>
+                </Fragment >
             )
         } else {
             return <Message severity="warn" text="No upload slots available" />

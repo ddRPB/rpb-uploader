@@ -17,7 +17,8 @@ export function addStudy(patientSex, patientBirthDate, studyInstanceUID, studyDe
             studyDescription: studyDescription,
             studyDate: studyDate,
             studyType: studyType,
-            seriesModalitiesArray: seriesModalitiesArray
+            seriesModalitiesArray: seriesModalitiesArray,
+            tree: tree
         }
     }
 }
