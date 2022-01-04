@@ -4,27 +4,10 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
 export class DicomStudySelection extends Component {
+    
     constructor(props) {
         super(props);
-        this.getTableValues = this.getTableValues.bind(this);
     }
-
-    values = [
-        {
-            studyInstanceUID: "DummyKey",
-            studyType: "test1",
-            studyDescription: "description",
-            studyDate: "date"
-        },
-        {
-            studyInstanceUID: "DummyKey2",
-            studyType: "test1",
-            studyDescription: "description",
-            studyDate: "date"
-        }
-    ]
-
-    values2 = []
 
     /**
      * Format studies from Redux State to display in study table
@@ -38,10 +21,6 @@ export class DicomStudySelection extends Component {
             studies.push({ ...study })
         }
        return Array.from(studies)
-    }
-
-    getTableValues(){
-        return [];
     }
 
     render(){

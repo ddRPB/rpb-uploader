@@ -22,6 +22,7 @@ import DicomBrowser from './DicomBrowser';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingDetails from './DicomParsingDetails';
 import { DicomStudySelection } from "./DicomStudySelection";
+import { DicomSeriesSelection } from "./DicomSeriesSelection";
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -52,7 +53,8 @@ class Uploader extends Component {
         // tree: {},
         studyArray: [],
         selectedNodeKeys: [],
-        selectedStudy: {},
+        selectedStudy: null,
+        selectedSeries: [],
         seriesSelectionState: 0
     }
 
@@ -69,6 +71,7 @@ class Uploader extends Component {
         this.dicomUploadDictionary = new DicomUploadDictionary()
         this.selectNodes = this.selectNodes.bind(this);
         this.selectStudy = this.selectStudy.bind(this);
+        this.selectSeries = this.selectSeries.bind(this);
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
@@ -79,9 +82,11 @@ class Uploader extends Component {
         this.setState({ selectedNodeKeys: e.value })
     }
 
-    selectStudy(e){
-        console.log("test");
-        this.setState({selectedStudy: e.value})
+    selectStudy(e) {
+        this.setState({ selectedStudy: e.value })
+    }
+    selectSeries(e) {
+        this.setState({ selectedSeries: e.value })
     }
 
     /**
@@ -108,9 +113,6 @@ class Uploader extends Component {
             this.props.addSlot(uploadSlot)
         })
     }
-
-
-
 
     /**
      * Read dropped files (listen to DropZone event)
@@ -147,9 +149,18 @@ class Uploader extends Component {
         // Once all promised resolved update state and refresh redux with parsing results
         Promise.all(readPromises).then(() => {
             this.setState({ isFilesLoaded: true, isParsingFiles: false })
-            this.analyseDicomAndUpdateRedux()
-            // State setzen
-            this.setState({ studyArray: this.dicomUploadDictionary.getStudies()});
+            // this.analyseDicomAndUpdateRedux()
+            // TODO: State setzen
+            this.setState({ isAnalysisDone: true })
+            let studyArray = this.dicomUploadDictionary.getStudies();
+            for (let studyObject of studyArray) {
+
+                const treeBuilder = new TreeBuilder([studyObject]);
+                studyObject.key = studyObject.studyInstanceUID;
+                studyObject.rtViewTree = treeBuilder.build();
+            }
+
+            this.setState({ studyArray: studyArray });
         })
     }
 
@@ -235,7 +246,7 @@ class Uploader extends Component {
 
         // Scan every study in Model
         let studyArray = this.dicomUploadDictionary.getStudies()
-        
+
 
         // let treeBuilder = new TreeBuilder(studyArray);
         // this.setState({ tree: treeBuilder.build() });
@@ -243,8 +254,8 @@ class Uploader extends Component {
 
         for (let studyObject of studyArray) {
 
-            const treeBuilder = new TreeBuilder([studyObject]);
-            studyObject.tree = treeBuilder.build();
+            // const treeBuilder = new TreeBuilder([studyObject]);
+            // studyObject.tree = treeBuilder.build();
             // If unknown studyInstanceUID, add it to Redux
             if (!Object.keys(this.props.studies).includes(studyObject.getStudyInstanceUID())) {
                 await this.registerStudyInRedux(studyObject)
@@ -401,17 +412,29 @@ class Uploader extends Component {
                     <Divider />
                     <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
                         <DicomStudySelection
-                            studies={this.props.studies}
+                            studies={this.state.studyArray}
                             selectStudy={this.selectStudy}
                             selectedStudy={this.state.selectedStudy}
                         />
                     </div>
                     <Divider />
 
-                    <div hidden={!this.state.isFilesLoaded}>
+                    <div hidden={!this.state.selectedStudy}>
                         <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
                     </div>
-                    <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
+
+                    <div hidden={!this.state.selectedStudy}>
+                        <div className="mb-3" hidden={!this.state.seriesSelectionState == 0}>
+                            <DicomSeriesSelection
+                                selectedStudy={this.state.selectedStudy}
+                                selectSeries={this.selectSeries}
+                                selectedSeries={this.state.selectedSeries}
+                            ></DicomSeriesSelection>
+                        </div>
+                    </div>
+
+
+                    <div className="mb-3" hidden={!this.state.selectedStudy}>
                         <div className="mb-3" hidden={!this.state.seriesSelectionState == 1}>
                             <TreeSelection
                                 tree={this.state.tree}
@@ -422,14 +445,14 @@ class Uploader extends Component {
                             </TreeSelection>
                         </div>
                     </div>
-                    <div hidden={!this.state.isFilesLoaded}>
+                    {/* <div hidden={!this.state.isFilesLoaded}>
                         <div className="mb-3" hidden={!this.state.seriesSelectionState == 0}>
                             <DicomBrowser
                                 isCheckDone={this.state.isAnalysisDone}
                                 isUploadStarted={this.state.isUploadStarted}
                                 multiUpload={this.config.availableUploadSlots.length > 1}
                                 selectedSeries={this.props.selectedSeries}
-                            />
+                            /> */}
                             {/*<ProgressUpload*/}
                             {/*    disabled={ this.state.isUploadStarted || Object.keys(this.props.studiesReady).length === 0 }*/}
                             {/*    isUploadStarted = {this.state.isUploadStarted}*/}
@@ -442,8 +465,8 @@ class Uploader extends Component {
                             {/*    zipPercent={this.state.zipProgress}*/}
                             {/*    uploadPercent={this.state.uploadProgress} */}
                             {/*/>*/}
-                        </div>
-                    </div>
+                        {/* </div>
+                    </div> */}
                 </Fragment >
             )
         } else {

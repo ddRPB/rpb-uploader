@@ -25,8 +25,8 @@ export class TreeSelection extends Component {
         //     return this.props.tree.root;
         // }
         if (this.props.selectedStudy != null) {
-            if(this.props.selectedStudy.tree != null)
-            return this.props.selectedStudy.tree.root;
+            if(this.props.selectedStudy.rtViewTree != null)
+            return this.props.selectedStudy.rtViewTree.root;
         }
 
         return {};
