@@ -16,6 +16,8 @@ export class DicomStudySelection extends Component {
      buildStudiesRows() {
         let studies = []
         for (let study of Object.values(this.props.studies)) {
+            study.studyType = study.getStudyType();
+            study.seriesModalities = study.getSeriesModalitiesArray().join(",");
             // study.status = this.getStudyStatus(study.studyInstanceUID)
         //     // study.selectedStudies = this.props.studiesReady.includes(study.studyInstanceUID)
             studies.push({ ...study })
@@ -35,6 +37,12 @@ export class DicomStudySelection extends Component {
                     <Column field="studyType" header="Type" />
                     <Column field="studyDescription" header="Description" />
                     <Column field="studyDate" header="Date" />
+                    <Column field="seriesModalities" header="Series Modalities" />
+                    {/* <Column field="studyInstanceUID" header="studyInstanceUID" /> */}
+                    {/* <Column field="patientID" header="patientID" />
+                    <Column field="patientBirthDate" header="patientBirthDate" />
+                    <Column field="patientSex" header="patientSex" />
+                    <Column field="patientName" header="patientName" /> */}
                 </DataTable>
         )
     }

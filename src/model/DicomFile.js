@@ -109,10 +109,8 @@ export default class DicomFile {
                     // console.log(self.parsedParameters);
                     break;
                 default:
-                    console.log(`Modality: ${modality}`);
+                    // console.log(`Modality: ${modality}`);
             }
-
-            // console.log(self.parsedParameters);
 
         }).catch((error) => {
             throw error

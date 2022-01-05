@@ -106,5 +106,14 @@ export default class DicomStudy {
 
         return [...new Set(modalityArray)]
     }
+
+    getSeriesModalitiesArray() {
+        let childSeriesArray = this.getSeriesArray()
+        let modalityArray = childSeriesArray.map( series => {
+            return series.getModality()
+        })
+
+        return modalityArray;
+    }
     
 }

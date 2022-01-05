@@ -2,7 +2,7 @@ import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { TreeTable } from 'primereact/treetable';
-import React, { Component, useRef } from 'react';
+import React, { Component } from 'react';
 
 
 export class TreeSelection extends Component {
@@ -21,12 +21,13 @@ export class TreeSelection extends Component {
 
 
     getTree() {
-        // if (this.props.tree.root != null) {
-        //     return this.props.tree.root;
-        // }
         if (this.props.selectedStudy != null) {
-            if(this.props.selectedStudy.rtViewTree != null)
-            return this.props.selectedStudy.rtViewTree.root;
+            if (this.props.selectedStudy.rtViewTree != null && this.props.seriesTree === "rtViewTree") {
+                return this.props.selectedStudy.rtViewTree.root;
+            }
+            if (this.props.selectedStudy.allRootTree != null && this.props.seriesTree === "allRootTree") {
+                return this.props.selectedStudy.allRootTree.root;
+            }
         }
 
         return {};
@@ -69,10 +70,11 @@ export class TreeSelection extends Component {
                 <div className="card">
                     <h5>RT View</h5>
                     <TreeTable value={this.getTree()} selectionMode="checkbox" selectionKeys={this.props.selectedNodeKeys} onSelectionChange={e => this.selectNodes(e)} >
-                        <Column field="modality" header="modality" expander></Column>
-                        <Column field="description" header="description"></Column>
-                        <Column field="details" header="details"></Column>
-                        <Column field="SeriesInstanceUID" header="SeriesInstanceUID"></Column>
+                        <Column field="modality" header="Modality" expander></Column>
+                        <Column field="seriesDescription" header="Series Description"></Column>
+                        <Column field="seriesDate" header="Series Date"></Column>
+                        <Column field="details" header="Details"></Column>
+                        <Column field="seriesInstanceUID" header="SeriesInstanceUID"></Column>
                         <Column body={this.actionTemplate.bind(this)} style={{ textAlign: 'center', width: '10rem' }} />
                     </TreeTable>
                 </div>

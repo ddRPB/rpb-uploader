@@ -60,7 +60,8 @@ class Uploader extends Component {
 
     seriesSelectionMenuItems = [
         { label: 'All Series', icon: 'pi pi-fw pi-home' },
-        { label: 'RT Series Tree View', icon: 'pi pi-fw pi-calendar' }
+        { label: 'RT Series Tree View', icon: 'pi pi-fw pi-calendar' },
+        { label: 'All Series Tree View', icon: 'pi pi-fw' }
 
     ];
 
@@ -158,6 +159,7 @@ class Uploader extends Component {
                 const treeBuilder = new TreeBuilder([studyObject]);
                 studyObject.key = studyObject.studyInstanceUID;
                 studyObject.rtViewTree = treeBuilder.build();
+                studyObject.allRootTree = treeBuilder.buildAllNodesChildrenOfRoot();
             }
 
             this.setState({ studyArray: studyArray });
@@ -424,7 +426,7 @@ class Uploader extends Component {
                     </div>
 
                     <div hidden={!this.state.selectedStudy}>
-                        <div className="mb-3" hidden={!this.state.seriesSelectionState == 0}>
+                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
                             <DicomSeriesSelection
                                 selectedStudy={this.state.selectedStudy}
                                 selectSeries={this.selectSeries}
@@ -435,10 +437,24 @@ class Uploader extends Component {
 
 
                     <div className="mb-3" hidden={!this.state.selectedStudy}>
-                        <div className="mb-3" hidden={!this.state.seriesSelectionState == 1}>
+                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
                             <TreeSelection
-                                tree={this.state.tree}
+                                rTView={true}
                                 selectedStudy={this.state.selectedStudy}
+                                seriesTree={"rtViewTree"}
+                                selectNodes={this.selectNodes}
+                                selectedNodeKeys={this.state.selectedNodeKeys}
+                            >
+                            </TreeSelection>
+                        </div>
+                    </div>
+
+                    <div className="mb-3" hidden={!this.state.selectedStudy}>
+                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 2}>
+                            <TreeSelection
+                                rTView={true}
+                                selectedStudy={this.state.selectedStudy}
+                                seriesTree={"allRootTree"}
                                 selectNodes={this.selectNodes}
                                 selectedNodeKeys={this.state.selectedNodeKeys}
                             >
