@@ -34,6 +34,8 @@ export default class DicomFile {
      * @param {*} element element from the data set
      */
     _getString(element) {
+        if (element === undefined) { return undefined }
+
         let position = element.dataOffset
         const length = element.length
 
@@ -93,7 +95,6 @@ export default class DicomFile {
             switch (modality) {
                 case "RTSTRUCT":
                     self.parseRtStructProperties(self.dataSet.elements, self.parsedParameters);
-                    // console.log(self.parsedParameters);
                     break;
                 case "RTPLAN":
                     self.parseRtPlanProperties(self.dataSet.elements, self.parsedParameters);
@@ -106,10 +107,9 @@ export default class DicomFile {
                     break;
                 case "CT":
                     self.parseCtProperties(self.dataSet.elements, self.parsedParameters);
-                    // console.log(self.parsedParameters);
                     break;
                 default:
-                    // console.log(`Modality: ${modality}`);
+                // 
             }
 
         }).catch((error) => {
@@ -148,12 +148,13 @@ export default class DicomFile {
                 case "x30060020":
                     // "StructureSetROISequence"
 
-                    let structureSetROISequenceArray = new Array();
+                    let structureSetROISequenceArray = [];
                     resultMap.set("StructureSetROISequence", structureSetROISequenceArray);
 
                     for (let structureSetROISequenceItem of element.items) {
                         let structureSetROIMap = new Map();
                         structureSetROISequenceArray.push(structureSetROIMap)
+
                         structureSetROIMap.set("ROINumber", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060022']));
                         structureSetROIMap.set("ReferencedFrameOfReferenceUID", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060024']));
                         structureSetROIMap.set("ROIName", this._getString(structureSetROISequenceItem.dataSet.elements['x' + '30060026']));
@@ -182,7 +183,7 @@ export default class DicomFile {
                 case "x30060080":
                     // "RTROIObservationsSequence"
 
-                    let rTROIObservationsSequenceArray = new Array();
+                    let rTROIObservationsSequenceArray = [];
                     resultMap.set("RTROIObservationsSequence", rTROIObservationsSequenceArray);
 
                     for (let rTROIObservationsItem of element.items) {
@@ -214,48 +215,59 @@ export default class DicomFile {
                     break;
                 case "x30060010":
                     // "ReferencedFrameOfReferenceSequence"
-                    let referencedFrameOfReferenceSequenceArray = new Array();
+                    let referencedFrameOfReferenceSequenceArray = [];
                     resultMap.set("ReferencedFrameOfReferenceSequence", referencedFrameOfReferenceSequenceArray);
 
                     for (let frameOfReferenceItem of element.items) {
                         let frameOfReferenceMap = new Map();
                         referencedFrameOfReferenceSequenceArray.push(frameOfReferenceMap);
 
-                        frameOfReferenceMap.set("FrameOfReferenceUID", this._getString(frameOfReferenceItem.dataSet.elements['x' + '00200052']));
+                        if (frameOfReferenceItem.dataSet.elements['x' + '00200052']) {
+                            frameOfReferenceMap.set("FrameOfReferenceUID", this._getString(frameOfReferenceItem.dataSet.elements['x' + '00200052']));
 
-                        let referencedStudySequenceArray = new Array();
-                        frameOfReferenceMap.set("RTReferencedStudySequence", referencedStudySequenceArray);
+                            let referencedStudySequenceArray = [];
+                            frameOfReferenceMap.set("RTReferencedStudySequence", referencedStudySequenceArray);
 
-                        for (let rTReferencedStudyItem of frameOfReferenceItem.dataSet.elements['x' + '30060012'].items) {
-                            let rTReferencedStudyMap = new Map();
-                            referencedStudySequenceArray.push(rTReferencedStudyMap);
+                            if (frameOfReferenceItem.dataSet.elements['x' + '30060012']) {
 
-                            rTReferencedStudyMap.set("ReferencedSOPClassUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081150']));
-                            rTReferencedStudyMap.set("ReferencedSOPInstanceUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081155']));
+                                let rTReferencedStudyMap = new Map();
+                                referencedStudySequenceArray.push(rTReferencedStudyMap);
 
-                            let contourImageSequenceArray = new Array();
-                            rTReferencedStudyMap.set("ContourImageSequence", contourImageSequenceArray)
+                                for (let rTReferencedStudyItem of frameOfReferenceItem.dataSet.elements['x' + '30060012'].items) {
 
-                            for (let referencedContourImagesItem of rTReferencedStudyItem.dataSet.elements['x' + '30060014'].items) {
-                                let referencedContourImagesMap = new Map();
-                                contourImageSequenceArray.push(referencedContourImagesMap);
+                                    rTReferencedStudyMap.set("ReferencedSOPClassUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081150']));
+                                    rTReferencedStudyMap.set("ReferencedSOPInstanceUID", this._getString(rTReferencedStudyItem.dataSet.elements['x' + '00081155']));
 
-                                referencedContourImagesMap.set("SeriesInstanceUID", this._getString(referencedContourImagesItem.dataSet.elements['x' + '0020000e']))
+                                    let contourImageSequenceArray = [];
+                                    rTReferencedStudyMap.set("ContourImageSequence", contourImageSequenceArray)
 
-                                let contourSequenceArray = new Array();
-                                referencedContourImagesMap.set("ContourSequence", contourSequenceArray);
+                                    if (rTReferencedStudyItem.dataSet.elements['x' + '30060014']) {
 
-                                for (let contourSequenceItem of referencedContourImagesItem.dataSet.elements['x' + '30060016'].items) {
-                                    let contourMap = new Map();
-                                    contourSequenceArray.push(contourMap);
+                                        for (let referencedContourImagesItem of rTReferencedStudyItem.dataSet.elements['x' + '30060014'].items) {
 
-                                    contourMap.set("ReferencedSOPClassUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081150']));
-                                    contourMap.set("ReferencedSOPInstanceUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081155']));
+                                            let referencedContourImagesMap = new Map();
+                                            contourImageSequenceArray.push(referencedContourImagesMap);
 
+                                            referencedContourImagesMap.set("SeriesInstanceUID", this._getString(referencedContourImagesItem.dataSet.elements['x' + '0020000e']))
+
+                                            let contourSequenceArray = [];
+                                            referencedContourImagesMap.set("ContourSequence", contourSequenceArray);
+
+                                            if (referencedContourImagesItem.dataSet.elements['x' + '30060016']) {
+
+                                                for (let contourSequenceItem of referencedContourImagesItem.dataSet.elements['x' + '30060016'].items) {
+                                                    let contourMap = new Map();
+                                                    contourSequenceArray.push(contourMap);
+
+                                                    contourMap.set("ReferencedSOPClassUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081150']));
+                                                    contourMap.set("ReferencedSOPInstanceUID", this._getString(contourSequenceItem.dataSet.elements['x' + '00081155']));
+
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-
                             }
-
                         }
                     }
 
@@ -275,7 +287,7 @@ export default class DicomFile {
                     break;
 
                 default:
-                // console.log(element.tag + ": " + this._getString(element));
+                // 
             }
         }
     }
@@ -318,7 +330,7 @@ export default class DicomFile {
                     break;
                 case "x300c0060":
                     // "ReferencedStructureSetSequence"
-                    let referencedStructureSetSequenceArray = new Array();
+                    let referencedStructureSetSequenceArray = [];
                     resultMap.set("ReferencedStructureSetSequence", referencedStructureSetSequenceArray);
 
                     for (let referencedStructureSetItem of element.items) {
@@ -340,7 +352,7 @@ export default class DicomFile {
                     resultMap.set("SeriesDescription", this._getString(element));
                     break;
                 default:
-                    //console.log(element.tag + ": " + this._getString(element));
+                //
             }
         }
     }
@@ -403,7 +415,7 @@ export default class DicomFile {
                     resultMap.set("SeriesDescription", this._getString(element));
                     break;
                 default:
-                    // console.log(element.tag + ": " + this._getString(element));
+                // 
             }
         }
     }
@@ -501,7 +513,7 @@ export default class DicomFile {
                     resultMap.set("ImageType", this._getString(element));
                     break;
                 default:
-                // console.log(element.tag + ": " + this._getString(element));
+                //
             }
         }
     }

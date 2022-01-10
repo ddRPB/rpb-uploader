@@ -53,7 +53,7 @@ export default class TreeBuilder {
             result.root.push(rTPlan);
         }
 
-        
+
         for (let imageId in this.rTImages) {
             const rTImage = this.rTImages[imageId];
             result.root.push(rTImage);
@@ -150,6 +150,14 @@ export default class TreeBuilder {
         return this.result;
     }
 
+    getDetailsItem(name, value) {
+        return {
+            "name": name,
+            "value": value
+        }
+
+    }
+
 
     buildSeriesNodesMaps() {
         this.rTStructs = {};
@@ -167,17 +175,25 @@ export default class TreeBuilder {
                 switch (modality) {
                     case "RTSTRUCT":
                         const struct = this.getBasicSeriesNode(seriesObject);
-                        struct.data.modality = modality;
                         struct.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
                         struct.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
-                        struct.data.SeriesInstanceUID = seriesObject.parameters.get("SeriesInstanceUID");
                         struct.data.StructureSetLabel = seriesObject.parameters.get("StructureSetLabel");
                         struct.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
-                        struct.data.SeriesDescription = seriesObject.parameters.get("SeriesDescription");
                         struct.data.StructureSetName = seriesObject.parameters.get("StructureSetName");
                         struct.data.StructureSetDescription = seriesObject.parameters.get("StructureSetDescription");
+
+                        if(seriesObject.parameters.get("StructureSetDescription") && struct.data.seriesDescription  === "" ){
+                            struct.data.seriesDescription = seriesObject.parameters.get("StructureSetDescription");
+                        }
+
                         struct.data.StructureSetDate = seriesObject.parameters.get("StructureSetDate");
+
+                        if (seriesObject.parameters.get("StructureSetDate") && struct.data.seriesDate === "") {
+                            struct.data.seriesDate = seriesObject.parameters.get("StructureSetDate");
+                        }
+
                         struct.StructureSetROISequence = seriesObject.parameters.get("StructureSetROISequence");
+
                         struct.data.ROINumber = seriesObject.parameters.get("ROINumber");
                         struct.data.ReferencedFrameOfReferenceUID = seriesObject.parameters.get("ReferencedFrameOfReferenceUID");
                         struct.data.ROIName = seriesObject.parameters.get("ROIName");
@@ -186,11 +202,18 @@ export default class TreeBuilder {
                         struct.data.ROIGenerationAlgorithm = seriesObject.parameters.get("ROIGenerationAlgorithm");
                         struct.ReferencedFrameOfReferenceSequence = seriesObject.parameters.get("ReferencedFrameOfReferenceSequence");
                         struct.data.ROIGenerationAlgorithm = seriesObject.parameters.get("ROIGenerationAlgorithm");
-                        struct.data.description = seriesObject.parameters.get("SeriesDescription");
-                        struct.data.details = "StructureSetLabel: " + struct.data.StructureSetLabel +
-                            " StructureSetName: " + struct.data.StructureSetName +
-                            " StructureSetDescription: " + struct.data.StructureSetDescription +
-                            " StructureSetDate: " + struct.data.StructureSetDate;
+
+                        struct.data.rOIOberservationSequenceArray = seriesObject.parameters.get("RTROIObservationsSequence");
+
+                        struct.data.detailsArray = [];
+                        if (struct.data.StructureSetLabel) struct.data.detailsArray.push(this.getDetailsItem("StructureSetLabel", struct.data.StructureSetLabel));
+                        if (struct.data.StructureSetName) struct.data.detailsArray.push(this.getDetailsItem("StructureSetName", struct.data.StructureSetName));
+                        if (struct.data.StructureSetDescription) struct.data.detailsArray.push(this.getDetailsItem("StructureSetDescription", struct.data.StructureSetDescription));
+                        if (struct.data.StructureSetDate) struct.data.detailsArray.push(this.getDetailsItem("StructureSetDate", struct.data.StructureSetDate));
+                        if (struct.data.StructureSetDate) struct.data.detailsArray.push(this.getDetailsItem("StructureSetDate", struct.data.StructureSetDate));
+                        if (struct.data.ROINumber) struct.data.detailsArray.push(this.getDetailsItem("ROINumber", struct.data.ROINumber));
+
+
                         this.rTStructs[seriesObject.parameters.get("SOPInstanceUID")] = struct;
                         break;
                     case "RTPLAN":
@@ -199,6 +222,7 @@ export default class TreeBuilder {
                         plan.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
                         plan.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
                         plan.data.SeriesInstanceUID = seriesObject.parameters.get("SeriesInstanceUID");
+                        plan.key = seriesObject.parameters.get("SeriesInstanceUID");
                         plan.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
                         plan.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
                         plan.data.SeriesDescription = seriesObject.parameters.get("SeriesDescription");
@@ -210,13 +234,15 @@ export default class TreeBuilder {
                         plan.data.RTPlanGeometry = seriesObject.parameters.get("RTPlanGeometry");
                         plan.ReferencedStructureSetSequence = seriesObject.parameters.get("ReferencedStructureSetSequence");
                         plan.data.description = seriesObject.parameters.get("SeriesDescription");
-                        plan.data.details = "RTPlanLabel: " + plan.data.RTPlanLabel +
-                            " RTPlanName: " + plan.data.RTPlanName +
-                            " PrescriptionDescription: " + plan.data.PrescriptionDescription +
-                            " RTPlanDate: " + plan.data.RTPlanDate +
-                            " RTPlanGeometry: " + plan.data.RTPlanGeometry +
-                            " ReferencedStructureSetSequence: " + plan.data.ReferencedStructureSetSequence +
-                            " RTPlanDescription: " + plan.data.RTPlanDescription;
+
+                        plan.data.detailsArray = [];
+                        if (plan.data.RTPlanLabel) plan.data.detailsArray.push(this.getDetailsItem("RTPlanLabel", plan.data.RTPlanLabel));
+                        if (plan.data.RTPlanName) plan.data.detailsArray.push(this.getDetailsItem("RTPlanName", plan.data.RTPlanName));
+                        if (plan.data.PrescriptionDescription) plan.data.detailsArray.push(this.getDetailsItem("PrescriptionDescription", plan.data.PrescriptionDescription));
+                        if (plan.data.RTPlanDate) plan.data.detailsArray.push(this.getDetailsItem("RTPlanDate", plan.data.RTPlanDate));
+                        if (plan.data.ReferencedStructureSetSequence) plan.data.detailsArray.push(this.getDetailsItem("ReferencedStructureSetSequence", plan.data.ReferencedStructureSetSequence));
+                        if (plan.data.RTPlanDescription) plan.data.detailsArray.push(this.getDetailsItem("RTPlanDescription", plan.data.RTPlanDescription));
+
                         this.rtPlans[seriesObject.parameters.get("SOPInstanceUID")] = plan;
                         break;
                     case "RTDOSE":
@@ -225,6 +251,7 @@ export default class TreeBuilder {
                         dose.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
                         dose.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
                         dose.data.SeriesInstanceUID = seriesObject.parameters.get("SeriesInstanceUID");
+                        dose.key = seriesObject.parameters.get("SeriesInstanceUID");
                         dose.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
                         dose.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
                         dose.data.SeriesDescription = seriesObject.parameters.get("SeriesDescription");
@@ -235,11 +262,14 @@ export default class TreeBuilder {
                         dose.data.InstanceCreationDate = seriesObject.parameters.get("InstanceCreationDate");
                         dose.ReferencedRTPlanSequence = seriesObject.parameters.get("ReferencedRTPlanSequence");
                         dose.data.description = seriesObject.parameters.get("SeriesDescription");
-                        dose.data.details = "DoseUnits: " + dose.data.DoseUnits +
-                            " DoseType: " + dose.data.DoseType +
-                            " DoseComment: " + dose.data.DoseComment +
-                            " DoseSummationType: " + dose.data.DoseSummationType +
-                            " InstanceCreationDate: " + dose.data.InstanceCreationDate;
+
+                        dose.data.detailsArray = [];
+                        if (dose.data.DoseUnits) dose.data.detailsArray.push(this.getDetailsItem("DoseUnits", dose.data.DoseUnits));
+                        if (dose.data.DoseType) dose.data.detailsArray.push(this.getDetailsItem("DoseType", dose.data.DoseType));
+                        if (dose.data.DoseComment) dose.data.detailsArray.push(this.getDetailsItem("DoseComment", dose.data.DoseComment));
+                        if (dose.data.DoseSummationType) dose.data.detailsArray.push(this.getDetailsItem("DoseSummationType", dose.data.DoseSummationType));
+                        if (dose.data.InstanceCreationDate) dose.data.detailsArray.push(this.getDetailsItem("InstanceCreationDate", dose.data.InstanceCreationDate));
+
                         this.rTDoses[seriesObject.parameters.get("SOPInstanceUID")] = dose;
                         break;
                     case "RTIMAGE":
@@ -248,6 +278,7 @@ export default class TreeBuilder {
                         image.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
                         image.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
                         image.data.SeriesInstanceUID = seriesObject.parameters.get("SeriesInstanceUID");
+                        image.key = seriesObject.parameters.get("SeriesInstanceUID");
                         image.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
                         image.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
                         image.data.SeriesDescription = seriesObject.parameters.get("SeriesDescription");
@@ -257,6 +288,13 @@ export default class TreeBuilder {
                         image.data.InstanceCreationDate = seriesObject.parameters.get("InstanceCreationDate");
                         image.ReferencedRTPlanSequence = seriesObject.parameters.get("ReferencedRTPlanSequence");
                         image.data.description = seriesObject.parameters.get("SeriesDescription");
+
+                        image.data.detailsArray = [];
+                        if (image.data.RTImageLabel) image.data.detailsArray.push(this.getDetailsItem("RTImageLabel", image.data.RTImageLabel));
+                        if (image.data.RTImageName) image.data.detailsArray.push(this.getDetailsItem("RTImageName", image.data.RTImageName));
+                        if (image.data.RTImageDescription) image.data.detailsArray.push(this.getDetailsItem("RTImageDescription", image.data.RTImageDescription));
+                        if (image.data.InstanceCreationDate) image.data.detailsArray.push(this.getDetailsItem("InstanceCreationDate", image.data.InstanceCreationDate));
+
                         this.rTImages[seriesObject.parameters.get("SOPInstanceUID")] = image;
                         break;
                     case "CT":
@@ -265,6 +303,7 @@ export default class TreeBuilder {
                         ct.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
                         ct.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
                         ct.data.SeriesInstanceUID = seriesObject.parameters.get("SeriesInstanceUID");
+                        ct.key = seriesObject.parameters.get("SeriesInstanceUID");
                         ct.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
                         ct.data.MediaStorageSOPInstanceUID = seriesObject.parameters.get("MediaStorageSOPInstanceUID");
                         ct.data.BodyPartExamined = seriesObject.parameters.get("BodyPartExamined");
@@ -272,8 +311,11 @@ export default class TreeBuilder {
                         ct.data.SeriesDescription = seriesObject.parameters.get("SeriesDescription");
                         ct.data.ImageType = seriesObject.parameters.get("ImageType");
                         ct.data.description = ct.data.SeriesDescription;
-                        ct.data.details = "Image Type: " + ct.data.ImageType + " Body Part Examined: " + ct.data.BodyPartExamined;
-                        // this.cTs[seriesObject.parameters.get("SOPInstanceUID")] = ct;
+
+                        ct.data.detailsArray = [];
+                        if (ct.data.ImageType) ct.data.detailsArray.push(this.getDetailsItem("ImageType", ct.data.ImageType));
+                        if (ct.data.BodyPartExamined) ct.data.detailsArray.push(this.getDetailsItem("BodyPartExamined", ct.data.BodyPartExamined));
+
                         this.cTs[seriesObject.parameters.get("SeriesInstanceUID")] = ct;
                         break;
                     default:

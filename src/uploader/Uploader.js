@@ -18,11 +18,9 @@ import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
 import TreeBuilder from '../util/TreeBuilder';
 // Util
 import Util from '../util/Util';
-import DicomBrowser from './DicomBrowser';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingDetails from './DicomParsingDetails';
 import { DicomStudySelection } from "./DicomStudySelection";
-import { DicomSeriesSelection } from "./DicomSeriesSelection";
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -59,9 +57,9 @@ class Uploader extends Component {
     }
 
     seriesSelectionMenuItems = [
-        { label: 'All Series', icon: 'pi pi-fw pi-home' },
-        { label: 'RT Series Tree View', icon: 'pi pi-fw pi-calendar' },
-        { label: 'All Series Tree View', icon: 'pi pi-fw' }
+        { label: 'All Series', icon: 'pi pi-fw' },
+        { label: 'RT Series', icon: 'pi pi-fw pi-calendar' }
+
 
     ];
 
@@ -84,7 +82,7 @@ class Uploader extends Component {
     }
 
     selectStudy(e) {
-        this.setState({ selectedStudy: e.value })
+        this.setState({ selectedStudy: e.value, selectedNodeKeys: [] })
     }
     selectSeries(e) {
         this.setState({ selectedSeries: e.value })
@@ -425,7 +423,7 @@ class Uploader extends Component {
                         <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
                     </div>
 
-                    <div hidden={!this.state.selectedStudy}>
+                    {/* <div hidden={!this.state.selectedStudy}>
                         <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
                             <DicomSeriesSelection
                                 selectedStudy={this.state.selectedStudy}
@@ -433,8 +431,20 @@ class Uploader extends Component {
                                 selectedSeries={this.state.selectedSeries}
                             ></DicomSeriesSelection>
                         </div>
-                    </div>
+                    </div> */}
 
+                    <div className="mb-3" hidden={!this.state.selectedStudy}>
+                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
+                            <TreeSelection
+                                rTView={true}
+                                selectedStudy={this.state.selectedStudy}
+                                seriesTree={"allRootTree"}
+                                selectNodes={this.selectNodes}
+                                selectedNodeKeys={this.state.selectedNodeKeys}
+                            >
+                            </TreeSelection>
+                        </div>
+                    </div>
 
                     <div className="mb-3" hidden={!this.state.selectedStudy}>
                         <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
@@ -449,18 +459,7 @@ class Uploader extends Component {
                         </div>
                     </div>
 
-                    <div className="mb-3" hidden={!this.state.selectedStudy}>
-                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 2}>
-                            <TreeSelection
-                                rTView={true}
-                                selectedStudy={this.state.selectedStudy}
-                                seriesTree={"allRootTree"}
-                                selectNodes={this.selectNodes}
-                                selectedNodeKeys={this.state.selectedNodeKeys}
-                            >
-                            </TreeSelection>
-                        </div>
-                    </div>
+
                     {/* <div hidden={!this.state.isFilesLoaded}>
                         <div className="mb-3" hidden={!this.state.seriesSelectionState == 0}>
                             <DicomBrowser
@@ -469,19 +468,19 @@ class Uploader extends Component {
                                 multiUpload={this.config.availableUploadSlots.length > 1}
                                 selectedSeries={this.props.selectedSeries}
                             /> */}
-                            {/*<ProgressUpload*/}
-                            {/*    disabled={ this.state.isUploadStarted || Object.keys(this.props.studiesReady).length === 0 }*/}
-                            {/*    isUploadStarted = {this.state.isUploadStarted}*/}
-                            {/*    isPaused = {this.state.isPaused}*/}
-                            {/*    multiUpload={this.config.availableSlots.length > 1}*/}
-                            {/*    studyProgress={this.state.studyProgress}*/}
-                            {/*    studyLength={this.state.studyLength}*/}
-                            {/*    onUploadClick={this.onUploadClick}*/}
-                            {/*    onPauseClick = {this.onPauseUploadClick}*/}
-                            {/*    zipPercent={this.state.zipProgress}*/}
-                            {/*    uploadPercent={this.state.uploadProgress} */}
-                            {/*/>*/}
-                        {/* </div>
+                    {/*<ProgressUpload*/}
+                    {/*    disabled={ this.state.isUploadStarted || Object.keys(this.props.studiesReady).length === 0 }*/}
+                    {/*    isUploadStarted = {this.state.isUploadStarted}*/}
+                    {/*    isPaused = {this.state.isPaused}*/}
+                    {/*    multiUpload={this.config.availableSlots.length > 1}*/}
+                    {/*    studyProgress={this.state.studyProgress}*/}
+                    {/*    studyLength={this.state.studyLength}*/}
+                    {/*    onUploadClick={this.onUploadClick}*/}
+                    {/*    onPauseClick = {this.onPauseUploadClick}*/}
+                    {/*    zipPercent={this.state.zipProgress}*/}
+                    {/*    uploadPercent={this.state.uploadProgress} */}
+                    {/*/>*/}
+                    {/* </div>
                     </div> */}
                 </Fragment >
             )
