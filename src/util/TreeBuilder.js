@@ -84,9 +84,9 @@ export default class TreeBuilder {
             const refSequence = rTImage["ReferencedRTPlanSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                if ((this.rTImages[refSOPUID]) !== undefined) {
-                    if (this.rTImages[refSOPUID].children !== undefined) {
-                        this.rTImages[refSOPUID].children.push(rTImage);
+                if ((this.rtPlans[refSOPUID]) !== undefined) {
+                    if (this.rtPlans[refSOPUID].children !== undefined) {
+                        this.rtPlans[refSOPUID].children.push(rTImage);
                     }
                 };
             }
@@ -182,7 +182,7 @@ export default class TreeBuilder {
                         struct.data.StructureSetName = seriesObject.parameters.get("StructureSetName");
                         struct.data.StructureSetDescription = seriesObject.parameters.get("StructureSetDescription");
 
-                        if(seriesObject.parameters.get("StructureSetDescription") && struct.data.seriesDescription  === "" ){
+                        if (seriesObject.parameters.get("StructureSetDescription") && struct.data.seriesDescription === "") {
                             struct.data.seriesDescription = seriesObject.parameters.get("StructureSetDescription");
                         }
 
