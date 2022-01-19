@@ -7,16 +7,7 @@ export class DicomSeriesSelection extends Component {
         super(props);
     }
 
-    dummyItems = [
-        {
-            seriesInstanceUID: "dummykey",
-            modality: "modality",
-            seriesDescription: "des",
-            seriesDate: "date"
-        }
-    ];
 
-    // selectedStudy={this.state.selectedStudy}
     buildSeriesRows() {
         let seriesArray = []
 
@@ -32,7 +23,6 @@ export class DicomSeriesSelection extends Component {
                 series.key = seriesInstanceUID;
             }
         }
-        console.log(seriesArray);
         return seriesArray
     }
 
