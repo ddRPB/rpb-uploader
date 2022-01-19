@@ -5,10 +5,6 @@ import React, { Component } from 'react';
 
 export class DicomStudySelection extends Component {
 
-    constructor(props) {
-        super(props);
-    }
-
     /**
      * Format studies from Redux State to display in study table
      * @return {array}

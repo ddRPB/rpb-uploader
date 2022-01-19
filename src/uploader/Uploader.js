@@ -288,7 +288,7 @@ class Uploader extends Component {
 
         let birthDate = studyRedux.patientBirthDate
         let sex = studyRedux.patientSex
-        let modalities = studyRedux.seriesModalitiesArray
+        // let modalities = studyRedux.seriesModalitiesArray
 
         if (Util.areEqualFields(slotObject.subjectSex.trim().charAt(0), sex.trim().charAt(0)) &&
             Util.isProbablyEqualDates(slotObject.subjectDOB, Util.formatRawDate(birthDate))) {
