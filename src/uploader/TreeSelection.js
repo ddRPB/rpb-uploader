@@ -14,8 +14,6 @@ export class TreeSelection extends Component {
         };
         // function provided by uploader
         this.selectNodes = props.selectNodes;
-        this.showDetails = this.showDetails.bind(this);
-        this.actionTemplate = this.actionTemplate.bind(this);
     }
 
 
@@ -32,54 +30,94 @@ export class TreeSelection extends Component {
         return {};
     }
 
-    showDetails(node, column) {
-        console.log(node.data.modality);
-        //console.log(column);
+    getROIDetailItem(rOISequenceLookup, rOIOberservationSequenceItem) {
+        if (rOIOberservationSequenceItem === undefined) return "";
 
+        let rOINumber = rOIOberservationSequenceItem.get("ReferencedROINumber");
+        let observationNumber = rOIOberservationSequenceItem.get("ObservationNumber");
+        // let rOIObservationLabel = rOIOberservationSequenceItem.get("ROIObservationLabel");
+        let rTROIInterpretedType = rOIOberservationSequenceItem.get("RTROIInterpretedType");
+
+        let rOISequenceItem = rOISequenceLookup.get(rOINumber);
+        let rOIName = rOISequenceItem.get("ROIName");
+
+        let numberFormat = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 3 });
+
+        let formatedRoiNumber = numberFormat.format(rOINumber);
+        let formatedObservationNumber = numberFormat.format(observationNumber);
+
+        let item = formatedRoiNumber + " - (" + formatedObservationNumber + ") - " + rOIName + "(" + rTROIInterpretedType + ")";
+
+        return item;
     }
 
-    actionTemplate(node, column) {
+    roiActionTemplate(node, column) {
+        let key = column.rowIndex;
+        if (node.data.StructureSetROISequence === undefined || node.data.rOIOberservationSequenceArray === undefined) return <div key={key}></div>;
+
+        let rOISequenceOverlayPanel = React.createRef();
+        let rOIOberservationSequenceList = [];
+
+        let rOISequenceLookup = new Map();
+        node.data.StructureSetROISequence.forEach((item) => rOISequenceLookup.set(item.get("ROINumber"), item));
+
+        if (node.data.rOIOberservationSequenceArray !== undefined) {
+            rOIOberservationSequenceList = node.data.rOIOberservationSequenceArray.map((item, index) => <div key={key + index}>{this.getROIDetailItem(rOISequenceLookup, item)}</div>);
+        }
+
         return <div>
-            {this.getDetailsButtonDiv(node)}
-        </div>;
+            {rOIOberservationSequenceList.length === 0
+                ? null
+                : <Button
+                    type="button"
+                    label="ROI"
+                    className="p-button-sm p-button-raised"
+                    onClick={(e) => rOISequenceOverlayPanel.current.toggle(e)}
+                >
+                    <OverlayPanel ref={rOISequenceOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel">
+                        <h5>ROI Sequence</h5>
+                        {rOIOberservationSequenceList}
+                    </OverlayPanel>
 
+                </Button>}
+
+        </div>
     }
 
-    getDetailsButtonDiv(node) {
+    commandActionTemplate(node, column) {
+        let key = column.rowIndex;
+        if (node.data.detailsArray === undefined) return <div key={key}></div>;
+
         let detailsOverlayPanel = React.createRef();
-        let detailList = node.data.detailsArray.map((item, index) => <li key={index}>{item.name + ": " + item.value}</li>);
+        let detailList = node.data.detailsArray.map((item, index) => <div key={key + index}>{item.name + ": " + item.value}</div>);
 
-        if (detailList.length > 0) {
-
-            return <div>
-                <Button
+        return <div>
+            {detailList.length === 0
+                ? null
+                : <Button
                     type="button"
-                    icon="pi pi-pencil"
-                    className="p-button-warning"
+                    label="Details"
+                    className="p-button-sm p-button-raised"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel">
-                        <h4>Details</h4>
+                        <h5>Details</h5>
                         {detailList}
                     </OverlayPanel>
+                </Button>}
+        </div>
 
-                </Button>
-            </div>
-        } else {
-            return <div></div>
-        }
     }
 
     render() {
         return (
             <div>
                 <TreeTable value={this.getTree()} selectionMode="checkbox" selectionKeys={this.props.selectedNodeKeys} onSelectionChange={e => this.selectNodes(e)} >
-                    <Column field="modality" header="Modality" expander></Column>
+                    <Column field="modality" header="Series Modality" expander></Column>
+                    <Column columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} style={{ textAlign: 'left', width: '10rem' }} />
                     <Column field="seriesDescription" header="Series Description"></Column>
-                    <Column field="seriesDate" header="Series Date"></Column>
-                    {/* <Column field="details" header="Details"></Column> */}
-                    {/* <Column field="seriesInstanceUID" header="SeriesInstanceUID"></Column> */}
-                    <Column header="Details" body={this.actionTemplate.bind(this)} style={{ textAlign: 'center', width: '10rem' }} />
+                    <Column field="instancesSize" header="Files"></Column>
+                    <Column columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} style={{ textAlign: 'left', width: '10rem' }} />
                 </TreeTable>
             </div>
         )
