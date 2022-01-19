@@ -77,7 +77,7 @@ export default class DicomStudy {
         }
         else return this.studyInstanceUID
     }
-    
+
     getStudyDate() {
         return (this.studyDate === undefined || this.studyDate === null) ? '' : this.studyDate
     }
@@ -98,22 +98,40 @@ export default class DicomStudy {
         return (this.patientID === undefined || this.patientID === null) ? '' : this.patientID
     }
 
+    /***
+     * returns the Series modalities as an Array of Strings without duplicates
+     */
     getSeriesModalities() {
         let childSeriesArray = this.getSeriesArray()
-        let modalityArray = childSeriesArray.map( series => {
+        let modalityArray = childSeriesArray.map(series => {
             return series.getModality()
         })
 
         return [...new Set(modalityArray)]
     }
 
+    /***
+     * returns all Series modalities as an Array of Strings with duplicates
+     */
     getSeriesModalitiesArray() {
         let childSeriesArray = this.getSeriesArray()
-        let modalityArray = childSeriesArray.map( series => {
+        let modalityArray = childSeriesArray.map(series => {
             return series.getModality()
         })
 
         return modalityArray;
     }
-    
+
+    /**
+     * returns the sum of files that belong to the study
+     */
+    getInstancesSize() {
+        let childSeriesArray = this.getSeriesArray();
+        let result = 0;
+        for (let series in childSeriesArray) {
+            result += childSeriesArray[series].getInstancesSize();
+        }
+        return result;
+    }
+
 }
