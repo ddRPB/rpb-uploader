@@ -34,7 +34,7 @@ export default class DicomFile {
      * @param {*} element element from the data set
      */
     _getString(element) {
-        if (element === undefined) { return undefined }
+        if (element === undefined) { return "" }
 
         let position = element.dataOffset
         const length = element.length
@@ -61,7 +61,7 @@ export default class DicomFile {
     }
 
     /**
-     * Returns tag contain as a string or undefined
+     * Returns tag item as a String or an empty String if the tag is undefined
      * @param {*} tag DICOM tag
      */
     _getDicomTag(tag) {
@@ -69,8 +69,10 @@ export default class DicomFile {
         if (element !== undefined && element.length > 0) {
             // Return the string value of the DICOM attribute
             return this._getString(element)
+
+            //this.dataSet.string('x' + tag)
         } else {
-            return undefined
+            return ""
         }
     }
 
