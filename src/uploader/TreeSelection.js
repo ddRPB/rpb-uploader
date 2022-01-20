@@ -3,6 +3,7 @@ import { Column } from 'primereact/column';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { TreeTable } from 'primereact/treetable';
 import React, { Component } from 'react';
+import styledComponents from 'styled-components';
 
 
 export class TreeSelection extends Component {
@@ -110,15 +111,19 @@ export class TreeSelection extends Component {
     }
 
     render() {
+        const StyledTreeDiv = styledComponents.div`.p-treetable .p-treetable-tbody tr td {padding: 3px 3px; }`;
+
         return (
             <div>
-                <TreeTable value={this.getTree()} selectionMode="checkbox" selectionKeys={this.props.selectedNodeKeys} onSelectionChange={e => this.selectNodes(e)} >
-                    <Column field="modality" header="Series Modality" expander></Column>
-                    <Column columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} style={{ textAlign: 'left', width: '10rem' }} />
-                    <Column field="seriesDescription" header="Series Description"></Column>
-                    <Column field="instancesSize" header="Files"></Column>
-                    <Column columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} style={{ textAlign: 'left', width: '10rem' }} />
-                </TreeTable>
+                <StyledTreeDiv>
+                    <TreeTable value={this.getTree()} selectionMode="checkbox" selectionKeys={this.props.selectedNodeKeys} onSelectionChange={e => this.selectNodes(e)} >
+                        <Column field="modality" header="Series Modality" expander></Column>
+                        <Column columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} />
+                        <Column field="seriesDescription" header="Series Description"></Column>
+                        <Column field="instancesSize" header="Files"></Column>
+                        <Column columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} />
+                    </TreeTable>
+                </StyledTreeDiv>
             </div>
         )
     }

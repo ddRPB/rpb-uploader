@@ -2,6 +2,7 @@
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import React, { Component } from 'react';
+import styledComponents from 'styled-components';
 
 export class DicomStudySelection extends Component {
 
@@ -15,32 +16,36 @@ export class DicomStudySelection extends Component {
             study.studyType = study.getStudyType();
             study.seriesModalities = (Array.from(new Set((study.getSeriesModalitiesArray())))).sort().join(", ");
             study.files = study.getInstancesSize();
-        
+
             studies.push({ ...study })
         }
         return Array.from(studies)
     }
 
     render() {
+        const StyledDataTablediv = styledComponents.div`.p-datatable .p-datatable-tbody tr td {padding: 3px 3px; }`;
+
         return (
-            <DataTable
-                value={this.buildStudiesRows()}
-                selection={this.props.selectedStudy}
-                onSelectionChange={(e) => this.props.selectStudy(e)}
-                dataKey="studyInstanceUID"
-            >
-                <Column selectionMode="single" headerStyle={{ width: '3em' }} />
-                <Column field="studyType" header="Study Type" />
-                <Column field="studyDescription" header="Study Description" />
-                <Column field="studyDate" header="Study Date" />
-                <Column field="files" header="Files" />
-                <Column field="seriesModalities" header="Modalities" />
-                {/* <Column field="studyInstanceUID" header="studyInstanceUID" /> */}
-                {/* <Column field="patientID" header="patientID" />
+            <StyledDataTablediv>
+                <DataTable
+                    value={this.buildStudiesRows()}
+                    selection={this.props.selectedStudy}
+                    onSelectionChange={(e) => this.props.selectStudy(e)}
+                    dataKey="studyInstanceUID"
+                >
+                    <Column selectionMode="single" headerStyle={{ width: '3em' }} />
+                    <Column field="studyType" header="Study Type" />
+                    <Column field="studyDescription" header="Study Description" />
+                    <Column field="studyDate" header="Study Date" />
+                    <Column field="files" header="Files" />
+                    <Column field="seriesModalities" header="Modalities" />
+                    {/* <Column field="studyInstanceUID" header="studyInstanceUID" /> */}
+                    {/* <Column field="patientID" header="patientID" />
                     <Column field="patientBirthDate" header="patientBirthDate" />
                     <Column field="patientSex" header="patientSex" />
                     <Column field="patientName" header="patientName" /> */}
-            </DataTable>
+                </DataTable>
+            </StyledDataTablediv>
         )
     }
 }
