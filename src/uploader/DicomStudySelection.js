@@ -23,7 +23,7 @@ export class DicomStudySelection extends Component {
     }
 
     render() {
-        const StyledDataTablediv = styledComponents.div`.p-datatable .p-datatable-tbody tr td {padding: 3px 3px; }`;
+        const StyledDataTablediv = styledComponents.div`.p-datatable .p-datatable-tbody tr td {padding: 5px 5px; }`;
 
         return (
             <StyledDataTablediv>

@@ -72,7 +72,7 @@ export class TreeSelection extends Component {
                 : <Button
                     type="button"
                     label="ROI"
-                    className="p-button-sm p-button-raised"
+                    className="p-button-sm p-button-outlined"
                     onClick={(e) => rOISequenceOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={rOISequenceOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel">
@@ -98,7 +98,7 @@ export class TreeSelection extends Component {
                 : <Button
                     type="button"
                     label="Details"
-                    className="p-button-sm p-button-raised"
+                    className="p-button-sm p-button-outlined"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel">
@@ -111,7 +111,7 @@ export class TreeSelection extends Component {
     }
 
     render() {
-        const StyledTreeDiv = styledComponents.div`.p-treetable .p-treetable-tbody tr td {padding: 3px 3px; }`;
+        const StyledTreeDiv = styledComponents.div`.p-treetable .p-treetable-tbody tr td {padding: 5px 5px; }`;
 
         return (
             <div>
