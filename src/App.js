@@ -22,18 +22,6 @@ import reducers from './reducers'
 import Uploader from './uploader/Uploader'
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Function based main stateful application component
  * @param {Object} props configuration properties provided by the backend
