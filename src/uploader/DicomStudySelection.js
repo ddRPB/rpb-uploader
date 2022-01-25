@@ -33,12 +33,12 @@ export class DicomStudySelection extends Component {
                     onSelectionChange={(e) => this.props.selectStudy(e)}
                     dataKey="studyInstanceUID"
                 >
-                    <Column selectionMode="single" headerStyle={{ width: '3em' }} />
-                    <Column field="studyType" header="Study Type" />
-                    <Column field="studyDescription" header="Study Description" />
-                    <Column field="studyDate" header="Study Date" />
-                    <Column field="files" header="Files" />
-                    <Column field="seriesModalities" header="Modalities" />
+                    <Column selectionMode="single" headerStyle={{ width: '3em' }} className="text-sm" />
+                    <Column field="studyType" header="Study Type" className="text-sm" />
+                    <Column field="studyDescription" header="Study Description" className="text-sm" />
+                    <Column field="studyDate" header="Study Date" className="text-sm" />
+                    <Column field="files" header="Files" className="text-sm" />
+                    <Column field="seriesModalities" header="Modalities" className="text-sm" />
                     {/* <Column field="studyInstanceUID" header="studyInstanceUID" /> */}
                     {/* <Column field="patientID" header="patientID" />
                     <Column field="patientBirthDate" header="patientBirthDate" />

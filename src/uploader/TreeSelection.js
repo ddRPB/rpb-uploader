@@ -75,7 +75,7 @@ export class TreeSelection extends Component {
                     className="p-button-sm p-button-outlined"
                     onClick={(e) => rOISequenceOverlayPanel.current.toggle(e)}
                 >
-                    <OverlayPanel ref={rOISequenceOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel">
+                    <OverlayPanel ref={rOISequenceOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
                         <h5>ROI Sequence</h5>
                         {rOIOberservationSequenceList}
                     </OverlayPanel>
@@ -101,7 +101,7 @@ export class TreeSelection extends Component {
                     className="p-button-sm p-button-outlined"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
-                    <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel">
+                    <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
                         <h5>Details</h5>
                         {detailList}
                     </OverlayPanel>
@@ -115,13 +115,13 @@ export class TreeSelection extends Component {
 
         return (
             <div>
-                <StyledTreeDiv>
+                <StyledTreeDiv >
                     <TreeTable value={this.getTree()} selectionMode="checkbox" selectionKeys={this.props.selectedNodeKeys} onSelectionChange={e => this.selectNodes(e)} >
-                        <Column field="modality" header="Series Modality" expander></Column>
-                        <Column columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} />
-                        <Column field="seriesDescription" header="Series Description"></Column>
-                        <Column field="instancesSize" header="Files"></Column>
-                        <Column columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} />
+                        <Column className="text-sm" field="modality" header="Series Modality"  expander></Column>
+                        <Column className="text-sm" columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} />
+                        <Column className="text-sm" field="seriesDescription" header="Series Description"></Column>
+                        <Column className="text-sm" field="instancesSize" header="Files"></Column>
+                        <Column className="text-sm" columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} />
                     </TreeTable>
                 </StyledTreeDiv>
             </div>
