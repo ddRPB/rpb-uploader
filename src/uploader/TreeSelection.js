@@ -10,13 +10,9 @@ export class TreeSelection extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            selectedNodeKeys: [],
-        };
         // function provided by uploader
         this.selectNodes = props.selectNodes;
     }
-
 
     getTree() {
         if (this.props.selectedStudy != null) {
@@ -47,7 +43,7 @@ export class TreeSelection extends Component {
         let formatedRoiNumber = numberFormat.format(rOINumber);
         let formatedObservationNumber = numberFormat.format(observationNumber);
 
-        let item = formatedRoiNumber + " - (" + formatedObservationNumber + ") - " + rOIName + "(" + rTROIInterpretedType + ")";
+        let item = formatedRoiNumber + " - " + rOIName + "(" + rTROIInterpretedType + ")";
 
         return item;
     }

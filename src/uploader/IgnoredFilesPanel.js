@@ -1,10 +1,11 @@
 // React
-import React, { Component } from 'react'
-
+import { Column } from 'primereact/column'
+import { DataTable } from 'primereact/datatable'
 // Primereact
 import { Dialog } from 'primereact/dialog'
-import { DataTable } from 'primereact/datatable'
-import { Column } from 'primereact/column'
+import { ScrollTop } from 'primereact/scrolltop';
+import React, { Component } from 'react'
+
 
 /**
  * IgnoredFilesPanel component
@@ -18,8 +19,8 @@ export default class IgnoredFilesPanel extends Component {
         let ignoredFileNames = Object.keys(this.props.dataIgnoredFiles)
         let rows = []
         ignoredFileNames.forEach(ignoredFileName => {
-            rows.push( {
-                key : Math.random(),
+            rows.push({
+                key: Math.random(),
                 file: ignoredFileName,
                 reason: this.props.dataIgnoredFiles[ignoredFileName],
             })
@@ -48,15 +49,14 @@ export default class IgnoredFilesPanel extends Component {
                 visible={this.props.display}
                 style={{ width: '50vw' }}
                 onHide={this.props.closeListener}
+            >
+                <DataTable
+                    value={this.createRows()}
                 >
-                <p>
-                    <DataTable
-                        value={this.createRows()}
-                        >
-                        <Column field="file" header="File" />
-                        <Column field="reason" header="Reason" />
-                    </DataTable>
-                </p>
+                    <Column field="file" header="File" />
+                    <Column field="reason" header="Reason" />
+                </DataTable>
+                <ScrollTop />
             </Dialog>
         )
     }

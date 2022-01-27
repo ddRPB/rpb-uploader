@@ -1,9 +1,8 @@
 // React
-import React, { Component } from 'react'
-import {connect} from "react-redux";
+import { Card } from 'primereact/card';
+import React, { Component } from 'react';
+import { connect } from "react-redux";
 
-// Primereact
-import { Panel } from 'primereact/panel';
 
 /**
  * SlotPanel component
@@ -81,64 +80,85 @@ export class SlotPanel extends Component {
             return Object.values(this.props.slots)[0].subjectDOB
         }
     }
-    
+
     /**
      * Render the component
      */
     render = () => {
         return (
-            <Panel header="DICOM Upload Slot">
-                <div className="p-grid p-formgrid p-fluid">
-                    <div className="p-col-2">
-                        Study:
+            <Card title="DICOM Upload Slot">
+                <div className="flex flex-wrap card-container text-sm">
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }} >
+                            Study:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getStudyName()} 
+                            {/* &nbsp;
+                           {true ? <i className="pi pi-check mr-2" style={{'color': 'green'}}></i> : null}
+                           {true ? <i className="pi pi-times" style={{'color': 'red'}}></i> : null} */}
+
+                        </div>
+
                     </div>
-                    <div className="p-col-4">
-                        { this.getStudyName() }
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }}>
+                            Study Subject:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getStudySubjectID()}
+                        </div>
                     </div>
-                    <div className="p-col-2">
-                        Study Subject:
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }} >
+                            Study Event:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getStudyEvent()}
+                        </div>
                     </div>
-                    <div className="p-col-4">
-                        { this.getStudySubjectID() }
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }} >
+                            PID:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getSubjectPseudonym()}
+                        </div>
                     </div>
-                    <div className="p-col-2">
-                        Study Event:
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }} >
+                            Event Date:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getStudyEventDate()}
+                        </div>
                     </div>
-                    <div className="p-col-4">
-                        { this.getStudyEvent() }
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }} >
+                            Subject Sex:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getSubjectSex()}
+                        </div>
                     </div>
-                    <div className="p-col-2">
-                        PID:
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }} >
+                            Slot:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getSlotName()}
+                        </div>
                     </div>
-                    <div className="p-col-4">
-                        { this.getSubjectPseudonym() }
-                    </div>
-                    <div className="p-col-2">
-                        Event Date:
-                    </div>
-                    <div className="p-col-4">
-                        { this.getStudyEventDate() }
-                    </div>
-                    <div className="p-col-2">
-                        Subject Sex:
-                    </div>
-                    <div className="p-col-4">
-                        { this.getSubjectSex() }
-                    </div>
-                    <div className="p-col-2">
-                        Slot:
-                    </div>
-                    <div className="p-col-4">
-                        { this.getSlotName() }
-                    </div>
-                    <div className="p-col-2">
-                        Subject DOB:
-                    </div>
-                    <div className="p-col-4">
-                        { this.getSubjectDOB() }
+                    <div className="flex" style={{ "minWidth": "200px" }}>
+                        <div className="font-bold" style={{ "width": "100px" }} >
+                            Subject DOB:&nbsp;
+                        </div>
+                        <div  >
+                            {this.getSubjectDOB()}
+                        </div>
                     </div>
                 </div>
-            </Panel>
+            </Card>
         )
     }
 }

@@ -39,11 +39,6 @@ export class DicomStudySelection extends Component {
                     <Column field="studyDate" header="Study Date" className="text-sm" />
                     <Column field="files" header="Files" className="text-sm" />
                     <Column field="seriesModalities" header="Modalities" className="text-sm" />
-                    {/* <Column field="studyInstanceUID" header="studyInstanceUID" /> */}
-                    {/* <Column field="patientID" header="patientID" />
-                    <Column field="patientBirthDate" header="patientBirthDate" />
-                    <Column field="patientSex" header="patientSex" />
-                    <Column field="patientName" header="patientName" /> */}
                 </DataTable>
             </StyledDataTablediv>
         )
