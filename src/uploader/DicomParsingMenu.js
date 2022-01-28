@@ -36,7 +36,7 @@ export default class DicomParsingMenu extends Component {
                     model={[{}]}
                     left={
                         <React.Fragment>
-                            <StyledButton className={"pr-3"} label="Reset" icon="pi pi-refresh"  iconPos="right" />
+                            <StyledButton className={"pr-3"} label="Reset" icon="pi pi-refresh"  iconPos="right" onClick={this.props.resetAll} />
                             <Button
                                 type="button"
                                 label="Loaded:"

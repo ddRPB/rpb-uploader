@@ -6,6 +6,7 @@ import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
 import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
+import { ThemeProvider } from 'styled-components';
 import { addSeriesReady, addStudyReady, selectStudy } from '../actions/DisplayTables';
 import { addSeries } from '../actions/Series';
 import { addSlot, resetRedux } from '../actions/Slots';
@@ -35,7 +36,7 @@ import { TreeSelection } from "./TreeSelection";
  */
 class Uploader extends Component {
 
-    state = {
+    defaultState = {
         isFilesLoaded: false,
         isParsingFiles: false,
         isUnzipping: false,
@@ -68,12 +69,36 @@ class Uploader extends Component {
     constructor(props) {
         super(props)
 
+        this.state = {
+            isFilesLoaded: false,
+            isParsingFiles: false,
+            isUnzipping: false,
+            isUploadStarted: false,
+            isPaused: false,
+            fileParsed: 0,
+            fileLoaded: 0,
+            zipProgress: 0,
+            uploadProgress: 0,
+            studyProgress: 0,
+            studyLength: 1,
+            ignoredFiles: {},
+            isAnalysisDone: false,
+            // tree: {},
+            studyArray: [],
+            selectedNodeKeys: [],
+            selectedDicomFiles: [],
+            selectedStudy: null,
+            selectedSeries: [],
+            seriesSelectionState: 0
+        };
+
         this.config = this.props.config
         this.dicomUploadDictionary = new DicomUploadDictionary()
         this.selectNodes = this.selectNodes.bind(this);
         this.selectStudy = this.selectStudy.bind(this);
         this.selectSeries = this.selectSeries.bind(this);
         this.getSelectedFiles = this.getSelectedFiles.bind(this);
+        this.resetAll = this.resetAll.bind(this);
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
@@ -92,11 +117,11 @@ class Uploader extends Component {
     }
 
     getSelectedFiles(selectedNodesArray) {
-        let selectedStudy = this.state.selectedStudy.series;
+        const selectedStudy = {...this.state.selectedStudy.series};
         let selectedFiles = [];
         
         for (let uid in selectedNodesArray) {
-            let selectedSeries = selectedStudy[uid];
+            const selectedSeries = selectedStudy[uid];
             if (selectedSeries.parameters != null) {
                 let result = (Object.keys(selectedSeries.instances).map(function (key, index) { return selectedSeries.instances[key].fileObject }));
                 selectedFiles = selectedFiles.concat(result);
@@ -104,6 +129,11 @@ class Uploader extends Component {
         }
         
         return selectedFiles;
+    }
+
+    resetAll(){
+        this.setState({...this.defaultState});
+        this.props.resetRedux();
     }
 
     /**
@@ -425,6 +455,7 @@ class Uploader extends Component {
                         dataIgnoredFiles={this.state.ignoredFiles}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
+                        resetAll = {this.resetAll}
                     />
 
                     <Divider />
