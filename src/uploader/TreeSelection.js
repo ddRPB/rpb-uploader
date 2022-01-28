@@ -10,6 +10,11 @@ export class TreeSelection extends Component {
 
     constructor(props) {
         super(props);
+
+        this.state = {
+            expandedKeys: {}
+        };
+
         // function provided by uploader
         this.selectNodes = props.selectNodes;
     }
@@ -62,13 +67,15 @@ export class TreeSelection extends Component {
             rOIOberservationSequenceList = node.data.rOIOberservationSequenceArray.map((item, index) => <div key={key + index}>{this.getROIDetailItem(rOISequenceLookup, item)}</div>);
         }
 
+        const StyledButton = styledComponents(Button)`{ width: 135px }`;
+
         return <div>
             {rOIOberservationSequenceList.length === 0
                 ? null
-                : <Button
+                : <StyledButton
                     type="button"
                     label="ROI"
-                    className="p-button-sm p-button-outlined"
+                    className="p-button-sm"
                     onClick={(e) => rOISequenceOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={rOISequenceOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
@@ -76,7 +83,7 @@ export class TreeSelection extends Component {
                         {rOIOberservationSequenceList}
                     </OverlayPanel>
 
-                </Button>}
+                </StyledButton>}
 
         </div>
     }
@@ -88,20 +95,22 @@ export class TreeSelection extends Component {
         let detailsOverlayPanel = React.createRef();
         let detailList = node.data.detailsArray.map((item, index) => <div key={key + index}>{item.name + ": " + item.value}</div>);
 
+        const StyledButton = styledComponents(Button)`{ width: 135px }`;
+
         return <div>
             {detailList.length === 0
                 ? null
-                : <Button
+                : <StyledButton
                     type="button"
                     label="Details"
-                    className="p-button-sm p-button-outlined"
+                    className="p-button-sm"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
                         <h5>Details</h5>
                         {detailList}
                     </OverlayPanel>
-                </Button>}
+                </StyledButton>}
         </div>
 
     }
@@ -112,8 +121,15 @@ export class TreeSelection extends Component {
         return (
             <div>
                 <StyledTreeDiv >
-                    <TreeTable value={this.getTree()} selectionMode="checkbox" selectionKeys={this.props.selectedNodeKeys} onSelectionChange={e => this.selectNodes(e)} >
-                        <Column className="text-sm" field="modality" header="Series Modality"  expander></Column>
+                    <TreeTable
+                        value={this.getTree()}
+                        selectionMode="checkbox"
+                        selectionKeys={this.props.selectedNodeKeys}
+                        onSelectionChange={e => this.selectNodes(e)}
+                        expandedKeys={this.state.expandedKeys}
+                        onToggle={e => this.setState({ expandedKeys: e.value })}
+                    >
+                        <Column className="text-sm" field="modality" header="Series Modality" expander></Column>
                         <Column className="text-sm" columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} />
                         <Column className="text-sm" field="seriesDescription" header="Series Description"></Column>
                         <Column className="text-sm" field="instancesSize" header="Files"></Column>
