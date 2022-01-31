@@ -5,7 +5,7 @@ import 'primeflex/primeflex.css'
 import 'primeicons/primeicons.css'
 import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/saga-blue/theme.css'
-import React, { useState } from 'react'
+import React from 'react'
 import { Provider } from 'react-redux'
 import { ToastContainer } from 'react-toastify'
 // Toastify CSS
@@ -15,7 +15,6 @@ import thunk from 'redux-thunk'
 import 'regenerator-runtime/runtime'
 // Custom RPB Uploader CSS
 import './assets/style/DicomUpload.css'
-import seriesWarningMiddleware from './middleware/SeriesWarningMiddleware'
 // All reducers
 import reducers from './reducers'
 // Uploader component
@@ -29,9 +28,7 @@ import Uploader from './uploader/Uploader'
 function App(props) {
 
     // Immutable global state with middleware for action creators
-    const createStoreWithMiddleware = applyMiddleware(thunk, seriesWarningMiddleware)(createStore)
-
-    const [count, setCount] = useState(0);
+    const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
 
     // Provider with allowed Redux DevTools
     return (
