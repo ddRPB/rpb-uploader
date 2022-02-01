@@ -10,6 +10,7 @@ import { addSlot, resetRedux } from '../actions/Slots';
 // DICOM processing
 import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
+import DicomUploadPackage from '../model/DicomUploadPackage';
 import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
 import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
@@ -39,18 +40,17 @@ class Uploader extends Component {
         isAnalysisDone: false,
         studyArray: [],
         selectedNodeKeys: [],
-        selectedDicomFiles: [],
+        selectedDicomFiles: 0,
         selectedStudy: null,
-        selectedSeries: [],
+        // selectedSeries: [],
         seriesSelectionState: 0
     }
 
     seriesSelectionMenuItems = [
         { label: 'All Series', icon: 'pi pi-fw' },
         { label: 'RT Series', icon: 'pi pi-fw pi-calendar' }
-
-
     ];
+
 
     constructor(props) {
         super(props)
@@ -63,33 +63,40 @@ class Uploader extends Component {
         this.dicomUploadDictionary = new DicomUploadDictionary()
         this.selectNodes = this.selectNodes.bind(this);
         this.selectStudy = this.selectStudy.bind(this);
-        this.getSelectedFiles = this.getSelectedFiles.bind(this);
+        this.getSelectedFiles = this.updateDicomUploadPackage.bind(this);
         this.resetAll = this.resetAll.bind(this);
+
+        this.dicomUploadPackage = new DicomUploadPackage();
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
 
     selectNodes(e) {
-        this.setState({ selectedNodeKeys: { ...e.value }, selectedDicomFiles: this.getSelectedFiles({ ...e.value }) });
+        const selectedNodes = { ...e.value };
+        this.updateDicomUploadPackage(selectedNodes);
+        this.setState({
+            selectedNodeKeys: selectedNodes,
+            selectedDicomFiles: this.dicomUploadPackage.getSelectedFilesCount()
+        }
+        );
     }
 
     selectStudy(e) {
-        this.setState({ selectedStudy: { ...e.value }, selectedNodeKeys: [], selectedDicomFiles: [] });
+        this.setState({ selectedStudy: { ...e.value }, selectedNodeKeys: [], selectedDicomFiles: 0 });
     }
 
-    getSelectedFiles(selectedNodesArray) {
+    updateDicomUploadPackage(selectedNodesArray) {
         const selectedStudy = { ...this.state.selectedStudy.series };
-        let selectedFiles = [];
+        const selectedSeriesObjects = {};
 
         for (let uid in selectedNodesArray) {
             const selectedSeries = selectedStudy[uid];
-            if (selectedSeries.parameters != null) {
-                let result = (Object.keys(selectedSeries.instances).map(function (key, index) { return selectedSeries.instances[key].fileObject }));
-                selectedFiles = selectedFiles.concat(result);
+            if (selectedSeries != null) {
+                selectedSeriesObjects[uid] = selectedSeries;
             }
         }
 
-        return selectedFiles;
+        this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
     }
 
     resetAll() {
