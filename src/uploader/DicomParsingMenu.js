@@ -36,7 +36,7 @@ export default class DicomParsingMenu extends Component {
                     model={[{}]}
                     left={
                         <React.Fragment>
-                            <StyledButton className={"pr-3"} label="Reset" icon="pi pi-refresh"  iconPos="right" onClick={this.props.resetAll} />
+                            <StyledButton className={"pr-3"} label="Reset" icon="pi pi-refresh" iconPos="right" onClick={this.props.resetAll} />
                             <Button
                                 type="button"
                                 label="Loaded:"
@@ -77,7 +77,13 @@ export default class DicomParsingMenu extends Component {
                         </React.Fragment>}
                     right={
                         <React.Fragment>
-                            <Button label="Submit" disabled={Object.keys(this.props.selectedNodeKeys).length === 0} style={{ "width": "135px" }} icon="pi pi-angle-double-right" iconPos="right" />
+                            <Button
+                                label="Submit"
+                                disabled={Object.keys(this.props.selectedNodeKeys).length === 0}
+                                onClick={this.props.submitUploadPackage}
+                                style={{ "width": "135px" }}
+                                icon="pi pi-angle-double-right"
+                                iconPos="right" />
                         </React.Fragment>
 
                     }

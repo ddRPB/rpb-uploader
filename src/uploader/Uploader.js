@@ -1,5 +1,6 @@
 // React and Redux
 // Primereact
+import { BlockUI } from 'primereact/blockui';
 import { Divider } from 'primereact/divider';
 import { Message } from 'primereact/message';
 import { ScrollTop } from 'primereact/scrolltop';
@@ -16,6 +17,7 @@ import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
+import FailedUploadPackageCheckPanel from './FailedUploadPackageCheckPanel';
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -43,13 +45,18 @@ class Uploader extends Component {
         selectedDicomFiles: 0,
         selectedStudy: null,
         // selectedSeries: [],
-        seriesSelectionState: 0
+        seriesSelectionState: 0,
+        blockedPanel: false,
+        uploadPackageCheckFailedPanel: false,
+        evaluationUploadCheckResults: []
+
     }
 
     seriesSelectionMenuItems = [
         { label: 'All Series', icon: 'pi pi-fw' },
         { label: 'RT Series', icon: 'pi pi-fw pi-calendar' }
     ];
+
 
 
     constructor(props) {
@@ -65,6 +72,8 @@ class Uploader extends Component {
         this.selectStudy = this.selectStudy.bind(this);
         this.getSelectedFiles = this.updateDicomUploadPackage.bind(this);
         this.resetAll = this.resetAll.bind(this);
+        this.submitUploadPackage = this.submitUploadPackage.bind(this);
+        this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
 
         this.dicomUploadPackage = new DicomUploadPackage();
 
@@ -102,6 +111,32 @@ class Uploader extends Component {
     resetAll() {
         this.setState({ ...this.defaultState });
         this.props.resetRedux();
+    }
+
+    hideUploadCheckResultsPanel() {
+        this.setState({
+            blockedPanel: false,
+            uploadPackageCheckFailedPanel: false,
+            evaluationUploadCheckResults: []
+        });
+    }
+
+    submitUploadPackage() {
+        this.setState({ blockedPanel: true });
+        const evaluationResult = this.dicomUploadPackage.evaluate();
+        if (evaluationResult.length > 0) {
+            console.log(evaluationResult);
+            this.setState({
+                blockedPanel: false,
+                uploadPackageCheckFailedPanel: true,
+                evaluationUploadCheckResults: evaluationResult
+            });
+            return;
+        }
+
+        this.dicomUploadPackage.pseudonymize();
+        this.setState({ blockedPanel: false });
+
     }
 
     /**
@@ -259,76 +294,91 @@ class Uploader extends Component {
         if (this.config.availableUploadSlots.length > 0) {
             return (
                 <Fragment>
-                    <SlotPanel />
+                    <BlockUI blocked={this.state.blockedPanel}>
+                        <SlotPanel />
 
-                    <Divider />
+                        <Divider />
 
-                    <DicomDropZone
-                        addFile={this.addFile}
-                        isUnzipping={this.state.isUnzipping}
-                        isParsingFiles={this.state.isParsingFiles}
-                        isUploadStarted={this.state.isUploadStarted}
-                        fileParsed={this.state.fileParsed}
-                        fileIgnored={Object.keys(this.state.ignoredFiles).length}
-                        fileLoaded={this.state.fileLoaded}
-                    />
-
-                    <Divider />
-
-                    <DicomParsingMenu
-                        fileLoaded={this.state.fileLoaded}
-                        fileParsed={this.state.fileParsed}
-                        dataIgnoredFiles={this.state.ignoredFiles}
-                        selectedNodeKeys={this.state.selectedNodeKeys}
-                        selectedDicomFiles={this.state.selectedDicomFiles}
-                        resetAll={this.resetAll}
-                    />
-
-                    <Divider />
-
-                    <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
-                        <DicomStudySelection
-                            studies={this.state.studyArray}
-                            selectStudy={this.selectStudy}
-                            selectedStudy={this.state.selectedStudy}
+                        <DicomDropZone
+                            addFile={this.addFile}
+                            isUnzipping={this.state.isUnzipping}
+                            isParsingFiles={this.state.isParsingFiles}
+                            isUploadStarted={this.state.isUploadStarted}
+                            fileParsed={this.state.fileParsed}
+                            fileIgnored={Object.keys(this.state.ignoredFiles).length}
+                            fileLoaded={this.state.fileLoaded}
                         />
-                    </div>
 
-                    <Divider />
+                        <Divider />
 
-                    <div hidden={!this.state.selectedStudy} className="text-sm">
-                        <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
-                    </div>
+                        <DicomParsingMenu
+                            fileLoaded={this.state.fileLoaded}
+                            fileParsed={this.state.fileParsed}
+                            dataIgnoredFiles={this.state.ignoredFiles}
+                            selectedNodeKeys={this.state.selectedNodeKeys}
+                            selectedDicomFiles={this.state.selectedDicomFiles}
+                            resetAll={this.resetAll}
+                            submitUploadPackage={this.submitUploadPackage}
+                        />
 
-                    <div className="mb-3 text-sm" hidden={!this.state.selectedStudy}>
-                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
-                            <TreeSelection
-                                rTView={true}
+                        <Divider />
+
+                        <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
+                            <DicomStudySelection
+                                studies={this.state.studyArray}
+                                selectStudy={this.selectStudy}
                                 selectedStudy={this.state.selectedStudy}
-                                seriesTree={"allRootTree"}
-                                selectNodes={this.selectNodes}
-                                selectedNodeKeys={this.state.selectedNodeKeys}
-                            >
-                            </TreeSelection>
+                            />
                         </div>
-                    </div>
 
-                    <div className="mb-3" hidden={!this.state.selectedStudy}>
-                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
-                            <TreeSelection
-                                rTView={true}
-                                selectedStudy={this.state.selectedStudy}
-                                seriesTree={"rtViewTree"}
-                                selectNodes={this.selectNodes}
-                                selectedNodeKeys={this.state.selectedNodeKeys}
-                            >
-                            </TreeSelection>
+                        <Divider />
+
+                        <div hidden={!this.state.selectedStudy} className="text-sm">
+                            <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
                         </div>
-                    </div>
 
-                    <ScrollTop />
+                        <div className="mb-3 text-sm" hidden={!this.state.selectedStudy}>
+                            <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
+                                <TreeSelection
+                                    rTView={true}
+                                    selectedStudy={this.state.selectedStudy}
+                                    seriesTree={"allRootTree"}
+                                    selectNodes={this.selectNodes}
+                                    selectedNodeKeys={this.state.selectedNodeKeys}
+                                >
+                                </TreeSelection>
+                            </div>
+                        </div>
+
+                        <div className="mb-3" hidden={!this.state.selectedStudy}>
+                            <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
+                                <TreeSelection
+                                    rTView={true}
+                                    selectedStudy={this.state.selectedStudy}
+                                    seriesTree={"rtViewTree"}
+                                    selectNodes={this.selectNodes}
+                                    selectedNodeKeys={this.state.selectedNodeKeys}
+                                >
+                                </TreeSelection>
+                            </div>
+                        </div>
+
+                        <ScrollTop />
+
+
+
+                    </BlockUI>
+
+                    <FailedUploadPackageCheckPanel
+                        uploadPackageCheckFailedPanel={this.state.uploadPackageCheckFailedPanel}
+                        evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
+                        hideUploadCheckResultsPanel={this.hideUploadCheckResultsPanel}
+                    ></FailedUploadPackageCheckPanel>
+                    
 
                 </Fragment >
+
+
             )
         } else {
             return <Message severity="warn" text="No upload slots available" />
