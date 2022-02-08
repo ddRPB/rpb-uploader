@@ -2,7 +2,6 @@
   "name": "rpb-uploader",
   "version": "0.0.1",
   "main": "index.js",
-  "proxy": "http://localhost:8000",
   "homepage": "http://localhost:8080/uploader/",
   "private": false,
   "dependencies": {
@@ -25,10 +24,10 @@
     "styled-components": "^5.3.3"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
     "build-webpack": "webpack --mode production",
-    "test": "react-scripts test",
+    "test": "react-app-rewired test -- --config=jest.config.js",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -62,9 +61,11 @@
     "babel-loader": "^8.2.3",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "css-loader": "^6.6.0",
+    "customize-cra": "^1.0.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
     "mini-css-extract-plugin": "^2.5.3",
+    "react-app-rewired": "^2.1.11",
     "style-loader": "^3.3.1",
     "url-loader": "^4.1.1",
     "webpack-cli": "^4.9.2"
