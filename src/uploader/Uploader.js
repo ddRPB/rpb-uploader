@@ -111,6 +111,8 @@ class Uploader extends Component {
     resetAll() {
         this.setState({ ...this.defaultState });
         this.props.resetRedux();
+        this.dicomUploadDictionary = new DicomUploadDictionary();
+        this.dicomUploadPackage = new DicomUploadPackage();
     }
 
     hideUploadCheckResultsPanel() {
