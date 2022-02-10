@@ -76,47 +76,41 @@ export default class DicomFile {
         }
     }
 
-    readDicomFile() {
-        let self = this
+    async readDicomFile() {
+        const reader = await this.__pFileReader(this.fileObject);
 
-        return this.__pFileReader(this.fileObject).then(reader => {
-            const arrayBuffer = reader.result
-            const byteArray = new Uint8Array(arrayBuffer)
+        const arrayBuffer = reader.result
+        const byteArray = new Uint8Array(arrayBuffer)
 
-            self.byteArray = byteArray
-            self.dataSet = dicomParser.parseDicom(byteArray)
+        this.byteArray = byteArray
+        this.dataSet = dicomParser.parseDicom(byteArray)
 
-            self.studyInstanceUID = self.getStudyInstanceUID()
-            self.seriesInstanceUID = self.getSeriesInstanceUID()
+        this.studyInstanceUID = this.getStudyInstanceUID()
+        this.seriesInstanceUID = this.getSeriesInstanceUID()
 
-            const modality = self.getModality();
-            self.parsedParameters = new Map();
-            self.parsedParameters.set('Modality', modality);
+        const modality = this.getModality();
+        this.parsedParameters = new Map();
+        this.parsedParameters.set('Modality', modality);
 
-
-            switch (modality) {
-                case "RTSTRUCT":
-                    self.parseRtStructProperties(self.dataSet.elements, self.parsedParameters);
-                    break;
-                case "RTPLAN":
-                    self.parseRtPlanProperties(self.dataSet.elements, self.parsedParameters);
-                    break;
-                case "RTDOSE":
-                    self.parseRtDoseProperties(self.dataSet.elements, self.parsedParameters);
-                    break;
-                case "RTIMAGE":
-                    self.parseRtImageProperties(self.dataSet.elements, self.parsedParameters);
-                    break;
-                case "CT":
-                    self.parseCtProperties(self.dataSet.elements, self.parsedParameters);
-                    break;
-                default:
-                // 
-            }
-
-        }).catch((error) => {
-            throw error
-        })
+        switch (modality) {
+            case "RTSTRUCT":
+                this.parseRtStructProperties(this.dataSet.elements, this.parsedParameters);
+                break;
+            case "RTPLAN":
+                this.parseRtPlanProperties(this.dataSet.elements, this.parsedParameters);
+                break;
+            case "RTDOSE":
+                this.parseRtDoseProperties(this.dataSet.elements, this.parsedParameters);
+                break;
+            case "RTIMAGE":
+                this.parseRtImageProperties(this.dataSet.elements, this.parsedParameters);
+                break;
+            case "CT":
+                this.parseCtProperties(this.dataSet.elements, this.parsedParameters);
+                break;
+            default:
+            // 
+        }
     }
 
 
