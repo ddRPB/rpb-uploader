@@ -30,9 +30,6 @@
     "test": "react-app-rewired test -- --config=jest.config.js",
     "eject": "react-scripts eject"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -64,6 +61,7 @@
     "customize-cra": "^1.0.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
+    "identity-obj-proxy": "^3.0.0",
     "mini-css-extract-plugin": "^2.5.3",
     "react-app-rewired": "^2.1.11",
     "style-loader": "^3.3.1",
