@@ -79,10 +79,14 @@ export default class DicomFile {
     async readDicomFile() {
         const reader = await this.__pFileReader(this.fileObject);
 
-        const arrayBuffer = reader.result
-        const byteArray = new Uint8Array(arrayBuffer)
+        const arrayBuffer = reader.result;
+        const byteArray = new Uint8Array(arrayBuffer);
 
-        this.byteArray = byteArray
+        this.parseDicomData(byteArray);
+    }
+
+    parseDicomData(byteArray){
+        this.byteArray = byteArray;
         this.dataSet = dicomParser.parseDicom(byteArray)
 
         this.studyInstanceUID = this.getStudyInstanceUID()
