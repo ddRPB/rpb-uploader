@@ -27,7 +27,7 @@
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "build-webpack": "webpack --mode production",
-    "test": "react-app-rewired test -- --config=jest.config.js",
+    "test": "jest --config=./jest.config.js",
     "eject": "react-scripts eject"
   },
   "browserslist": {
