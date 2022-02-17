@@ -3,39 +3,53 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { promisify } from 'util';
 import DicomPropertyNames from '../../../constants/DicomPropertyNames';
 import Modalities from '../../../constants/Modalities';
 import DicomFile from '../../../model/DicomFile';
 
-const readdir = promisify(fs.readdir)
+const dicomTestFilesDataPath = path.join(__dirname, './../../data');
 
-const basicPath = path.join(__dirname, './../../data');
 const dicomUidRegex = /^(([1-9][0-9]*)|0)(\.([1-9][0-9]*|0))+$/;
 
-describe('Test Dicom CT File parsing', () => {
-    const fileName = 'ctDicomFile.dcm';
-    const dicomFileAsBuffer = fs.readFileSync(path.join(basicPath, fileName));
+describe('Each Dicom file in the basic data path will be tested if properties are parsed according to the modality.',
+    () => {
+        // Reading all files from the folder
+        const files = fs.readdirSync(dicomTestFilesDataPath);
 
-    const file = new DicomFile();
-    file.parseDicomData(dicomFileAsBuffer);
-    //    console.log(JSON.stringify(file, replacer));
+        test.each(files)('Testing %s file',
+            (fileName) => {
+                // ignore .md files
+                if (path.extname(fileName) == ".md") { return };
 
-    test('DicomFile object has all basic properties', () => {
-        expect(file).toHasBasicDicomProperties(file);
-    });
-});
+                const file = parseDicomFile(fileName);
 
+                // verify common properties
+                expect(file).toHaveBasicDicomProperties(file);
+
+                const modality = file.getModality();
+                // Modality is part of the Dicom standard
+                expect(Object.keys(Modalities)).toEqual(expect.arrayContaining([modality]));
+
+                switch (modality) {
+                    case Modalities.CT:
+                        expect(file.getModality()).toBe(Modalities.CT);
+                        expect(file).toHaveCtSpecificDicomProperties(file);
+                        break;
+                    default:
+                        console.log(`Missing specific matcher for modality: \"${modality}\".`);
+                    // TODO: write matchers for the other modalities
+
+                }
+            }
+        )
+    })
 
 expect.extend({
-    toHasBasicDicomProperties(file) {
+    toHaveBasicDicomProperties(file) {
         let failMessages = [];
 
         failMessages = failMessages.concat(verifyDicomUidProperty('StudyInstanceUID', file.studyInstanceUID));
         failMessages = failMessages.concat(verifyDicomUidProperty('SeriesInstanceUID', file.seriesInstanceUID));
-
-        failMessages = failMessages.concat(verifyModalityString(file.parsedParameters.get('Modality'), Modalities.CT));
-        failMessages = failMessages.concat(verifyCTProperties(file.parsedParameters));
 
         failMessages = failMessages.concat(verifyDicomUidProperty('SeriesInstanceUID', file.seriesInstanceUID));
 
@@ -55,6 +69,39 @@ expect.extend({
         }
     },
 });
+
+
+
+expect.extend({
+    toHaveCtSpecificDicomProperties(file) {
+        let failMessages = [];
+
+        failMessages = failMessages.concat(verifyModalityString(file.parsedParameters.get('Modality'), Modalities.CT));
+        failMessages = failMessages.concat(verifyCTProperties(file.parsedParameters));
+
+        if (failMessages.length === 0) {
+            return {
+                message: () =>
+                    'CT specific Dicom properties test passed',
+                pass: true,
+            };
+        } else {
+            return {
+                message: () =>
+                    failMessages.toString(),
+                pass: false,
+            };
+        }
+    },
+});
+
+function parseDicomFile(fileName) {
+    const dicomFileAsBuffer = fs.readFileSync(path.join(dicomTestFilesDataPath, fileName));
+
+    const file = new DicomFile();
+    file.parseDicomData(dicomFileAsBuffer);
+    return file;
+}
 
 function verifyDicomUidProperty(propertyName, propertyValue) {
     const failMessages = [];

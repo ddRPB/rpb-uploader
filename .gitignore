@@ -15,6 +15,10 @@
 #webpack
 /dist
 
+# all data folder
+**/data/*
+!**/data/Readme.md
+
 # misc
 .DS_Store
 .env.local
