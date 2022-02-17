@@ -85,7 +85,7 @@ export default class DicomFile {
         this.parseDicomData(byteArray);
     }
 
-    parseDicomData(byteArray){
+    parseDicomData(byteArray) {
         this.byteArray = byteArray;
         this.dataSet = dicomParser.parseDicom(byteArray)
 
@@ -285,7 +285,15 @@ export default class DicomFile {
                 case "x0008103e":
                     resultMap.set("SeriesDescription", this._getString(element));
                     break;
-
+                case "x00280301":
+                    resultMap.set("BurnedInAnnotation", this._getString(element));
+                    break;
+                case "x00080070":
+                    resultMap.set("Manufacturer", this._getString(element));
+                    break;
+                case "x00081090":
+                    resultMap.set("ManufacturerModelName", this._getString(element));
+                    break;
                 default:
                 // 
             }
@@ -351,6 +359,15 @@ export default class DicomFile {
                 case "x0008103e":
                     resultMap.set("SeriesDescription", this._getString(element));
                     break;
+                case "x00280301":
+                    resultMap.set("BurnedInAnnotation", this._getString(element));
+                    break;
+                case "x00080070":
+                    resultMap.set("Manufacturer", this._getString(element));
+                    break;
+                case "x00081090":
+                    resultMap.set("ManufacturerModelName", this._getString(element));
+                    break;
                 default:
                 //
             }
@@ -414,6 +431,15 @@ export default class DicomFile {
                 case "x0008103e":
                     resultMap.set("SeriesDescription", this._getString(element));
                     break;
+                case "x00280301":
+                    resultMap.set("BurnedInAnnotation", this._getString(element));
+                    break;
+                case "x00080070":
+                    resultMap.set("Manufacturer", this._getString(element));
+                    break;
+                case "x00081090":
+                    resultMap.set("ManufacturerModelName", this._getString(element));
+                    break;
                 default:
                 // 
             }
@@ -474,6 +500,15 @@ export default class DicomFile {
                 case "x0008103e":
                     resultMap.set("SeriesDescription", this._getString(element));
                     break;
+                case "x00280301":
+                    resultMap.set("BurnedInAnnotation", this._getString(element));
+                    break;
+                case "x00080070":
+                    resultMap.set("Manufacturer", this._getString(element));
+                    break;
+                case "x00081090":
+                    resultMap.set("ManufacturerModelName", this._getString(element));
+                    break;
                 default:
             }
         }
@@ -511,6 +546,15 @@ export default class DicomFile {
                     break;
                 case "x00080008":
                     resultMap.set("ImageType", this._getString(element));
+                    break;
+                case "x00280301":
+                    resultMap.set("BurnedInAnnotation", this._getString(element));
+                    break;
+                case "x00080070":
+                    resultMap.set("Manufacturer", this._getString(element));
+                    break;
+                case "x00081090":
+                    resultMap.set("ManufacturerModelName", this._getString(element));
                     break;
                 default:
                 //
