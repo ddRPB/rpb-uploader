@@ -63,6 +63,18 @@ describe("DicomUploadSlotVerifier Test", () => {
 
         });
 
+    });
+
+    describe('Verify gender', () => {
+
+        const dummyStudyInstanceUID = 'DummyStudyInstanceUID';
+        const dummyStudyDate = 'DummyStudyDate';
+        const dummyStudyDescription = 'DummyStudyDescription';
+        const dummyPatientID = 'dummyPatientID';
+        const dummyPatientName = 'dummyPatientName';
+        const dummyPatientBirthDate = 'dummyPatientBirthDate';
+        const dummyPatientSex = 'dummyPatientSex';
+
         test("upload slot subjectsex is not valid", () => {
             const dicomStudy = new DicomStudy(
                 dummyStudyInstanceUID,
@@ -143,8 +155,6 @@ describe("DicomUploadSlotVerifier Test", () => {
             expect(result.errors).toContain(`Upload slot gender "F" is not equal to "M"`);
 
         });
-
-
     });
 
 });
