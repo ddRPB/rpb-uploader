@@ -13,6 +13,7 @@ export default class DicomStudy {
         this.patientBirthDate = patientBirthDate
         this.patientSex = patientSex
         this.patientName = patientName
+        this.result = {}
     }
 
     getStudyType() {
@@ -72,7 +73,7 @@ export default class DicomStudy {
     }
 
     getStudyInstanceUID() {
-        if (this.studyInstanceUID == null) {
+        if (this.studyInstanceUID === null) {
             throw new Error('Missing StudyInstanceUID')
         }
         else return this.studyInstanceUID
@@ -148,5 +149,14 @@ export default class DicomStudy {
         return childSeriesArray[id];
 
     }
+
+    setSlotAnalysisResult(result) {
+        this.result = result;
+    }
+
+    getSlotAnalysisResult() {
+        return this.result;
+    }
+
 
 }

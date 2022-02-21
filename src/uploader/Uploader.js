@@ -18,6 +18,8 @@ import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
 import FailedUploadPackageCheckPanel from './FailedUploadPackageCheckPanel';
+import DicomStudyUploadSlotVerifier from '../util/DicomStudyUploadSlotVerifier';
+
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -26,6 +28,7 @@ import { TreeSelection } from "./TreeSelection";
  * Uploader component
  */
 class Uploader extends Component {
+
 
     defaultState = {
         isFilesLoaded: false,
@@ -209,6 +212,11 @@ class Uploader extends Component {
                 studyObject.key = studyObject.studyInstanceUID;
                 studyObject.rtViewTree = treeBuilder.build();
                 studyObject.allRootTree = treeBuilder.buildAllNodesChildrenOfRoot();
+
+                const defaultUploadSlot = this.props.slots[Object.keys(this.props.slots)[0]];
+                const verifier = new DicomStudyUploadSlotVerifier(studyObject, defaultUploadSlot);
+                studyObject.setSlotAnalysisResult(verifier.getVerificationResult());
+
             }
 
             this.setState({ studyArray: studyArray });
@@ -376,7 +384,7 @@ class Uploader extends Component {
                         evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
                         hideUploadCheckResultsPanel={this.hideUploadCheckResultsPanel}
                     ></FailedUploadPackageCheckPanel>
-                    
+
 
                 </Fragment >
 
