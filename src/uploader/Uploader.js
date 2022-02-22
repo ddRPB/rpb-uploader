@@ -13,16 +13,16 @@ import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
+import DicomStudyUploadSlotVerifier from '../util/DicomStudyUploadSlotVerifier';
 import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
 import FailedUploadPackageCheckPanel from './FailedUploadPackageCheckPanel';
-import DicomStudyUploadSlotVerifier from '../util/DicomStudyUploadSlotVerifier';
-
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
+
 
 /**
  * Uploader component
@@ -245,7 +245,19 @@ class Uploader extends Component {
             if (!this.dicomUploadDictionary.studyExists(studyInstanceUID)) {
                 study = this.dicomUploadDictionary.addStudy(dicomFile.getDicomStudyObject())
             } else {
-                study = this.dicomUploadDictionary.getStudy(studyInstanceUID)
+                study = this.dicomUploadDictionary.getStudy(studyInstanceUID);
+
+                if (study.getPatientID().toUpperCase() != dicomFile.getPatientID().toUpperCase()) {
+                    throw Error(`PatientId is different from other files that belong to the study: ${study.getPatientID()} != ${dicomFile.getPatientID()}`);
+                }
+
+                if (study.getPatientBirthDate().toUpperCase() != dicomFile.getPatientBirthDate().toUpperCase()) {
+                    throw Error(`Patient birth date is different from other files that belong to the study: ${study.getPatientBirthDate()} != ${dicomFile.getPatientBirthDate()}`);
+                }
+
+                if (study.getPatientSex().toUpperCase() != dicomFile.getPatientSex().toUpperCase()) {
+                    throw Error(`Patient sex is different from other files that belong to the study: ${study.getPatientSex()} != ${dicomFile.getPatientSex()}`);
+                }
             }
 
             let series
