@@ -13,12 +13,12 @@ import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
-import DicomStudyUploadSlotVerifier from '../util/DicomStudyUploadSlotVerifier';
 import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
 import FailedUploadPackageCheckPanel from './FailedUploadPackageCheckPanel';
+import FileUploadDialogPanel from './FileUploadDialogPanel';
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -39,18 +39,16 @@ class Uploader extends Component {
         fileParsed: 0,
         fileLoaded: 0,
         zipProgress: 0,
-        uploadProgress: 0,
-        studyProgress: 0,
         ignoredFiles: {},
         isAnalysisDone: false,
         studyArray: [],
         selectedNodeKeys: [],
-        selectedDicomFiles: 0,
+        selectedDicomFiles: [],
         selectedStudy: null,
-        // selectedSeries: [],
         seriesSelectionState: 0,
         blockedPanel: false,
         uploadPackageCheckFailedPanel: false,
+        fileUploadDialogPanel: false,
         evaluationUploadCheckResults: []
 
     }
@@ -77,6 +75,7 @@ class Uploader extends Component {
         this.resetAll = this.resetAll.bind(this);
         this.submitUploadPackage = this.submitUploadPackage.bind(this);
         this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
+        this.hideFileUploadDialogPanel = this.hideFileUploadDialogPanel.bind(this);
 
         this.dicomUploadPackage = new DicomUploadPackage();
 
@@ -88,7 +87,7 @@ class Uploader extends Component {
         this.updateDicomUploadPackage(selectedNodes);
         this.setState({
             selectedNodeKeys: selectedNodes,
-            selectedDicomFiles: this.dicomUploadPackage.getSelectedFilesCount()
+            selectedDicomFiles: this.dicomUploadPackage.getSelectedFiles()
         }
         );
     }
@@ -126,6 +125,13 @@ class Uploader extends Component {
         });
     }
 
+    hideFileUploadDialogPanel() {
+        this.setState({
+            blockedPanel: false,
+            fileUploadDialogPanel: false
+        });
+    }
+
     submitUploadPackage() {
         this.setState({ blockedPanel: true });
         const evaluationResult = this.dicomUploadPackage.evaluate();
@@ -140,6 +146,12 @@ class Uploader extends Component {
         }
 
         this.dicomUploadPackage.pseudonymize();
+
+        this.setState({
+            blockedPanel: false,
+            fileUploadDialogPanel: true
+        });
+
         this.setState({ blockedPanel: false });
 
     }
@@ -393,6 +405,12 @@ class Uploader extends Component {
                         hideUploadCheckResultsPanel={this.hideUploadCheckResultsPanel}
                     ></FailedUploadPackageCheckPanel>
 
+                    <FileUploadDialogPanel
+                        fileUploadDialogPanel={this.state.fileUploadDialogPanel}
+                        hideFileUploadDialogPanel={this.hideFileUploadDialogPanel}
+                        selectedDicomFiles={this.state.selectedDicomFiles}
+                    >
+                    </FileUploadDialogPanel>
 
                 </Fragment >
 

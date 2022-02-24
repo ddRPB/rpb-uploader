@@ -72,7 +72,7 @@ export default class DicomParsingMenu extends Component {
                                 style={{ "width": "135px" }}
                                 disabled={true}
                             >
-                                <Badge value={this.props.selectedDicomFiles} />
+                                <Badge value={this.props.selectedDicomFiles.length} />
                             </Button>
                         </React.Fragment>}
                     right={
