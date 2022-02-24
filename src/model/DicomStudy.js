@@ -13,7 +13,6 @@ export default class DicomStudy {
         this.patientBirthDate = patientBirthDate
         this.patientSex = patientSex
         this.patientName = patientName
-        this.result = {}
     }
 
     getStudyType() {
@@ -149,14 +148,5 @@ export default class DicomStudy {
         return childSeriesArray[id];
 
     }
-
-    setSlotAnalysisResult(result) {
-        this.result = result;
-    }
-
-    getSlotAnalysisResult() {
-        return this.result;
-    }
-
 
 }

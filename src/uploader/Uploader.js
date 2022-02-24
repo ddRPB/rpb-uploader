@@ -213,10 +213,6 @@ class Uploader extends Component {
                 studyObject.rtViewTree = treeBuilder.build();
                 studyObject.allRootTree = treeBuilder.buildAllNodesChildrenOfRoot();
 
-                const defaultUploadSlot = this.props.slots[Object.keys(this.props.slots)[0]];
-                const verifier = new DicomStudyUploadSlotVerifier(studyObject, defaultUploadSlot);
-                studyObject.setSlotAnalysisResult(verifier.getVerificationResult());
-
             }
 
             this.setState({ studyArray: studyArray });
@@ -246,18 +242,7 @@ class Uploader extends Component {
                 study = this.dicomUploadDictionary.addStudy(dicomFile.getDicomStudyObject())
             } else {
                 study = this.dicomUploadDictionary.getStudy(studyInstanceUID);
-
-                if (study.getPatientID().toUpperCase() != dicomFile.getPatientID().toUpperCase()) {
-                    throw Error(`PatientId is different from other files that belong to the study: ${study.getPatientID()} != ${dicomFile.getPatientID()}`);
-                }
-
-                if (study.getPatientBirthDate().toUpperCase() != dicomFile.getPatientBirthDate().toUpperCase()) {
-                    throw Error(`Patient birth date is different from other files that belong to the study: ${study.getPatientBirthDate()} != ${dicomFile.getPatientBirthDate()}`);
-                }
-
-                if (study.getPatientSex().toUpperCase() != dicomFile.getPatientSex().toUpperCase()) {
-                    throw Error(`Patient sex is different from other files that belong to the study: ${study.getPatientSex()} != ${dicomFile.getPatientSex()}`);
-                }
+                this.verifyPatientIdIsConsistent(dicomFile, study);
             }
 
             let series
@@ -289,6 +274,17 @@ class Uploader extends Component {
                     }
                 }
             })
+        }
+    }
+
+    verifyPatientIdIsConsistent(dicomFile, study) {
+        const patientIdFromFile = dicomFile.getPatientID();
+        const patientIdFromStudy = study.getPatientID();
+
+        if (patientIdFromFile != "" && patientIdFromStudy != "") {
+            if (study.getPatientID().toUpperCase() != dicomFile.getPatientID().toUpperCase()) {
+                throw Error(`PatientId is different from other files that belong to the study. Study: \'${study.getPatientID()}\' File: \'${dicomFile.getPatientID()}\'`);
+            }
         }
     }
 
