@@ -1,62 +1,159 @@
 // React and Redux
-import React, { Component, Fragment } from 'react'
-import { connect } from 'react-redux'
-
 // Primereact
-import { Message } from 'primereact/message'
-import { Toast } from 'primereact/toast';
-
-// Custom GUI components
-import SlotPanel from './SlotPanel'
-import DicomDropZone from './DicomDropZone'
-import DicomParsingDetails from './DicomParsingDetails'
-import DicomBrowser from './DicomBrowser'
-
-// Action functions
-import { addStudy, setSlotID } from '../actions/Studies'
-import { addSeries } from '../actions/Series'
-import { addWarningsSeries, addWarningsStudy } from '../actions/Warnings'
-import { addSlot, resetRedux } from '../actions/Slots'
-import { selectStudy, addStudyReady } from '../actions/DisplayTables'
-import { addSeriesReady } from '../actions/DisplayTables'
-
-import { NULL_SLOT_ID, ALREADY_KNOWN_STUDY } from '../model/Warning'
-
+import { BlockUI } from 'primereact/blockui';
+import { Divider } from 'primereact/divider';
+import { Message } from 'primereact/message';
+import { ScrollTop } from 'primereact/scrolltop';
+import { TabMenu } from 'primereact/tabmenu';
+import React, { Component, Fragment } from 'react';
+import { connect } from 'react-redux';
+import { addSlot, resetRedux } from '../actions/Slots';
 // DICOM processing
-import DicomFile from '../model/DicomFile'
-import DicomUploadDictionary from '../model/DicomUploadDictionary'
+import DicomFile from '../model/DicomFile';
+import DicomUploadDictionary from '../model/DicomUploadDictionary';
+import DicomUploadPackage from '../model/DicomUploadPackage';
+import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
+import TreeBuilder from '../util/TreeBuilder';
+import DicomDropZone from './DicomDropZone';
+import DicomParsingMenu from './DicomParsingMenu';
+import { DicomStudySelection } from "./DicomStudySelection";
+import FailedUploadPackageCheckPanel from './FailedUploadPackageCheckPanel';
+import FileUploadDialogPanel from './FileUploadDialogPanel';
+// Custom GUI components
+import SlotPanel from './SlotPanel';
+import { TreeSelection } from "./TreeSelection";
 
-// Util
-import Util from '../util/Util'
 
 /**
  * Uploader component
  */
 class Uploader extends Component {
-    
-    state = {
+
+
+    defaultState = {
         isFilesLoaded: false,
         isParsingFiles: false,
         isUnzipping: false,
         isUploadStarted: false,
-        isPaused : false,
+        isPaused: false,
         fileParsed: 0,
         fileLoaded: 0,
         zipProgress: 0,
-        uploadProgress: 0,
-        studyProgress: 0,
-        studyLength: 1,
         ignoredFiles: {},
-        isAnalysisDone: false
+        isAnalysisDone: false,
+        studyArray: [],
+        selectedNodeKeys: [],
+        selectedDicomFiles: [],
+        selectedStudy: null,
+        seriesSelectionState: 0,
+        blockedPanel: false,
+        uploadPackageCheckFailedPanel: false,
+        fileUploadDialogPanel: false,
+        evaluationUploadCheckResults: []
+
     }
+
+    seriesSelectionMenuItems = [
+        { label: 'All Series', icon: 'pi pi-fw' },
+        { label: 'RT Series', icon: 'pi pi-fw pi-calendar' }
+    ];
+
+
 
     constructor(props) {
         super(props)
 
+        this.state = {
+            ...this.defaultState
+        };
+
         this.config = this.props.config
         this.dicomUploadDictionary = new DicomUploadDictionary()
+        this.selectNodes = this.selectNodes.bind(this);
+        this.selectStudy = this.selectStudy.bind(this);
+        this.getSelectedFiles = this.updateDicomUploadPackage.bind(this);
+        this.resetAll = this.resetAll.bind(this);
+        this.submitUploadPackage = this.submitUploadPackage.bind(this);
+        this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
+        this.hideFileUploadDialogPanel = this.hideFileUploadDialogPanel.bind(this);
+
+        this.dicomUploadPackage = new DicomUploadPackage();
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
+    }
+
+    selectNodes(e) {
+        const selectedNodes = { ...e.value };
+        this.updateDicomUploadPackage(selectedNodes);
+        this.setState({
+            selectedNodeKeys: selectedNodes,
+            selectedDicomFiles: this.dicomUploadPackage.getSelectedFiles()
+        }
+        );
+    }
+
+    selectStudy(e) {
+        this.setState({ selectedStudy: { ...e.value }, selectedNodeKeys: [], selectedDicomFiles: 0 });
+    }
+
+    updateDicomUploadPackage(selectedNodesArray) {
+        const selectedStudy = { ...this.state.selectedStudy.series };
+        const selectedSeriesObjects = {};
+
+        for (let uid in selectedNodesArray) {
+            const selectedSeries = selectedStudy[uid];
+            if (selectedSeries != null) {
+                selectedSeriesObjects[uid] = selectedSeries;
+            }
+        }
+
+        this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
+    }
+
+    resetAll() {
+        this.setState({ ...this.defaultState });
+        this.props.resetRedux();
+        this.dicomUploadDictionary = new DicomUploadDictionary();
+        this.dicomUploadPackage = new DicomUploadPackage();
+    }
+
+    hideUploadCheckResultsPanel() {
+        this.setState({
+            blockedPanel: false,
+            uploadPackageCheckFailedPanel: false,
+            evaluationUploadCheckResults: []
+        });
+    }
+
+    hideFileUploadDialogPanel() {
+        this.setState({
+            blockedPanel: false,
+            fileUploadDialogPanel: false
+        });
+    }
+
+    submitUploadPackage() {
+        this.setState({ blockedPanel: true });
+        const evaluationResult = this.dicomUploadPackage.evaluate();
+        if (evaluationResult.length > 0) {
+            console.log(evaluationResult);
+            this.setState({
+                blockedPanel: false,
+                uploadPackageCheckFailedPanel: true,
+                evaluationUploadCheckResults: evaluationResult
+            });
+            return;
+        }
+
+        this.dicomUploadPackage.pseudonymize();
+
+        this.setState({
+            blockedPanel: false,
+            fileUploadDialogPanel: true
+        });
+
+        this.setState({ blockedPanel: false });
+
     }
 
     /**
@@ -78,7 +175,7 @@ class Uploader extends Component {
      */
     loadAvailableUploadSlots = () => {
         let uploadSlots = this.props.config.availableUploadSlots
-        
+
         uploadSlots.forEach(uploadSlot => {
             this.props.addSlot(uploadSlot)
         })
@@ -119,7 +216,18 @@ class Uploader extends Component {
         // Once all promised resolved update state and refresh redux with parsing results
         Promise.all(readPromises).then(() => {
             this.setState({ isFilesLoaded: true, isParsingFiles: false })
-            this.analyseDicomAndUpdateRedux()
+            this.setState({ isAnalysisDone: true })
+            let studyArray = this.dicomUploadDictionary.getStudies();
+            for (let studyObject of studyArray) {
+
+                const treeBuilder = new TreeBuilder([studyObject]);
+                studyObject.key = studyObject.studyInstanceUID;
+                studyObject.rtViewTree = treeBuilder.build();
+                studyObject.allRootTree = treeBuilder.buildAllNodesChildrenOfRoot();
+
+            }
+
+            this.setState({ studyArray: studyArray });
         })
     }
 
@@ -134,7 +242,7 @@ class Uploader extends Component {
 
             // DicomDir do no register file
             if (dicomFile.isDicomDir()) {
-                 throw Error('DICOMDIR')
+                throw Error('DICOMDIR')
             }
 
             // Register Study, Series, Instance in upload study dictionary
@@ -145,12 +253,13 @@ class Uploader extends Component {
             if (!this.dicomUploadDictionary.studyExists(studyInstanceUID)) {
                 study = this.dicomUploadDictionary.addStudy(dicomFile.getDicomStudyObject())
             } else {
-                study = this.dicomUploadDictionary.getStudy(studyInstanceUID)
+                study = this.dicomUploadDictionary.getStudy(studyInstanceUID);
+                this.verifyPatientIdIsConsistent(dicomFile, study);
             }
 
             let series
             if (!study.seriesExists(seriesInstanceUID)) {
-                 series = study.addSeries(dicomFile.getDicomSeriesObject())
+                series = study.addSeries(dicomFile.getDicomSeriesObject())
             } else {
                 series = study.getSeries(seriesInstanceUID)
             }
@@ -160,7 +269,7 @@ class Uploader extends Component {
             this.setState((previousState) => {
                 return { fileParsed: ++previousState.fileParsed }
             })
-            
+
         } catch (error) {
             // In case of exception register file in ignored file list
 
@@ -180,6 +289,17 @@ class Uploader extends Component {
         }
     }
 
+    verifyPatientIdIsConsistent(dicomFile, study) {
+        const patientIdFromFile = dicomFile.getPatientID();
+        const patientIdFromStudy = study.getPatientID();
+
+        if (patientIdFromFile != "" && patientIdFromStudy != "") {
+            if (study.getPatientID().toUpperCase() != dicomFile.getPatientID().toUpperCase()) {
+                throw Error(`PatientId is different from other files that belong to the study. Study: \'${study.getPatientID()}\' File: \'${dicomFile.getPatientID()}\'`);
+            }
+        }
+    }
+
     /**
      * Generate warnings for a given study
      * @param {*} studyRedux
@@ -193,224 +313,8 @@ class Uploader extends Component {
         // Check if study is already known by server
         let newStudy = await this.props.config.isNewStudy(studyRedux.studyInstanceUID)
         if (!newStudy) warnings.push(ALREADY_KNOWN_STUDY)
-        
+
         return warnings
-    }
-
-    /**
-     * Analyse DICOM studies/series with warning and populate redux
-     */
-    analyseDicomAndUpdateRedux = async () => {
-        this.setState({ isAnalysisDone: false })
-
-        // Scan every study in Model
-        let studyArray = this.dicomUploadDictionary.getStudies()
-        for (let studyObject of studyArray) {
-
-            // If unknown studyInstanceUID, add it to Redux
-            if (!Object.keys(this.props.studies).includes(studyObject.getStudyInstanceUID())){
-                await this.registerStudyInRedux(studyObject)
-            }
-
-            // Scan every series in Model
-            let series = studyObject.getSeriesArray()
-            for (let seriesObject of series) {
-                if (!Object.keys(this.props.series).includes(seriesObject.getSeriesInstanceUID())){
-                    await this.registerSeriesInRedux(seriesObject)
-                }
-            }
-        }
-        
-        // Mark check finished to make interface available and select the first study item
-        this.setState({ isAnalysisDone: true })
-
-        // When no study being selected, select the first one via action
-        if (this.props.selectedStudy === undefined && Object.keys(this.props.studies).length >= 1) {
-            this.props.selectStudy(this.props.studies[Object.keys(this.props.studies)[0]].studyInstanceUID)
-        }
-    }
-
-    /**
-     * Determine if all identification keys are matching of a study / slot couple
-     * @param {object} studyRedux
-     * @param {object} slotObject
-     */
-    isApproximateMatch = (studyRedux, slotObject) => {
-        
-        let birthDate = studyRedux.patientBirthDate
-        let sex = studyRedux.patientSex
-        let modalities = studyRedux.seriesModalitiesArray
-
-        if (Util.areEqualFields(slotObject.subjectSex.trim().charAt(0), sex.trim().charAt(0)) &&
-            Util.isProbablyEqualDates(slotObject.subjectDOB, Util.formatRawDate(birthDate))) {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    /**
-     * Search a perfect match slot for a registered studyInstanceUID in redux
-     * @param {string} studyInstanceUID
-     */
-    searchPerfectMatchStudy = (studyInstanceUID) => {
-        let studyRedux = this.props.studies[studyInstanceUID]
-
-        // Linear search through expected upload slots
-        for (let slotObject of Object.values(this.props.slots) ) {
-            if (this.isApproximateMatch(studyRedux, slotObject)) {
-                return slotObject;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Register a study of the DICOM model to the redux state
-     * @param {DicomStudy} dicomStudy
-     */
-    registerStudyInRedux = async (dicomStudy) => {
-        this.props.addStudy(
-            dicomStudy.getPatientSex(),
-            dicomStudy.getPatientBirthDate(),
-            dicomStudy.getStudyInstanceUID(),
-            dicomStudy.getStudyDescription(),
-            dicomStudy.getStudyDate(),
-            dicomStudy.getStudyType(),
-            dicomStudy.getSeriesModalities()
-        )
-
-        const studyInstanceUID = dicomStudy.getStudyInstanceUID()
-
-        // Search for a perfect Match in visit candidates and assign it
-        let perfectMatchVisit = this.searchPerfectMatchStudy(studyInstanceUID)
-        if (perfectMatchVisit != null) {
-            this.props.setSlotID(studyInstanceUID, perfectMatchVisit.slotID)
-        }
-        // Add study warnings to Redux
-        let studyRedux = this.props.studies[studyInstanceUID]
-        let studyWarnings = await this.getStudyWarning(studyRedux)
-
-        // If no warning mark it as ready, if not add warning to redux
-        if (studyWarnings.length === 0) {
-            this.props.addStudyReady(studyInstanceUID)
-        }
-        else {
-            studyWarnings.forEach((warning) => {
-                this.props.addWarningsStudy(studyInstanceUID, warning)
-            })
-        }
-    }
-
-    /**
-     * Register a series of the DICOM model to the redux state
-     * @param {DicomSeries} dicomSeries
-     */
-    registerSeriesInRedux = async (dicomSeries) => {
-        let seriesWarnings = await dicomSeries.getWarnings()
-        //Add series to redux
-        this.props.addSeries(
-            dicomSeries.getInstancesObject(),
-            dicomSeries.getSeriesInstanceUID(),
-            dicomSeries.getSeriesDate(),
-            dicomSeries.getSeriesDescription(),
-            dicomSeries.getModality(),
-            dicomSeries.getStudyInstanceUID()
-        )
-
-        // Automatically add to Redux seriesReady if contains no warnings
-        if (Util.isEmptyObject(seriesWarnings)) {
-            this.props.addSeriesReady(dicomSeries.getSeriesInstanceUID() )
-        } else {
-            // Add series related warnings to Redux
-            this.props.addWarningsSeries(dicomSeries.getSeriesInstanceUID(), seriesWarnings)
-        }
-    }
-
-    /**
-     * Upload selected and validated series on click
-     */
-    onUploadClick = () => {
-
-        // Build array of series object to be uploaded
-        let seriesObjectArrays = this.props.seriesReady.map((seriesUID) => {
-            return this.props.series[seriesUID]
-        })
-
-        // Get unique StudyUID in series arrays
-        let studyUIDArray = seriesObjectArrays.map((seriesObject) => {
-            return seriesObject.studyInstanceUID
-        })
-        studyUIDArray = [...new Set(studyUIDArray)]
-
-        // Filter non selected studyUID
-        studyUIDArray = studyUIDArray.filter(studyUID => (this.props.studiesReady.includes(studyUID)))
-
-        if (studyUIDArray.length === 0) {
-
-            new Toast().show({severity:'error', summary: 'Error Message', detail:'No Selected Series to Upload', life: 3000})
-            //toast.error('No Selected Series to Upload')
-            return
-        }
-
-        // let uploader = new DicomMultiStudyUploader(this.uppy)
-
-        // Group series by studyUID
-        for (let studyInstanceUID of studyUIDArray) {
-
-            let slotID = this.props.studies[studyInstanceUID].slotID
-
-            let seriesInstanceUID = seriesObjectArrays.filter((seriesObject) => {
-                return (seriesObject.studyInstanceUID === studyInstanceUID)
-            })
-            //let studyOrthancID = this.dicomUploadDictionary.getStudy(studyInstanceUID).getOrthancStudyID()
-
-            let filesToUpload = []
-
-            seriesInstanceUID.forEach(seriesObject => {
-                let getSeriesObject = this.dicomUploadDictionary.getStudy(studyInstanceUID).getSeries(seriesObject.seriesInstanceUID)
-                let fileArray = getSeriesObject.getInstances().map(instance => {
-                    return instance.getFile()
-                })
-                filesToUpload.push(...fileArray)
-            })
-
-        //     uploader.addStudyToUpload(slotID, filesToUpload, studyOrthancID)
-        }
-
-        // uploader.on('batch-zip-progress', (studyNumber, zipProgress) => {
-        //     this.setState({
-        //         studyLength: studyUIDArray.length,
-        //         studyProgress: studyNumber,
-        //         zipProgress: zipProgress
-        //     })
-        //
-        // })
-
-        // uploader.on('batch-upload-progress', (studyNumber, uploadProgress) => {
-        //     this.setState({
-        //         studyLength: studyUIDArray.length,
-        //         studyProgress: studyNumber,
-        //         uploadProgress: uploadProgress
-        //     })
-        //
-        // })
-
-        // uploader.on('study-upload-finished', (slotID, numberOfFiles, successIDsUploaded, studyOrthancID) => {
-        //     console.log('study upload Finished')
-        //     this.config.onStudyUploaded( slotID, successIDsUploaded, numberOfFiles, studyOrthancID)
-        //
-        // })
-
-        // uploader.on('upload-finished', () => {
-        //     console.log('full upload Finished')
-        //     this.config.onUploadComplete()
-        // })
-
-        // uploader.startUpload()
-        
-        // this.setState({ isUploadStarted: true })
     }
 
     /**
@@ -420,10 +324,11 @@ class Uploader extends Component {
         if (this.config.availableUploadSlots.length > 0) {
             return (
                 <Fragment>
-                    <div>
+                    <BlockUI blocked={this.state.blockedPanel}>
                         <SlotPanel />
-                    </div>
-                    <div>
+
+                        <Divider />
+
                         <DicomDropZone
                             addFile={this.addFile}
                             isUnzipping={this.state.isUnzipping}
@@ -433,36 +338,84 @@ class Uploader extends Component {
                             fileIgnored={Object.keys(this.state.ignoredFiles).length}
                             fileLoaded={this.state.fileLoaded}
                         />
-                    </div>
-                    <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
-                        <DicomParsingDetails
+
+                        <Divider />
+
+                        <DicomParsingMenu
                             fileLoaded={this.state.fileLoaded}
                             fileParsed={this.state.fileParsed}
                             dataIgnoredFiles={this.state.ignoredFiles}
+                            selectedNodeKeys={this.state.selectedNodeKeys}
+                            selectedDicomFiles={this.state.selectedDicomFiles}
+                            resetAll={this.resetAll}
+                            submitUploadPackage={this.submitUploadPackage}
                         />
-                    </div>
-                    <div hidden={!this.state.isFilesLoaded}>
-                        <DicomBrowser
-                            isCheckDone={this.state.isAnalysisDone}
-                            isUploadStarted={this.state.isUploadStarted}
-                            multiUpload={this.config.availableUploadSlots.length > 1}
-                            selectedSeries={this.props.selectedSeries}
-                        />
-                        {/*<ProgressUpload*/}
-                        {/*    disabled={ this.state.isUploadStarted || Object.keys(this.props.studiesReady).length === 0 }*/}
-                        {/*    isUploadStarted = {this.state.isUploadStarted}*/}
-                        {/*    isPaused = {this.state.isPaused}*/}
-                        {/*    multiUpload={this.config.availableSlots.length > 1}*/}
-                        {/*    studyProgress={this.state.studyProgress}*/}
-                        {/*    studyLength={this.state.studyLength}*/}
-                        {/*    onUploadClick={this.onUploadClick}*/}
-                        {/*    onPauseClick = {this.onPauseUploadClick}*/}
-                        {/*    zipPercent={this.state.zipProgress}*/}
-                        {/*    uploadPercent={this.state.uploadProgress} */}
-                        {/*/>*/}
-                    </div>
-                </Fragment>
-            )    
+
+                        <Divider />
+
+                        <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
+                            <DicomStudySelection
+                                studies={this.state.studyArray}
+                                selectStudy={this.selectStudy}
+                                selectedStudy={this.state.selectedStudy}
+                            />
+                        </div>
+
+                        <Divider />
+
+                        <div hidden={!this.state.selectedStudy} className="text-sm">
+                            <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
+                        </div>
+
+                        <div className="mb-3 text-sm" hidden={!this.state.selectedStudy}>
+                            <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
+                                <TreeSelection
+                                    rTView={true}
+                                    selectedStudy={this.state.selectedStudy}
+                                    seriesTree={"allRootTree"}
+                                    selectNodes={this.selectNodes}
+                                    selectedNodeKeys={this.state.selectedNodeKeys}
+                                >
+                                </TreeSelection>
+                            </div>
+                        </div>
+
+                        <div className="mb-3" hidden={!this.state.selectedStudy}>
+                            <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
+                                <TreeSelection
+                                    rTView={true}
+                                    selectedStudy={this.state.selectedStudy}
+                                    seriesTree={"rtViewTree"}
+                                    selectNodes={this.selectNodes}
+                                    selectedNodeKeys={this.state.selectedNodeKeys}
+                                >
+                                </TreeSelection>
+                            </div>
+                        </div>
+
+                        <ScrollTop />
+
+
+
+                    </BlockUI>
+
+                    <FailedUploadPackageCheckPanel
+                        uploadPackageCheckFailedPanel={this.state.uploadPackageCheckFailedPanel}
+                        evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
+                        hideUploadCheckResultsPanel={this.hideUploadCheckResultsPanel}
+                    ></FailedUploadPackageCheckPanel>
+
+                    <FileUploadDialogPanel
+                        fileUploadDialogPanel={this.state.fileUploadDialogPanel}
+                        hideFileUploadDialogPanel={this.hideFileUploadDialogPanel}
+                        selectedDicomFiles={this.state.selectedDicomFiles}
+                    >
+                    </FileUploadDialogPanel>
+
+                </Fragment >
+
+
+            )
         } else {
             return <Message severity="warn" text="No upload slots available" />
         }
@@ -473,28 +426,12 @@ class Uploader extends Component {
 const mapStateToProps = state => {
     return {
         slots: state.Slots.slots,
-        expectedSlot: state.Slots.expectedSlot,
-        studies: state.Studies.studies,
-        series: state.Series.series,
-        selectedSeries: state.DisplayTables.selectedSeries,
-        selectedStudy: state.DisplayTables.selectStudy,
-        seriesReady: state.DisplayTables.seriesReady,
-        studiesReady: state.DisplayTables.studiesReady,
-        warningsSeries: state.Warnings.warningsSeries,
     }
 }
 
 // Access to Redux store dispatch methods
 const mapDispatchToProps = {
-    addStudy,
-    addSeries,
-    addWarningsStudy,
-    addWarningsSeries,
     addSlot,
-    selectStudy,
-    addStudyReady,
-    addSeriesReady,
-    setSlotID,
     resetRedux
 }
 

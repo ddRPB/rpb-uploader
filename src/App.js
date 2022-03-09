@@ -1,34 +1,25 @@
-import 'regenerator-runtime/runtime'
-
-import React from 'react'
-import { Provider } from 'react-redux'
-import { applyMiddleware, createStore } from 'redux'
-import thunk from 'redux-thunk'
-
-import { ToastContainer } from 'react-toastify'
-
-// Primereact styles
-import 'primeflex/primeflex.css'
-import 'primereact/resources/themes/saga-blue/theme.css'
-import 'primereact/resources/primereact.min.css'
-import 'primeicons/primeicons.css'
-
 // Boostrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css'
-
+// Primereact styles
+import 'primeflex/primeflex.css'
+import 'primeicons/primeicons.css'
+import 'primereact/resources/primereact.min.css'
+import 'primereact/resources/themes/saga-blue/theme.css'
+import React from 'react'
+import { Provider } from 'react-redux'
+import { ToastContainer } from 'react-toastify'
 // Toastify CSS
 import 'react-toastify/dist/ReactToastify.css'
-
+import { applyMiddleware, createStore } from 'redux'
+import thunk from 'redux-thunk'
+import 'regenerator-runtime/runtime'
 // Custom RPB Uploader CSS
 import './assets/style/DicomUpload.css'
-
+// All reducers
+import reducers from './reducers'
 // Uploader component
 import Uploader from './uploader/Uploader'
 
-// All reducers
-import reducers from './reducers'
-
-import seriesWarningMiddleware from './middleware/SeriesWarningMiddleware'
 
 /**
  * Function based main stateful application component
@@ -37,7 +28,7 @@ import seriesWarningMiddleware from './middleware/SeriesWarningMiddleware'
 function App(props) {
 
     // Immutable global state with middleware for action creators
-    const createStoreWithMiddleware =  applyMiddleware(thunk, seriesWarningMiddleware)(createStore)
+    const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
 
     // Provider with allowed Redux DevTools
     return (
@@ -52,6 +43,7 @@ function App(props) {
                 pauseOnHover
             />
             <Uploader {...props} />
+
         </Provider>
     )
 }

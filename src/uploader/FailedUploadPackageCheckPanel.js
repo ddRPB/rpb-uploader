@@ -8,9 +8,9 @@ import React, { Component } from 'react'
 
 
 /**
- * IgnoredFilesPanel component
+ * FailedUploadPackageCheckPanel component
  */
-export default class IgnoredFilesPanel extends Component {
+export default class FailedUploadPackageCheckPanel extends Component {
 
     /**
      * Create rows for table display
@@ -45,16 +45,18 @@ export default class IgnoredFilesPanel extends Component {
     render = () => {
         return (
             <Dialog
-                header={this.renderHeader()}
-                visible={this.props.display}
+                header={"Validation Errors"}
+                visible={this.props.uploadPackageCheckFailedPanel}
                 style={{ width: '50vw' }}
-                onHide={this.props.closeListener}
+                onHide={this.props.hideUploadCheckResultsPanel}
             >
                 <DataTable
-                    value={this.createRows()}
+                    value={this.props.evaluationUploadCheckResults}
                 >
+                    <Column field="title" header="Title" />
+                    <Column field="message" header="Message" />
+                    <Column field="series" header="Series" />
                     <Column field="file" header="File" />
-                    <Column field="reason" header="Reason" />
                 </DataTable>
                 <ScrollTop />
             </Dialog>

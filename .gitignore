@@ -1,4 +1,7 @@
 .idea/
+.vscode/
+workspace.code*
+*.iml
 
 # dependencies
 /node_modules
@@ -11,6 +14,13 @@
 # production
 /build
 
+#webpack
+/dist
+
+# all data folder
+**/data/*
+!**/data/Readme.md
+
 # misc
 .DS_Store
 .env.local
@@ -21,5 +31,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+package-lock.json
 
 .env
