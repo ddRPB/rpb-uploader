@@ -13,6 +13,7 @@ import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
+import DicomUIDGenerator from '../util/deidentification/DicomUIDGenerator';
 import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
@@ -49,7 +50,8 @@ class Uploader extends Component {
         blockedPanel: false,
         uploadPackageCheckFailedPanel: false,
         fileUploadDialogPanel: false,
-        evaluationUploadCheckResults: []
+        evaluationUploadCheckResults: [],
+        dicomUidGenerator: new DicomUIDGenerator(),
 
     }
 
@@ -145,7 +147,7 @@ class Uploader extends Component {
             return;
         }
 
-        this.dicomUploadPackage.pseudonymize();
+        this.dicomUploadPackage.pseudonymize(this.state.dicomUidGenerator);
 
         this.setState({
             blockedPanel: false,
