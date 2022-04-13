@@ -5,4 +5,5 @@ module.exports = Object.freeze({
     K: 'K', // keep
     C: 'C', // clean - replace with values of similar meaning without identifying information
     U: 'U'  // replace with a non-zero length uid - internally consistent within a set of instances
+
 })

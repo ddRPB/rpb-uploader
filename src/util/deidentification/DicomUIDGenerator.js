@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 
+//
+// https://stackoverflow.com/questions/58009141/how-to-convert-uuid-guid-to-oid-dicom-uid-in-javascript
+
 export default class DicomUIDGenerator {
 
     constructor(prefix) {
@@ -48,6 +51,16 @@ export default class DicomUIDGenerator {
             return generatedIntUid;
         }
 
+    }
+
+    getOriginalUidToPseudomizedUidMap(uids) {
+        const uidMap = new Map();
+        if (uids != null) {
+            for (let uid of uids) {
+                uidMap.set(uid, this.getUid(uid));
+            }
+        }
+        return uidMap;
     }
 
 }

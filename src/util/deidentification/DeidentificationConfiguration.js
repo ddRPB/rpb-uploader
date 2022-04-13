@@ -63,7 +63,7 @@ export default class DeIdentificationConfiguration {
     }
 
     noop(dictionary, propertyName, uidGenerator) {
-        console.log(`do nothing ${propertyName}`);
+        // console.log(`do nothing ${propertyName}`);
     }
 
     replaceWithDummyValue(dictionary, propertyName, uidGenerator) {
@@ -72,29 +72,41 @@ export default class DeIdentificationConfiguration {
 
         switch (vr) {
             case 'UI':
-                console.log('test');
+                // console.log('test');
                 //...
                 break;
             default:
-                console.log('test');
+            // console.log('test');
         }
 
         if (Array.isArray(element.Value)) {
-            console.log('array');
+            // console.log('array');
         }
-        console.log(`replace ${propertyName} with dummy value`);
+        // console.log(`replace ${propertyName} with dummy value`);
     }
 
-    replaceWithZeroLengthValue(dictionary, propertyName, uidGenerator) {
-        console.log(`replace ${propertyName} with zero length value`);
+    replaceWithZeroLengthValue(dictionary, propertyName, dicomUidReplacements) {
+        // console.log(`replace ${propertyName} with zero length value`);
     }
 
-    replaceUID(dictionary, propertyName, uidGenerator) {
+    replaceUID(dictionary, propertyName, dicomUidReplacements) {
+        const originalElementValue = dictionary[propertyName].Value;
+        let newElementValue;
+        if (Array.isArray(originalElementValue)) {
+            newElementValue = [];
+            for (let uid of originalElementValue) {
+                newElementValue.push(dicomUidReplacements.get(uid));
+                console.log(`replace ${uid} uid with  ${dicomUidReplacements.get(uid)}`);
+            }
+        } else {
+            newElementValue = dicomUidReplacements.get(uid);
+            console.log(`replace ${originalElementValue} uid with  ${dicomUidReplacements.get(originalElementValue)}`);
+        }
+        dictionary[propertyName].Value = newElementValue;
 
-        console.log(`replace ${propertyName} uid`);
     }
 
-    removeItem(dictionary, propertyName, uidGenerator) {
+    removeItem(dictionary, propertyName, dicomUidReplacements) {
         delete dictionary[propertyName];
         console.log(`remove item ${propertyName}`);
     }

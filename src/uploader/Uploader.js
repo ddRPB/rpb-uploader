@@ -51,7 +51,7 @@ class Uploader extends Component {
         uploadPackageCheckFailedPanel: false,
         fileUploadDialogPanel: false,
         evaluationUploadCheckResults: [],
-        dicomUidGenerator: new DicomUIDGenerator(),
+        dicomUidReplacements: null,
 
     }
 
@@ -79,7 +79,7 @@ class Uploader extends Component {
         this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
         this.hideFileUploadDialogPanel = this.hideFileUploadDialogPanel.bind(this);
 
-        this.dicomUploadPackage = new DicomUploadPackage();
+        this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
@@ -99,6 +99,8 @@ class Uploader extends Component {
     }
 
     updateDicomUploadPackage(selectedNodesArray) {
+        const selectedStudyUID = this.state.selectedStudy.studyInstanceUID;
+
         const selectedStudy = { ...this.state.selectedStudy.series };
         const selectedSeriesObjects = {};
 
@@ -109,6 +111,7 @@ class Uploader extends Component {
             }
         }
 
+        this.dicomUploadPackage.setStudyInstanceUID(selectedStudyUID);
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
     }
 
@@ -116,7 +119,7 @@ class Uploader extends Component {
         this.setState({ ...this.defaultState });
         this.props.resetRedux();
         this.dicomUploadDictionary = new DicomUploadDictionary();
-        this.dicomUploadPackage = new DicomUploadPackage();
+        this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
     }
 
     hideUploadCheckResultsPanel() {
@@ -134,20 +137,26 @@ class Uploader extends Component {
         });
     }
 
-    submitUploadPackage() {
+    async submitUploadPackage() {
         this.setState({ blockedPanel: true });
-        const evaluationResult = this.dicomUploadPackage.evaluate();
-        if (evaluationResult.length > 0) {
-            console.log(evaluationResult);
-            this.setState({
-                blockedPanel: false,
-                uploadPackageCheckFailedPanel: true,
-                evaluationUploadCheckResults: evaluationResult
-            });
-            return;
-        }
+        let uids = await this.dicomUploadPackage.evaluate();
+        const dicomUIDGenerator = new DicomUIDGenerator('2.25.');
+        const dicomUidReplacements = dicomUIDGenerator.getOriginalUidToPseudomizedUidMap(uids);
 
-        this.dicomUploadPackage.pseudonymize(this.state.dicomUidGenerator);
+        this.setState({ dicomUidReplacements: dicomUidReplacements });
+
+        // if (evaluationResult.length > 0) {
+        //     console.log(evaluationResult);
+        //     this.setState({
+        //         blockedPanel: false,
+        //         uploadPackageCheckFailedPanel: true,
+        //         evaluationUploadCheckResults: evaluationResult
+        //     });
+        //     return;
+        // }
+
+        this.dicomUploadPackage.pseudonymize(this.state.dicomUidReplacements);
+        this.dicomUploadPackage.upload();
 
         this.setState({
             blockedPanel: false,

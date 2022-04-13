@@ -7,15 +7,15 @@ const { cleanTags } = dcmjs.anonymizer;
 export default class DicomFileDeIdentificationComponentDcmjs {
 
 
-    constructor(uidGenerator, configuration, fileObject) {
-        this.uidGenerator = uidGenerator;
+    constructor(dicomUidReplacements, configuration, fileObject) {
+        this.dicomUidReplacements = dicomUidReplacements;
         this.configuration = configuration;
         this.fileObject = fileObject;
 
     }
 
     async getBufferForTest() {
-        return this.readDicomFile(this.fileObject);
+        return this.deIdentDicomFile(this.fileObject);
     }
 
     async getBuffer() {
@@ -23,7 +23,7 @@ export default class DicomFileDeIdentificationComponentDcmjs {
 
         const arrayBuffer = reader.result;
 
-        return await this.readDicomFile(arrayBuffer);
+        return this.deIdentDicomFile(arrayBuffer);
     }
 
 
@@ -38,10 +38,11 @@ export default class DicomFileDeIdentificationComponentDcmjs {
         });
     }
 
-    async readDicomFile(arrayBuffer) {
+    deIdentDicomFile(arrayBuffer) {
         this.dataSet = DicomMessage.readFile(arrayBuffer);
         this.parseDicomData(this.dataSet.meta);
         this.parseDicomData(this.dataSet.dict);
+        return this.dataSet.write();
     }
 
     parseDicomData(dataSetDict) {
@@ -59,7 +60,7 @@ export default class DicomFileDeIdentificationComponentDcmjs {
                         break;
                     default:
                         const action = this.configuration.getTask(propertyName);
-                        action(dataSetDict, propertyName, this.uidGenerator);
+                        action(dataSetDict, propertyName, this.dicomUidReplacements);
                         break;
                 }
 
