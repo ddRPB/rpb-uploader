@@ -1,4 +1,3 @@
-// import { Client } from 'node-rest-client-promise';
 import DeIdentificationProfiles from "../constants/DeIdentificationProfiles";
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
@@ -100,12 +99,17 @@ export default class DicomUploadPackage {
 
         }
 
+        await Promise.all(this.pseudomizedFileBuffers.entries());
+
+        const replacedStudyUID = dicomUidReplacements.get(this.studyInstanceUID);
+        if (replacedStudyUID != null) {
+            this.studyInstanceUID = replacedStudyUID;
+        }
         console.log("Generating Pseudonyms");
 
     }
 
     async upload() {
-        // const client = new Client();
         const boundary = 'XXXXXXXX---abcd';
         const fileName = 'dummmyFileName';
         const contentId = 'dummyId';
@@ -120,16 +124,18 @@ export default class DicomUploadPackage {
             .build();
 
         const args = {
-            data: payload,
+            method: 'POST',
+            body: payload,
             headers: {
                 "X-Api-Key": "abc",
                 "Content-Type": `multipart/related; boundary=${boundary}; type="application/dicom"`,
             }
         };
 
-        // let response = await client.postPromise(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}`, args);
-
-        // console.log(response.response.statusMessage);
+        let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}`, args);
+        console.log('test');
+        console.log(response.status);
+        console.log(response.ok);
         // console.log(response.response.statusCode);
 
 
