@@ -1,10 +1,13 @@
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
+import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
 
 export default class DeIdentificationConfiguration {
 
     constructor(configurationMap) {
         this.configurationMap = configurationMap;
+        this.replacementValues = this.getDefaultValues();
     }
+
 
     // for testing
     getConfigurationMap() {
@@ -12,26 +15,18 @@ export default class DeIdentificationConfiguration {
     }
 
     getTask(tag) {
-        // Tag Exceptions - mask number contingents
-        if (tag.startsWith('50')) {
-            tag = '50xxxxxx';
-        }
-        if (tag.startsWith('60') && tag.endsWith('3000')) {
-            tag = '60xx3000';
-        }
-        if (tag.startsWith('60') && tag.endsWith('4000')) {
-            tag = '60xx4000';
-        }
-        // private tags
-        const group = tag.slice(0, 4);
-        if (group > 7 && group % 2 == 1) {
-            tag = 'private';
-        }
-
+        // Mask specific number contingents
+        tag = replaceContingentsWithMaskedNumberTag(tag);
+        // Mask private Tags
+        tag = replacePrivateTagsWithStringPrivate(tag);
 
         const elementActionConfiguration = this.configurationMap.get(tag);
+
         if (elementActionConfiguration === undefined) {
-            return this.noop;
+            return {
+                action: this.noop,
+                parameter: this.noop
+            };
         } else {
             const action = elementActionConfiguration.action;
             switch (action) {
@@ -39,19 +34,39 @@ export default class DeIdentificationConfiguration {
                     // similar values; TODO
                     break;
                 case DeIdentificationActionCodes.D:
-                    return this.replaceWithDummyValue;
+                    return {
+                        action: this.replaceWithDummyValue.bind(this),
+                        parameter: this.noop
+                    };
+                    // return this.replaceWithDummyValue.bind(this);
                     break;
                 case DeIdentificationActionCodes.K:
-                    return this.noop;
+                    return {
+                        action: this.noop,
+                        parameter: this.noop
+                    };
+                    // return this.noop;
                     break;
                 case DeIdentificationActionCodes.U:
-                    return this.replaceUID;
+                    return {
+                        action: this.replaceUID,
+                        parameter: this.noop
+                    };
+                    // return this.replaceUID;
                     break;
                 case DeIdentificationActionCodes.X:
-                    return this.removeItem;
+                    return {
+                        action: this.removeItem,
+                        parameter: this.noop
+                    };
+                    // return this.removeItem;
                     break;
                 case DeIdentificationActionCodes.Z:
-                    return this.replaceWithZeroLengthValue;
+                    return {
+                        action: this.replaceWithZeroLengthOrDummyValue.bind(this),
+                        parameter: this.noop
+                    };
+                    // return this.replaceWithZeroLengthOrDummyValue.bind(this);
                     break;
                 default:
                     throw new Error(`Action code: ${action} is not implemented`);
@@ -66,7 +81,7 @@ export default class DeIdentificationConfiguration {
         // console.log(`do nothing ${propertyName}`);
     }
 
-    replaceWithDummyValue(dictionary, propertyName, uidGenerator) {
+    replaceWithDummyValue(dictionary, propertyName, dicomUidReplacements) {
         const element = dictionary[propertyName];
         const vr = element.vr;
 
@@ -85,8 +100,22 @@ export default class DeIdentificationConfiguration {
         // console.log(`replace ${propertyName} with dummy value`);
     }
 
-    replaceWithZeroLengthValue(dictionary, propertyName, dicomUidReplacements) {
-        // console.log(`replace ${propertyName} with zero length value`);
+    replaceWithZeroLengthOrDummyValue(dictionary, propertyName, dicomUidReplacements) {
+        const originalElementValue = dictionary[propertyName].Value;
+        if (Array.isArray(originalElementValue)) {
+            if (originalElementValue.length > 0) {
+                // this.replaceWithDummyValue(dictionary, propertyName, dicomUidReplacements).bind(this);
+            } else {
+                newElementValue = [];
+                dictionary[propertyName].Value = newElementValue;
+                console.log(`replace ${propertyName} with zero length array`);
+            }
+
+        } else {
+            newElementValue = '';
+            dictionary[propertyName].Value = newElementValue;
+            console.log(`replace ${propertyName} with zero length value`);
+        }
     }
 
     replaceUID(dictionary, propertyName, dicomUidReplacements) {
