@@ -59,8 +59,9 @@ export default class DicomFileDeIdentificationComponentDcmjs {
                         }
                         break;
                     default:
-                        const action = this.configuration.getTask(propertyName);
-                        action(dataSetDict, propertyName, this.dicomUidReplacements);
+                        let { action, parameter } = this.configuration.getTask(propertyName, vr);
+                        if (vr === 'UI') parameter = this.dicomUidReplacements;
+                        action(dataSetDict, propertyName, parameter);
                         break;
                 }
 

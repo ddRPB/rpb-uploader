@@ -15,7 +15,7 @@ export default class MimeMessageBuilder {
      */
     createHeaderString() {
         this.headerString += "MIME-Version: 1.0" + this.lineBreak;
-        this.headerString += 'Content-Type: multipart/related;';
+        this.headerString += 'Content-Type: multipart/related;' + this.lineBreak;
         this.headerString += 'boundary=\"' + this.boundary + '\"' + this.lineBreak;
         this.headerString += this.lineBreak;
         this.headerString += 'This is a multi-part messsage in MIME format.'
@@ -39,8 +39,8 @@ export default class MimeMessageBuilder {
 
         // this.bodyString += ';\r\n' + 'id=\"DICOMDIR\"' + this.lineBreak;
         // this.bodyString += ';\r\n' + 'name=\"DicomDir\"' + this.lineBreak;
-        this.bodyString += 'Content-Transfer-Encoding: base64' + this.lineBreak;
-        // this.bodyString += 'Content-Disposition: attachment' + this.lineBreak;
+        this.bodyString += 'Content-Transfer-Encoding: BASE64' + this.lineBreak;
+        this.bodyString += 'Content-Disposition: attachment' + this.lineBreak;
         // this.bodyString += ';\r\n' + 'filename=\"' + fileName + '\";' + this.lineBreak;
         if (contentId) this.bodyString += 'Content-ID: \"' + contentId + '\"' + this.lineBreak;
         if (contentDescription) this.bodyString += 'Content-Description: ' + contentDescription + this.lineBreak;

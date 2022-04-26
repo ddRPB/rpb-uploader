@@ -155,7 +155,7 @@ class Uploader extends Component {
         //     return;
         // }
 
-        this.dicomUploadPackage.pseudonymize(this.state.dicomUidReplacements);
+        await this.dicomUploadPackage.deidentify(this.state.dicomUidReplacements);
         this.dicomUploadPackage.upload();
 
         this.setState({

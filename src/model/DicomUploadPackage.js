@@ -64,7 +64,7 @@ export default class DicomUploadPackage {
 
         for (let uid in this.selectedSeriesObjects) {
             const selectedSeries = this.selectedSeriesObjects[uid];
-            console.log(`Pseudomyse series ${uid}`);
+            console.log(`Evaluate series ${uid}`);
 
             if (selectedSeries.parameters != null) {
                 for (let sopInstanceUid in selectedSeries.instances) {
@@ -81,13 +81,13 @@ export default class DicomUploadPackage {
 
     }
 
-    async pseudonymize(dicomUidReplacements) {
-        const configFactory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC);
+    async deidentify(dicomUidReplacements) {
+        const configFactory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, this.uploadSlot);
         const deIdentConf = configFactory.getConfiguration();
 
         for (let uid in this.selectedSeriesObjects) {
             const selectedSeries = this.selectedSeriesObjects[uid];
-            console.log(`Pseudomyse series ${uid}`);
+            console.log(`Deidentify series ${uid}`);
 
             if (selectedSeries.parameters != null) {
                 for (let sopInstanceUid in selectedSeries.instances) {
@@ -115,7 +115,7 @@ export default class DicomUploadPackage {
         const contentId = 'dummyId';
         const contentDescription = 'description';
         // ToDo: Timing for resolving promises
-        const dataBuffer = Buffer.from(this.pseudomizedFileBuffers[0]);
+        const dataBuffer = Buffer.from(await this.pseudomizedFileBuffers[0]);
 
         const mimeMessageBuilder = new MimeMessageBuilder(boundary);
         const payload = mimeMessageBuilder
