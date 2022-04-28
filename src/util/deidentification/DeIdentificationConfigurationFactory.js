@@ -593,7 +593,6 @@ export default class DeIdentificationConfigurationFactory {
 
         this.additionalTagValuesMap.set('00120064', [deIdentificationMethodCodeSequence]);
 
-        console.log(this.additionalTagValuesMap);
 
         return new DeIdentificationConfiguration(this.actionConfigurationMap, this.defaultReplacementsValuesMap, this.tagSpecificReplacementsValuesMap, this.additionalTagValuesMap);
     }

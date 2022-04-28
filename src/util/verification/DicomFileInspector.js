@@ -8,8 +8,9 @@ const { cleanTags } = dcmjs.anonymizer;
 export default class DicomFileInspector {
 
 
-    constructor(fileObject) {
+    constructor(fileObject, deIdentificationConfiguration) {
         this.fileObject = fileObject;
+        this.deIdentificationConfiguration = deIdentificationConfiguration;
         this.uids = new Array();
 
     }
@@ -67,10 +68,13 @@ export default class DicomFileInspector {
                         break;
 
                     case 'UI':
-                        if (Array.isArray(element.Value)) {
-                            uidArray = uidArray.concat(element.Value);
-                        } else {
-                            uidArray.push(element.Value);
+                        // filter just tags that are supposed to be replaced by configuration
+                        if (this.deIdentificationConfiguration.isUidReplacementCandidate(propertyName)) {
+                            if (Array.isArray(element.Value)) {
+                                uidArray = uidArray.concat(element.Value);
+                            } else {
+                                uidArray.push(element.Value);
+                            }
                         }
                         break;
                     default:

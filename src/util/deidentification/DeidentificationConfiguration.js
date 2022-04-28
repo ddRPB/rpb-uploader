@@ -84,6 +84,16 @@ export default class DeIdentificationConfiguration {
 
     }
 
+    isUidReplacementCandidate(tag) {
+        const elementActionConfiguration = this.actionConfigurationMap.get(tag);
+
+        if (elementActionConfiguration != undefined && elementActionConfiguration.action === DeIdentificationActionCodes.U) {
+            return true;
+        }
+
+        return false;
+    }
+
     noop(dictionary, propertyName, uidGenerator) {
         // console.log(`do nothing ${propertyName}`);
     }
