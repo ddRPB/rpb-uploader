@@ -1,9 +1,11 @@
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
+import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodes";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
 import DeIdentificationConfiguration from "./DeidentificationConfiguration";
 
 // https://www.dicomstandard.org/News-dir/ftsup/docs/sups/sup142.pdf
+// https://dicom.nema.org/medical/dicom/current/output/html/part15.html#table_E.1-1 
 
 export default class DeIdentificationConfigurationFactory {
 
@@ -12,6 +14,10 @@ export default class DeIdentificationConfigurationFactory {
         this.actionConfigurationMap = new Map();
         this.defaultReplacementsValuesMap = new Map();
         this.tagSpecificReplacementsValuesMap = new Map();
+        this.additionalTagValuesMap = new Map();
+
+        this.patientIdentitityRemoved = 'true'; // true - current default setting
+        this.appliedDeIdentificationSteps = [];
 
         this.createBasicProfile();
         this.createDefaultReplacementsValuesMap();
@@ -31,6 +37,10 @@ export default class DeIdentificationConfigurationFactory {
     }
 
     createBasicProfile() {
+        // annotation that the method is used
+        this.appliedDeIdentificationSteps.push(DeIdentificationProfileCodes.BASIC);
+
+        // Configure action codes
         // Accession Number 
         this.actionConfigurationMap.set('00080050', { action: DeIdentificationActionCodes.Z });
         // Acquisition Comments
@@ -548,11 +558,43 @@ export default class DeIdentificationConfigurationFactory {
     }
 
     createRetainDeviceIdentityProfile() {
+        // annotation that the method is used and identitity is not removed
+
+        this.appliedDeIdentificationSteps.push(DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS);
+        // this.patientIdentitityRemoved = 'false' ?
+
         // incomplete
         this.actionConfigurationMap.set('00181007', this.actionConfigurationMap.get('00181007').action = DeIdentificationActionCodes.K);
     }
 
     getConfiguration() {
-        return new DeIdentificationConfiguration(this.actionConfigurationMap, this.defaultReplacementsValuesMap, this.tagSpecificReplacementsValuesMap);
+        this.additionalTagValuesMap.set('00120062', this.patientIdentitityRemoved);
+        // https://dicom.innolitics.com/ciods/enhanced-sr/patient/00120064/00080100
+        // https://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_8.html#chapter_8
+
+        const deIdentificationMethodCodeSequence = {};
+        deIdentificationMethodCodeSequence['00080102'] = {
+            vr: DicomValueRepresentations.SH,
+            Value: ['DCM']
+        };
+
+        const codeValue = this.appliedDeIdentificationSteps.join('\\');
+        if (codeValue.length > 16) {
+            deIdentificationMethodCodeSequence['00080119'] = {
+                vr: DicomValueRepresentations.UC,
+                Value: [codeValue]
+            };
+        } else {
+            deIdentificationMethodCodeSequence['00080100'] = {
+                vr: DicomValueRepresentations.SH,
+                Value: [codeValue]
+            };
+        }
+
+        this.additionalTagValuesMap.set('00120064', [deIdentificationMethodCodeSequence]);
+
+        console.log(this.additionalTagValuesMap);
+
+        return new DeIdentificationConfiguration(this.actionConfigurationMap, this.defaultReplacementsValuesMap, this.tagSpecificReplacementsValuesMap, this.additionalTagValuesMap);
     }
 }

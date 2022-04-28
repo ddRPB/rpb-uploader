@@ -1,12 +1,14 @@
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
+import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
 import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
 
 export default class DeIdentificationConfiguration {
 
-    constructor(actionConfigurationMap, defaultReplacementsValuesMap, tagSpecificReplacementsValuesMap) {
+    constructor(actionConfigurationMap, defaultReplacementsValuesMap, tagSpecificReplacementsValuesMap, additionalTagValuesMap) {
         this.actionConfigurationMap = actionConfigurationMap;
         this.defaultReplacementsValuesMap = defaultReplacementsValuesMap;
         this.tagSpecificReplacementsValuesMap = tagSpecificReplacementsValuesMap;
+        this.additionalTagValuesMap = additionalTagValuesMap;
     }
 
 
@@ -112,6 +114,8 @@ export default class DeIdentificationConfiguration {
                 for (let el of originalElementValue) {
                     if (el.length > 0) {
                         newElementValue.push(replacement);
+                    } else {
+                        newElementValue.push('');
                     }
                 }
                 console.log(`replace ${propertyName} with dummy value ${replacement}`);
@@ -153,6 +157,40 @@ export default class DeIdentificationConfiguration {
     removeItem(dictionary, propertyName, dicomUidReplacements) {
         delete dictionary[propertyName];
         console.log(`remove item ${propertyName}`);
+    }
+
+    addReplacementTags(dictionary) {
+        //Patient Identity Removed Attribute
+        if (this.additionalTagValuesMap.get('00120062') != undefined) {
+            if (dictionary['00120062'] === undefined) { // not deIdentified yet
+                dictionary['00120062'] = {
+                    vr: DicomValueRepresentations.CS,
+                    Value: [this.additionalTagValuesMap.get('00120062')]
+                };
+            } else if (dictionary['00120062'].Value === ['false']) { // patient identity is not already removed yet
+                dictionary['00120062'] = {
+                    vr: DicomValueRepresentations.CS,
+                    Value: [this.additionalTagValuesMap.get('00120062')]
+                };
+            }
+        }
+
+        // De-identification Method Code Sequence Attribute
+        if (this.additionalTagValuesMap.get('00120064') != undefined) {
+            if (dictionary['00120064'] === undefined) { // not deIdentified yet
+                dictionary['00120064'] = {
+                    vr: DicomValueRepresentations.SQ,
+                    Value: this.additionalTagValuesMap.get('00120064')
+                };
+            } else {
+                const originalValue = dictionary['00120064'].Value;
+                dictionary['00120064'] = {
+                    vr: DicomValueRepresentations.SQ,
+                    Value: originalValue.concat(this.additionalTagValuesMap.get('00120064'))
+                };
+            }
+        }
+
     }
 
     getReplacementValue(tag, vr) {

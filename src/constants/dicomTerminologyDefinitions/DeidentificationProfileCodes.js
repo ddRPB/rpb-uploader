@@ -3,8 +3,6 @@
  * https://dicom.nema.org/medical/dicom/current/output/html/part15.html#table_E.1-1 
  */
 
-/ 
-
 module.exports = Object.freeze({
     BASIC: '113100', // Basic Application Confidentiality Profile
     RETAIN_LONG_FULL_DATES: ' 113106', // Retain Longitudinal Temporal Information Full Dates Option

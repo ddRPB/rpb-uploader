@@ -40,12 +40,14 @@ export default class DicomFileDeIdentificationComponentDcmjs {
 
     deIdentDicomFile(arrayBuffer) {
         this.dataSet = DicomMessage.readFile(arrayBuffer);
-        this.parseDicomData(this.dataSet.meta);
-        this.parseDicomData(this.dataSet.dict);
+        this.applyDeIdentificationActions(this.dataSet.meta);
+        this.applyDeIdentificationActions(this.dataSet.dict);
+        this.configuration.addReplacementTags(this.dataSet.dict);
+
         return this.dataSet.write();
     }
 
-    parseDicomData(dataSetDict) {
+    applyDeIdentificationActions(dataSetDict) {
 
         for (let propertyName in dataSetDict) {
             const element = dataSetDict[propertyName];
@@ -55,7 +57,7 @@ export default class DicomFileDeIdentificationComponentDcmjs {
                 switch (vr) {
                     case 'SQ':
                         for (let seqElement of element.Value) {
-                            this.parseDicomData(seqElement);
+                            this.applyDeIdentificationActions(seqElement);
                         }
                         break;
                     default:
@@ -66,6 +68,7 @@ export default class DicomFileDeIdentificationComponentDcmjs {
                 }
 
             }
+
 
 
 
