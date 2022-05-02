@@ -47,6 +47,8 @@ class Uploader extends Component {
         selectedDicomFiles: [],
         selectedStudy: null,
         seriesSelectionState: 0,
+        uploadProcessState: 0,
+        progressPanelValue: 0,
         blockedPanel: false,
         uploadPackageCheckFailedPanel: false,
         fileUploadDialogPanel: false,
@@ -78,10 +80,15 @@ class Uploader extends Component {
         this.submitUploadPackage = this.submitUploadPackage.bind(this);
         this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
         this.hideFileUploadDialogPanel = this.hideFileUploadDialogPanel.bind(this);
+        this.setProgressPanelValue = this.setProgressPanelValue.bind(this);
 
         this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
+    }
+
+    setProgressPanelValue(value) {
+        this.setState({ progressPanelValue: value });
     }
 
     selectNodes(e) {
@@ -138,16 +145,22 @@ class Uploader extends Component {
     }
 
     async submitUploadPackage() {
-        // this.setState({
-        //     blockedPanel: true,
-        //     uploadPackageCheckDialogPanel: true
-        // });
+        this.setState({
+            blockedPanel: true,
+            fileUploadDialogPanel: true,
+            uploadProcessState: 0,
+            progressPanelValue: 0
+        });
 
-        let uids = await this.dicomUploadPackage.evaluate();
+        let uids = await this.dicomUploadPackage.evaluate(this.setProgressPanelValue);
         const dicomUIDGenerator = new DicomUIDGenerator('2.25.');
         const dicomUidReplacements = dicomUIDGenerator.getOriginalUidToPseudomizedUidMap(uids);
 
-        this.setState({ dicomUidReplacements: dicomUidReplacements });
+        this.setState({
+            dicomUidReplacements: dicomUidReplacements,
+            uploadProcessState: 1,
+            progressPanelValue: 0
+        });
 
         // if (evaluationResult.length > 0) {
         //     console.log(evaluationResult);
@@ -159,7 +172,13 @@ class Uploader extends Component {
         //     return;
         // }
 
-        await this.dicomUploadPackage.deidentify(this.state.dicomUidReplacements);
+        await this.dicomUploadPackage.deidentify(this.state.dicomUidReplacements, this.setProgressPanelValue);
+
+        this.setState({
+            dicomUidReplacements: dicomUidReplacements,
+            uploadProcessState: 2,
+            progressPanelValue: 0
+        });
 
         try {
             const response = await this.dicomUploadPackage.upload();
@@ -169,10 +188,14 @@ class Uploader extends Component {
 
         this.setState({
             blockedPanel: false,
-            fileUploadDialogPanel: true
+            fileUploadDialogPanel: true,
+            uploadProcessState: 3,
+            progressPanelValue: 0
         });
 
-        this.setState({ blockedPanel: false });
+        // if (response.status === 200) {
+        //     this.resetAll();
+        // }
 
     }
 
@@ -429,6 +452,9 @@ class Uploader extends Component {
                         fileUploadDialogPanel={this.state.fileUploadDialogPanel}
                         hideFileUploadDialogPanel={this.hideFileUploadDialogPanel}
                         selectedDicomFiles={this.state.selectedDicomFiles}
+                        uploadProcessState={this.state.uploadProcessState}
+                        progressPanelValue={this.state.progressPanelValue}
+                        setProgressPanelValue={this.setProgressPanelValue}
                     >
                     </FileUploadDialogPanel>
 

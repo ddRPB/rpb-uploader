@@ -62,9 +62,11 @@ export default class DicomUploadPackage {
         return this.selectedFiles.length;
     }
 
-    async evaluate() {
+    async evaluate(setProgressPanelValue) {
         let uids = [];
         let counter = 0;
+
+        let processedFilesCount = 0;
 
         for (let uid in this.selectedSeriesObjects) {
             const selectedSeries = this.selectedSeriesObjects[uid];
@@ -76,6 +78,10 @@ export default class DicomUploadPackage {
                     const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
                     const uidArray = await inspector.analyzeFile()
                     uids = uids.concat(uidArray);
+
+                    processedFilesCount++;
+                    setProgressPanelValue(Math.round(processedFilesCount / this.selectedFiles.length * 100));
+
                 }
             }
 
@@ -85,7 +91,9 @@ export default class DicomUploadPackage {
 
     }
 
-    async deidentify(dicomUidReplacements) {
+    async deidentify(dicomUidReplacements, setProgressPanelValue) {
+
+        let processedFilesCount = 0;
 
         for (let uid in this.selectedSeriesObjects) {
             const selectedSeries = this.selectedSeriesObjects[uid];
@@ -96,6 +104,9 @@ export default class DicomUploadPackage {
                     const fileObject = selectedSeries.instances[sopInstanceUid];
                     const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, this.deIdentificationConfiguration, fileObject);
                     this.pseudomizedFileBuffers.push(await dicomFileDeIdentificationComponent.getBuffer());
+
+                    processedFilesCount++;
+                    setProgressPanelValue(Math.round(processedFilesCount / this.selectedFiles.length * 100));
                 }
             }
 
