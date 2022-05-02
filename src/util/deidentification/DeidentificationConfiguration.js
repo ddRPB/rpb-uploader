@@ -1,5 +1,6 @@
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
+import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
 
 export default class DeIdentificationConfiguration {
@@ -185,6 +186,15 @@ export default class DeIdentificationConfiguration {
             }
         }
 
+        if (this.additionalTagValuesMap.get('00120063') != undefined) {
+
+            dictionary['00120063'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: ['Per DICOM PS 3.15 AnnexE. Details in 0012,0064']
+            }
+
+        }
+
         // De-identification Method Code Sequence Attribute
         if (this.additionalTagValuesMap.get('00120064') != undefined) {
             if (dictionary['00120064'] === undefined) { // not deIdentified yet
@@ -200,6 +210,22 @@ export default class DeIdentificationConfiguration {
                 };
             }
         }
+
+        // Longitudinal Temporal Information Modified Attribute
+
+        if (dictionary['00280303'] === undefined) { // not defined yet
+            dictionary['00280303'] = {
+                vr: DicomValueRepresentations.CS,
+                Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED
+            };
+        } // otherwise it would be modified in a previous step
+
+        // Todo:
+
+        // Burned In Annotation 0028,0301
+        // Recognizable Visual Features 0028,0302
+        // Lossy Image Compression 0028,2110
+
 
     }
 

@@ -18,11 +18,11 @@ import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
-import FailedUploadPackageCheckPanel from './FailedUploadPackageCheckPanel';
 import FileUploadDialogPanel from './FileUploadDialogPanel';
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
+import UploadPackageCheckDialogPanel from './UploadPackageCheckDialogPanel';
 
 
 /**
@@ -138,7 +138,11 @@ class Uploader extends Component {
     }
 
     async submitUploadPackage() {
-        this.setState({ blockedPanel: true });
+        // this.setState({
+        //     blockedPanel: true,
+        //     uploadPackageCheckDialogPanel: true
+        // });
+
         let uids = await this.dicomUploadPackage.evaluate();
         const dicomUIDGenerator = new DicomUIDGenerator('2.25.');
         const dicomUidReplacements = dicomUIDGenerator.getOriginalUidToPseudomizedUidMap(uids);
@@ -156,7 +160,12 @@ class Uploader extends Component {
         // }
 
         await this.dicomUploadPackage.deidentify(this.state.dicomUidReplacements);
-        this.dicomUploadPackage.upload();
+
+        try {
+            const response = await this.dicomUploadPackage.upload();
+        } catch (e) {
+            console.log('e' + e);
+        }
 
         this.setState({
             blockedPanel: false,
@@ -410,11 +419,11 @@ class Uploader extends Component {
 
                     </BlockUI>
 
-                    <FailedUploadPackageCheckPanel
-                        uploadPackageCheckFailedPanel={this.state.uploadPackageCheckFailedPanel}
+                    <UploadPackageCheckDialogPanel
+                        uploadPackageCheckFailedPanel={this.state.uploadPackageCheckDialogPanel}
                         evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
                         hideUploadCheckResultsPanel={this.hideUploadCheckResultsPanel}
-                    ></FailedUploadPackageCheckPanel>
+                    ></UploadPackageCheckDialogPanel>
 
                     <FileUploadDialogPanel
                         fileUploadDialogPanel={this.state.fileUploadDialogPanel}

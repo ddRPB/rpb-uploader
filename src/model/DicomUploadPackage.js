@@ -22,6 +22,10 @@ export default class DicomUploadPackage {
 
         this.studyInstanceUID = '';
 
+        const configFactory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, this.uploadSlot);
+        this.deIdentificationConfiguration = configFactory.getConfiguration();
+
+
     }
 
     setSelectedSeries(selectedSeriesObjects) {
@@ -69,7 +73,7 @@ export default class DicomUploadPackage {
             if (selectedSeries.parameters != null) {
                 for (let sopInstanceUid in selectedSeries.instances) {
                     const fileObject = selectedSeries.instances[sopInstanceUid];
-                    const inspector = new DicomFileInspector(fileObject);
+                    const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
                     const uidArray = await inspector.analyzeFile()
                     uids = uids.concat(uidArray);
                 }
@@ -82,8 +86,6 @@ export default class DicomUploadPackage {
     }
 
     async deidentify(dicomUidReplacements) {
-        const configFactory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, this.uploadSlot);
-        const deIdentConf = configFactory.getConfiguration();
 
         for (let uid in this.selectedSeriesObjects) {
             const selectedSeries = this.selectedSeriesObjects[uid];
@@ -92,7 +94,7 @@ export default class DicomUploadPackage {
             if (selectedSeries.parameters != null) {
                 for (let sopInstanceUid in selectedSeries.instances) {
                     const fileObject = selectedSeries.instances[sopInstanceUid];
-                    const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, deIdentConf, fileObject);
+                    const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, this.deIdentificationConfiguration, fileObject);
                     this.pseudomizedFileBuffers.push(await dicomFileDeIdentificationComponent.getBuffer());
                 }
             }
@@ -115,11 +117,17 @@ export default class DicomUploadPackage {
         const contentId = 'dummyId';
         const contentDescription = 'description';
         // ToDo: Timing for resolving promises
-        const dataBuffer = Buffer.from(await this.pseudomizedFileBuffers[0]);
+        // const dataBuffer = Buffer.from(this.pseudomizedFileBuffers[0]);
 
         const mimeMessageBuilder = new MimeMessageBuilder(boundary);
+
+        for (let arrayBuffer of this.pseudomizedFileBuffers) {
+            mimeMessageBuilder
+                .addDicomContent(Buffer.from(arrayBuffer.buffer), fileName, contentId, contentDescription);
+        }
+
         const payload = mimeMessageBuilder
-            .addDicomContent(dataBuffer, fileName, contentId, contentDescription,)
+            // .addDicomContent(dataBuffer, fileName, contentId, contentDescription,)
             // .addDicomContent(dataBuffer)
             .build();
 
@@ -132,13 +140,15 @@ export default class DicomUploadPackage {
             }
         };
 
+
         let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}`, args);
+
         console.log('test');
         console.log(response.status);
         console.log(response.ok);
         // console.log(response.response.statusCode);
 
-
+        return response;
 
     }
 

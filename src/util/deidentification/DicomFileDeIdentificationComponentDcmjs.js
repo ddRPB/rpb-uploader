@@ -23,7 +23,9 @@ export default class DicomFileDeIdentificationComponentDcmjs {
 
         const arrayBuffer = reader.result;
 
-        return this.deIdentDicomFile(arrayBuffer);
+        return {
+            buffer: this.deIdentDicomFile(arrayBuffer)
+        };
     }
 
 
