@@ -3,6 +3,7 @@ import DeIdentificationConfigurationFactory from "../util/deidentification/DeIde
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
 import MimeMessageBuilder from "../util/MimeMessageBuilder";
 import DicomFileInspector from "../util/verification/DicomFileInspector";
+import DicomUploadChunk from "./DicomUploadChunk";
 
 
 export default class DicomUploadPackage {
@@ -18,7 +19,13 @@ export default class DicomUploadPackage {
         this.selectedFiles = [];
         this.uids = [];
 
-        this.pseudomizedFileBuffers = [];
+        this.uploadChunks = [];
+        this.chunkSize = 10;
+        this.processedChunksCount = 0;
+
+        this.pseudomizedFiles = [];
+        this.uploadedFiles = [];
+        this.verifiedFiles = [];
 
         this.studyInstanceUID = '';
 
@@ -64,105 +71,205 @@ export default class DicomUploadPackage {
 
     async evaluate(setProgressPanelValue) {
         let uids = [];
-        let counter = 0;
-
+        let errors = []
         let processedFilesCount = 0;
 
         for (let uid in this.selectedSeriesObjects) {
-            const selectedSeries = this.selectedSeriesObjects[uid];
-            console.log(`Evaluate series ${uid}`);
+            try {
+                const selectedSeries = this.selectedSeriesObjects[uid];
+                console.log(`Evaluate series ${uid}`);
 
-            if (selectedSeries.parameters != null) {
-                for (let sopInstanceUid in selectedSeries.instances) {
-                    const fileObject = selectedSeries.instances[sopInstanceUid];
-                    const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
-                    const uidArray = await inspector.analyzeFile()
-                    uids = uids.concat(uidArray);
+                if (selectedSeries.parameters != null) {
+                    let currentChunk = new DicomUploadChunk(uid);
 
-                    processedFilesCount++;
-                    setProgressPanelValue(Math.round(processedFilesCount / this.selectedFiles.length * 100));
+                    for (let sopInstanceUid in selectedSeries.instances) {
+                        const fileObject = selectedSeries.instances[sopInstanceUid];
 
+                        const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
+                        const uidArray = await inspector.analyzeFile()
+                        uids = uids.concat(uidArray);
+
+                        if (currentChunk.getCount() < this.chunkSize) {
+                            currentChunk.addInstance(sopInstanceUid, fileObject);
+                        } else {
+                            this.uploadChunks.push(currentChunk);
+                            currentChunk = new DicomUploadChunk(uid);
+                            currentChunk.addInstance(sopInstanceUid, fileObject);
+                        }
+
+                        processedFilesCount++;
+                        setProgressPanelValue(Math.round(processedFilesCount / this.selectedFiles.length * 100));
+
+                        // errors.push(this.createErrorMessageObject(
+                        //     'Evaluation Error',
+                        //     'message',
+                        //     uid,
+                        //     fileObject.name,
+                        //     sopInstanceUid,
+                        //     null
+                        // ));
+
+                    }
+
+                    if (currentChunk.getCount() > 0) {
+                        this.uploadChunks.push(currentChunk);
+                    }
                 }
-            }
 
+            } catch (e) {
+                errors.push(
+                    this.createErrorMessageObject(
+                        'Evaluation Error',
+                        'Evaluation Error ' + e.toString(),
+                        uid,
+                        '',
+                        '',
+                        null
+                    ));
+                return {
+                    errors: errors
+                };
+            }
         }
 
-        return uids;
+        return {
+            uids: uids,
+            errors: errors
+        };
 
     }
 
-    async deidentify(dicomUidReplacements, setProgressPanelValue) {
-
-        let processedFilesCount = 0;
-
-        for (let uid in this.selectedSeriesObjects) {
-            const selectedSeries = this.selectedSeriesObjects[uid];
-            console.log(`Deidentify series ${uid}`);
-
-            if (selectedSeries.parameters != null) {
-                for (let sopInstanceUid in selectedSeries.instances) {
-                    const fileObject = selectedSeries.instances[sopInstanceUid];
-                    const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, this.deIdentificationConfiguration, fileObject);
-                    this.pseudomizedFileBuffers.push(await dicomFileDeIdentificationComponent.getBuffer());
-
-                    processedFilesCount++;
-                    setProgressPanelValue(Math.round(processedFilesCount / this.selectedFiles.length * 100));
-                }
-            }
-
-        }
-
-        await Promise.all(this.pseudomizedFileBuffers.entries());
-
+    async deidentifyAndUpload(dicomUidReplacements, setProgressPanelValue) {
+        let errors = []
         const replacedStudyUID = dicomUidReplacements.get(this.studyInstanceUID);
         if (replacedStudyUID != null) {
             this.studyInstanceUID = replacedStudyUID;
         }
-        console.log("Generating Pseudonyms");
 
-    }
 
-    async upload() {
-        const boundary = 'XXXXXXXX---abcd';
-        const fileName = 'dummmyFileName';
-        const contentId = 'dummyId';
-        const contentDescription = 'description';
-        // ToDo: Timing for resolving promises
-        // const dataBuffer = Buffer.from(this.pseudomizedFileBuffers[0]);
 
-        const mimeMessageBuilder = new MimeMessageBuilder(boundary);
+        for (let chunk of this.uploadChunks) {
+            const boundary = 'XXXXXXXX---abcd';
+            const contentDescription = 'description';
+            const mimeMessageBuilder = new MimeMessageBuilder(boundary);
 
-        for (let arrayBuffer of this.pseudomizedFileBuffers) {
-            mimeMessageBuilder
-                .addDicomContent(Buffer.from(arrayBuffer.buffer), fileName, contentId, contentDescription);
+            if (!chunk.deIdentified) {
+                try {
+                    chunk.deidentifiedInstances = [];
+                    for (let instance of chunk.originalInstances) {
+                        const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, this.deIdentificationConfiguration, instance.fileObject);
+                        const arrayBuffer = await dicomFileDeIdentificationComponent.getDeIdentifiedFileContentAsBuffer()
+                        chunk.deidentifiedInstances.push(arrayBuffer);
+                        mimeMessageBuilder
+                            .addDicomContent(Buffer.from(arrayBuffer.buffer), arrayBuffer.name, arrayBuffer.sopInstanceUid, contentDescription);
+                    }
+
+                    await Promise.all(chunk.deidentifiedInstances);
+
+                    chunk.deIdentified = true;
+                    this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
+
+                    chunk.mimeMessage = mimeMessageBuilder.build();
+
+                } catch (e) {
+                    errors.push(
+                        this.createErrorMessageObject(
+                            'Deidentification Error',
+                            'Deidentification Error: ' + e.toString(),
+                            chunk.originalSeriesUid,
+                            chunk.getFileNames(),
+                            chunk.getSoapInstanceUids(),
+                            null
+                        ));
+                    return {
+                        errors: errors
+                    };
+                }
+            }
+
+            if (!chunk.transfered) {
+                const args = {
+                    method: 'POST',
+                    body: chunk.mimeMessage,
+                    headers: {
+                        "X-Api-Key": "abc",
+                        "Content-Type": `multipart/related; boundary=${boundary}; type="application/dicom"`,
+                    }
+                };
+
+                try {
+                    let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}123`, args);
+                    switch (response.status) {
+                        case 200:
+                            chunk.transfered = true;
+                            this.uploadedFiles = this.uploadedFiles.concat(chunk.getFileNames());
+                            chunk.cleanupAfterTransfer();
+
+                            this.processedChunksCount++;
+                            setProgressPanelValue(Math.round(this.processedChunksCount / this.uploadChunks.length * 100));
+
+                            break;
+                        default:
+                            errors.push(
+                                this.createErrorMessageObject(
+                                    'Upload Error - With response code: ',
+                                    'Upload Error - With response code: ' + response.status.toString(),
+                                    chunk.originalSeriesUid,
+                                    chunk.getFileNames(),
+                                    chunk.getSoapInstanceUids(),
+                                    null
+                                ));
+                            return {
+                                errors: errors
+                            };
+
+                    }
+
+                } catch (e) {
+                    errors.push(
+                        this.createErrorMessageObject(
+                            'Upload Error - There is a problem with the upload. Please check the connection. Error message: ',
+                            'Upload Error - There is a problem with the upload. Please check the connection. Error message: ' + e.toString(),
+                            chunk.originalSeriesUid,
+                            chunk.getFileNames(),
+                            chunk.getSoapInstanceUids(),
+                            null
+                        ));
+                    return {
+                        errors: errors
+                    };
+
+                }
+
+
+            }
         }
 
-        const payload = mimeMessageBuilder
-            // .addDicomContent(dataBuffer, fileName, contentId, contentDescription,)
-            // .addDicomContent(dataBuffer)
-            .build();
 
-        const args = {
-            method: 'POST',
-            body: payload,
-            headers: {
-                "X-Api-Key": "abc",
-                "Content-Type": `multipart/related; boundary=${boundary}; type="application/dicom"`,
-            }
+
+        return {
+            errors
         };
-
-
-        let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}`, args);
-
-        console.log('test');
-        console.log(response.status);
-        console.log(response.ok);
-        // console.log(response.response.statusCode);
-
-        return response;
 
     }
 
+    createErrorMessageObject(
+        title,
+        message,
+        seriesUid,
+        fileName,
+        sopInstanceUid,
+        retryFunction
+    ) {
+        return {
+            title: title,
+            message: message,
+            seriesUid: seriesUid,
+            fileName: fileName,
+            sopInstanceUid: sopInstanceUid,
+            retryFunction: retryFunction
+        }
+    }
 
 
 }

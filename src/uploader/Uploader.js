@@ -53,15 +53,16 @@ class Uploader extends Component {
         uploadPackageCheckFailedPanel: false,
         fileUploadDialogPanel: false,
         evaluationUploadCheckResults: [],
-        dicomUidReplacements: null,
-
+        dicomUidReplacements: [],
+        pseudomizedFiles: [],
+        uploadedFiles: [],
+        verifiedFiles: []
     }
 
     seriesSelectionMenuItems = [
         { label: 'All Series', icon: 'pi pi-fw' },
         { label: 'RT Series', icon: 'pi pi-fw pi-calendar' }
     ];
-
 
 
     constructor(props) {
@@ -81,6 +82,7 @@ class Uploader extends Component {
         this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
         this.hideFileUploadDialogPanel = this.hideFileUploadDialogPanel.bind(this);
         this.setProgressPanelValue = this.setProgressPanelValue.bind(this);
+        this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
 
         this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
 
@@ -144,58 +146,93 @@ class Uploader extends Component {
         });
     }
 
+    async retrySubmitUploadPackage() {
+        this.submitUploadPackage();
+    }
+
     async submitUploadPackage() {
-        this.setState({
-            blockedPanel: true,
-            fileUploadDialogPanel: true,
-            uploadProcessState: 0,
-            progressPanelValue: 0
-        });
+        let uids, errors = [];
 
-        let uids = await this.dicomUploadPackage.evaluate(this.setProgressPanelValue);
-        const dicomUIDGenerator = new DicomUIDGenerator('2.25.');
-        const dicomUidReplacements = dicomUIDGenerator.getOriginalUidToPseudomizedUidMap(uids);
+        if (this.state.dicomUidReplacements.length === 0) {
+            // evaluation step
+            this.setState({
+                blockedPanel: true,
+                fileUploadDialogPanel: true,
+                uploadProcessState: 0,
+                progressPanelValue: 0,
+                dicomUidReplacements: [],
+            });
 
-        this.setState({
-            dicomUidReplacements: dicomUidReplacements,
-            uploadProcessState: 1,
-            progressPanelValue: 0
-        });
+            ({ uids, errors } = await this.dicomUploadPackage.evaluate(this.setProgressPanelValue));
 
-        // if (evaluationResult.length > 0) {
-        //     console.log(evaluationResult);
+            if (errors.length > 0) {
+                this.setState({
+                    evaluationUploadCheckResults: errors,
+                    blockedPanel: false
+                });
+
+                return;
+            }
+
+            // prepare de-identification
+            const dicomUIDGenerator = new DicomUIDGenerator('2.25.');
+            const dicomUidReplacements = dicomUIDGenerator.getOriginalUidToPseudomizedUidMap(uids);
+
+            // start de-identification step
+            // upload results
+            this.setState({
+                dicomUidReplacements: dicomUidReplacements,
+                uploadProcessState: 1,
+                progressPanelValue: 0
+            });
+        } else {
+            this.setState({
+                blockedPanel: true,
+                fileUploadDialogPanel: true,
+                uploadProcessState: 1,
+                progressPanelValue: 0,
+                evaluationUploadCheckResults: errors
+            });
+        }
+
+        ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.setProgressPanelValue));
+
+        if (errors.length > 0) {
+            this.setState({
+                evaluationUploadCheckResults: errors,
+                blockedPanel: false
+            });
+
+            return;
+        }
+
+
+        // verification step
+        // this.setState({
+        //     uploadProcessState: 2,
+        //     progressPanelValue: 0
+        // });
+
+        // const uploadResult = await this.dicomUploadPackage.upload();
+
+        // if (uploadResult.errors.length > 0) {
         //     this.setState({
-        //         blockedPanel: false,
-        //         uploadPackageCheckFailedPanel: true,
-        //         evaluationUploadCheckResults: evaluationResult
+        //         evaluationUploadCheckResults: uploadResult.errors,
+        //         blockedPanel: false
         //     });
+
         //     return;
         // }
 
-        await this.dicomUploadPackage.deidentify(this.state.dicomUidReplacements, this.setProgressPanelValue);
 
-        this.setState({
-            dicomUidReplacements: dicomUidReplacements,
-            uploadProcessState: 2,
-            progressPanelValue: 0
-        });
 
-        try {
-            const response = await this.dicomUploadPackage.upload();
-        } catch (e) {
-            console.log('e' + e);
-        }
-
+        this.resetAll();
         this.setState({
             blockedPanel: false,
-            fileUploadDialogPanel: true,
-            uploadProcessState: 3,
+            fileUploadDialogPanel: false,
+            uploadProcessState: 0,
             progressPanelValue: 0
         });
-
-        // if (response.status === 200) {
-        //     this.resetAll();
-        // }
 
     }
 
@@ -455,6 +492,9 @@ class Uploader extends Component {
                         uploadProcessState={this.state.uploadProcessState}
                         progressPanelValue={this.state.progressPanelValue}
                         setProgressPanelValue={this.setProgressPanelValue}
+                        evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
+                        dicomUidReplacements={this.state.dicomUidReplacements}
+                        retrySubmitUploadPackage={this.retrySubmitUploadPackage}
                     >
                     </FileUploadDialogPanel>
 

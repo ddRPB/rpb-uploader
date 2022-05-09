@@ -18,7 +18,7 @@ export default class DicomFileDeIdentificationComponentDcmjs {
         return this.deIdentDicomFile(this.fileObject);
     }
 
-    async getBuffer() {
+    async getDeIdentifiedFileContentAsBuffer() {
         const reader = await this.__pFileReader(this.fileObject.fileObject);
 
         const arrayBuffer = reader.result;

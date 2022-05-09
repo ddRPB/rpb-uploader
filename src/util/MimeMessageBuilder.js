@@ -41,7 +41,7 @@ export default class MimeMessageBuilder {
         // this.bodyString += ';\r\n' + 'name=\"DicomDir\"' + this.lineBreak;
         this.bodyString += 'Content-Transfer-Encoding: BASE64' + this.lineBreak;
         this.bodyString += 'Content-Disposition: attachment' + this.lineBreak;
-        // this.bodyString += ';\r\n' + 'filename=\"' + fileName + '\";' + this.lineBreak;
+        this.bodyString += ';\r\n' + 'filename=\"' + fileName + '\";' + this.lineBreak;
         if (contentId) this.bodyString += 'Content-ID: \"' + contentId + '\"' + this.lineBreak;
         if (contentDescription) this.bodyString += 'Content-Description: ' + contentDescription + this.lineBreak;
         this.bodyString += this.lineBreak;
