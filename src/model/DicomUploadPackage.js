@@ -20,7 +20,7 @@ export default class DicomUploadPackage {
         this.uids = [];
 
         this.uploadChunks = [];
-        this.chunkSize = 10;
+        this.chunkSize = 5;
         this.processedChunksCount = 0;
 
         this.pseudomizedFiles = [];
@@ -69,7 +69,7 @@ export default class DicomUploadPackage {
         return this.selectedFiles.length;
     }
 
-    async evaluate(setProgressPanelValue) {
+    async evaluate(setAnalysedFilesCountValue) {
         let uids = [];
         let errors = []
         let processedFilesCount = 0;
@@ -98,7 +98,7 @@ export default class DicomUploadPackage {
                         }
 
                         processedFilesCount++;
-                        setProgressPanelValue(Math.round(processedFilesCount / this.selectedFiles.length * 100));
+                        setAnalysedFilesCountValue(processedFilesCount);
 
                         // errors.push(this.createErrorMessageObject(
                         //     'Evaluation Error',
@@ -139,7 +139,7 @@ export default class DicomUploadPackage {
 
     }
 
-    async deidentifyAndUpload(dicomUidReplacements, setProgressPanelValue) {
+    async deidentifyAndUpload(dicomUidReplacements, setDeIdentifiedFilesCountValue, setUploadedFilesCountValue) {
         let errors = []
         const replacedStudyUID = dicomUidReplacements.get(this.studyInstanceUID);
         if (replacedStudyUID != null) {
@@ -168,6 +168,7 @@ export default class DicomUploadPackage {
 
                     chunk.deIdentified = true;
                     this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
+                    setDeIdentifiedFilesCountValue = this.pseudomizedFiles.length;
 
                     chunk.mimeMessage = mimeMessageBuilder.build();
 
@@ -198,7 +199,8 @@ export default class DicomUploadPackage {
                 };
 
                 try {
-                    let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}123`, args);
+                    // let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}123`, args);
+                    let response = await fetch(`http://10.44.89.56/api/v1/dicomweb/studies/${this.studyInstanceUID}`, args);
                     switch (response.status) {
                         case 200:
                             chunk.transfered = true;
@@ -206,9 +208,11 @@ export default class DicomUploadPackage {
                             chunk.cleanupAfterTransfer();
 
                             this.processedChunksCount++;
-                            setProgressPanelValue(Math.round(this.processedChunksCount / this.uploadChunks.length * 100));
+                            setUploadedFilesCountValue(this.uploadedFiles.length);
 
                             break;
+
+                        // todo - 413 - chunk size probably too big
                         default:
                             errors.push(
                                 this.createErrorMessageObject(

@@ -32,7 +32,6 @@ export default class FileUploadDialogPanel extends Component {
                 Start uploading of {this.props.selectedDicomFiles.length} {this.props.selectedDicomFiles.length > 1 ? 'files' : 'file'}.
                 <Divider />
                 <Steps model={states} activeIndex={this.props.uploadProcessState} />
-                <ProgressBar value={this.props.progressPanelValue} />
 
                 <Divider />
 
@@ -43,12 +42,39 @@ export default class FileUploadDialogPanel extends Component {
                             <React.Fragment>
                                 <Button
                                     type="button"
-                                    label="Loaded:"
+                                    label="Analysed:"
                                     className="p-button-outlined p-button-info"
                                     style={{ "width": "135px" }}
                                     disabled={true}
                                 >
-                                    <Badge value={this.props.fileLoaded} />
+                                    <Badge value={this.props.analysedFilesCount} />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    label="DeIdentified:"
+                                    className="p-button-outlined p-button-info"
+                                    style={{ "width": "135px" }}
+                                    disabled={true}
+                                >
+                                    <Badge value={this.props.deIdentifiedFilesCount} />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    label="Uploaded:"
+                                    className="p-button-outlined p-button-info"
+                                    style={{ "width": "135px" }}
+                                    disabled={true}
+                                >
+                                    <Badge value={this.props.uploadedFilesCount} />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    label="Verified:"
+                                    className="p-button-outlined p-button-info"
+                                    style={{ "width": "135px" }}
+                                    disabled={true}
+                                >
+                                    <Badge value={this.props.verifiedUploadedFilesCount} />
                                 </Button>
 
                             </React.Fragment>

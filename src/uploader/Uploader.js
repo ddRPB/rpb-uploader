@@ -47,6 +47,10 @@ class Uploader extends Component {
         selectedDicomFiles: [],
         selectedStudy: null,
         seriesSelectionState: 0,
+        analysedFilesCount: 0,
+        deIdentifiedFilesCount: 0,
+        uploadedFilesCount: 0,
+        verifiedUploadedFilesCount: 0,
         uploadProcessState: 0,
         progressPanelValue: 0,
         blockedPanel: false,
@@ -81,16 +85,53 @@ class Uploader extends Component {
         this.submitUploadPackage = this.submitUploadPackage.bind(this);
         this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
         this.hideFileUploadDialogPanel = this.hideFileUploadDialogPanel.bind(this);
-        this.setProgressPanelValue = this.setProgressPanelValue.bind(this);
+
+        this.setAnalysedFilesCountValue = this.setAnalysedFilesCountValue.bind(this);
+        this.setDeIdentifiedFilesCountValue = this.setDeIdentifiedFilesCountValue.bind(this);
+        this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
+        this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
+
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
 
         this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
 
+        this.downloadSlot()
+
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
 
-    setProgressPanelValue(value) {
-        this.setState({ progressPanelValue: value });
+    async downloadSlot() {
+        const args = {
+            method: 'GET',
+            headers: {
+                "Cookie": 'JSESSIONID=EC1785788EF50421A7E04F12E36E88C1',
+                "Content-Type": `text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8`,
+            }
+
+
+        };
+
+        const resp = await fetch('http://10.44.89.56/jsonresponse.faces');
+        // window.open('http://10.44.89.56/', '_self');
+
+        console.log(resp);
+        console.log(await resp.json());
+    }
+
+    setAnalysedFilesCountValue(value) {
+        this.setState({ analysedFilesCount: value });
+    }
+
+    setDeIdentifiedFilesCountValue(value) {
+        this.setState({ deIdentifiedFilesCount: value });
+    }
+
+    setUploadedFilesCountValue(value) {
+        this.setState({ uploadedFilesCount: value });
+    }
+
+    setVerifiedUploadedFilesCountValue(value) {
+        this.setState({ verifiedUploadedFilesCount: value });
     }
 
     selectNodes(e) {
@@ -159,11 +200,13 @@ class Uploader extends Component {
                 blockedPanel: true,
                 fileUploadDialogPanel: true,
                 uploadProcessState: 0,
-                progressPanelValue: 0,
+                analysedFilesCount: 0,
+                deIdentifiedFilesCount: 0,
+                uploadedFilesCount: 0,
                 dicomUidReplacements: [],
             });
 
-            ({ uids, errors } = await this.dicomUploadPackage.evaluate(this.setProgressPanelValue));
+            ({ uids, errors } = await this.dicomUploadPackage.evaluate(this.setAnalysedFilesCountValue));
 
             if (errors.length > 0) {
                 this.setState({
@@ -182,20 +225,20 @@ class Uploader extends Component {
             // upload results
             this.setState({
                 dicomUidReplacements: dicomUidReplacements,
-                uploadProcessState: 1,
-                progressPanelValue: 0
+                uploadProcessState: 1
             });
-        } else {
+        } else { // replacements are already created
             this.setState({
                 blockedPanel: true,
                 fileUploadDialogPanel: true,
                 uploadProcessState: 1,
-                progressPanelValue: 0,
+                deIdentifiedFilesCount: 0,
+                uploadedFilesCount: 0,
                 evaluationUploadCheckResults: errors
             });
         }
 
-        ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.setProgressPanelValue));
+        ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.setDeIdentifiedFilesCountValue, this.setUploadedFilesCountValue));
 
         if (errors.length > 0) {
             this.setState({
@@ -231,7 +274,9 @@ class Uploader extends Component {
             blockedPanel: false,
             fileUploadDialogPanel: false,
             uploadProcessState: 0,
-            progressPanelValue: 0
+            analysedFilesCount: 0,
+            deIdentifiedFilesCount: 0,
+            uploadedFilesCount: 0,
         });
 
     }
@@ -490,8 +535,17 @@ class Uploader extends Component {
                         hideFileUploadDialogPanel={this.hideFileUploadDialogPanel}
                         selectedDicomFiles={this.state.selectedDicomFiles}
                         uploadProcessState={this.state.uploadProcessState}
-                        progressPanelValue={this.state.progressPanelValue}
-                        setProgressPanelValue={this.setProgressPanelValue}
+
+                        setAnalysedFilesCountValue={this.setAnalysedFilesCountValue}
+                        setDeIdentifiedFilesCountValue={this.setDeIdentifiedFilesCountValue}
+                        setUploadedFilesCountValue={this.setUploadedFilesCountValue}
+                        setVerifiedUploadedFilesCountValue={this.setVerifiedUploadedFilesCountValue}
+
+                        analysedFilesCount={this.state.analysedFilesCount}
+                        deIdentifiedFilesCount={this.state.deIdentifiedFilesCount}
+                        uploadedFilesCount={this.state.uploadedFilesCount}
+                        verifiedUploadedFilesCount={this.state.verifiedUploadedFilesCount}
+
                         evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
                         dicomUidReplacements={this.state.dicomUidReplacements}
                         retrySubmitUploadPackage={this.retrySubmitUploadPackage}
