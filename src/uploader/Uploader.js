@@ -23,6 +23,9 @@ import FileUploadDialogPanel from './FileUploadDialogPanel';
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
 import UploadPackageCheckDialogPanel from './UploadPackageCheckDialogPanel';
+import { useParams, useNavigate } from "react-router-dom"
+
+
 
 
 /**
@@ -95,12 +98,14 @@ class Uploader extends Component {
 
         this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
 
+
         this.downloadSlot()
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
 
     async downloadSlot() {
+
         const args = {
             method: 'GET',
             headers: {
@@ -111,7 +116,8 @@ class Uploader extends Component {
 
         };
 
-        const resp = await fetch('http://10.44.89.56/jsonresponse.faces');
+        const resp = await fetch('http://10.44.89.56/pacs/rpbUploader.faces');
+        // const resp = await fetch('http://localhost/pacs/rpbUploader.faces');
         // window.open('http://10.44.89.56/', '_self');
 
         console.log(resp);
@@ -450,7 +456,25 @@ class Uploader extends Component {
             return (
                 <Fragment>
                     <BlockUI blocked={this.state.blockedPanel}>
-                        <SlotPanel />
+                        <SlotPanel
+                            studyIdentifier={this.props.studyIdentifier}
+                            siteIdentifier={this.props.siteIdentifier}
+                            event={this.props.event}
+                            eventRepeatKey={this.props.eventRepeatKey}
+                            eventStartDate={this.props.eventStartDate}
+                            eventEndDate={this.props.eventEndDate}
+                            form={this.props.form}
+                            itemGroup={this.props.itemGroup}
+                            itemGroupRepeatKey={this.props.itemGroupRepeatKey}
+                            item={this.props.item}
+                            itemLabel={this.props.itemLabel}
+
+                            subjectid={this.props.subjectid}
+                            pid={this.props.pid}
+                            dob={this.props.dob}
+                            yob={this.props.yob}
+                            gender={this.props.gender}
+                        />
 
                         <Divider />
 
