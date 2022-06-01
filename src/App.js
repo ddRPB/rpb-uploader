@@ -5,8 +5,9 @@ import 'primeflex/primeflex.css'
 import 'primeicons/primeicons.css'
 import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/saga-blue/theme.css'
-import React from 'react'
+import React, { Fragment } from 'react'
 import { Provider } from 'react-redux'
+// import React, { Component, Fragment } from 'react';
 import { BrowserRouter, Route, Routes, useParams, useSearchParams } from "react-router-dom"
 import { ToastContainer } from 'react-toastify'
 // Toastify CSS
@@ -29,7 +30,7 @@ import Uploader from './uploader/Uploader'
 function App(props) {
 
     // Immutable global state with middleware for action creators
-    const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
+    // const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
 
     function UploaderWithParams() {
         let { studyIdentifier, siteIdentifier, studySubjectIdentifier } = useParams();
@@ -49,7 +50,7 @@ function App(props) {
             item={searchParams.get('item')}
             itemLabel={searchParams.get('itemlabel')}
 
-            subjectid={searchParams.get('subjectid')}
+            subjectId={searchParams.get('subjectid')}
             pid={searchParams.get('pid')}
             dob={searchParams.get('dob')}
             yob={searchParams.get('yob')}
@@ -75,7 +76,7 @@ function App(props) {
             item="itemId"
             itemLabel="label"
 
-            subjectid="subject123"
+            subjectId="subject123"
             pid="DD-1234abc"
             dob="1900-01-30"
             yob="1900"
@@ -86,7 +87,8 @@ function App(props) {
     // Provider with allowed Redux DevTools
     return (
         // <Provider store={createStoreWithMiddleware(reducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())}>
-        <Provider store={createStoreWithMiddleware(reducers)}>
+        // <Provider store={createStoreWithMiddleware(reducers)}>
+        <Fragment>
             <ToastContainer
                 position='top-right'
                 autoClose={5000}
@@ -113,7 +115,8 @@ function App(props) {
 
                 </Routes>
             </BrowserRouter>
-        </Provider>
+        </Fragment>
+        // </Provider>
     )
 }
 

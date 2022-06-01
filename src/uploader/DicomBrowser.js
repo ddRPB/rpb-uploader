@@ -37,12 +37,12 @@ class DicomBrowser extends Component {
      */
     getStudyStatus(studyInstanceUID) {
 
-        if ( this.props.warningsStudies[studyInstanceUID] === undefined ) {
+        if (this.props.warningsStudies[studyInstanceUID] === undefined) {
             // If no warning at study level, look if remaining warnings at series level
             let seriesArray = this.getSeriesFromStudy(studyInstanceUID)
 
-            for (let series of seriesArray ) {
-                if ( !this.isSeriesWarningsPassed(series.seriesInstanceUID)) {
+            for (let series of seriesArray) {
+                if (!this.isSeriesWarningsPassed(series.seriesInstanceUID)) {
                     return 'Incomplete'
                 }
             }
@@ -70,7 +70,7 @@ class DicomBrowser extends Component {
         //Read available series in Redux
         let seriesArray = Object.values(this.props.series)
         //Select series belonging to the current study
-        let seriesToDisplay = seriesArray.filter((series)=> {
+        let seriesToDisplay = seriesArray.filter((series) => {
             return series.studyInstanceUID === studyInstanceUID
         })
 
@@ -88,7 +88,7 @@ class DicomBrowser extends Component {
 
             let seriesToDisplay = this.getSeriesFromStudy(this.props.selectedStudy)
 
-            seriesToDisplay.forEach( (series) => {
+            seriesToDisplay.forEach((series) => {
                 series.status = this.isSeriesWarningsPassed(series.seriesInstanceUID) ? 'Valid' : 'Rejected'
                 series.selectedSeries = this.props.seriesReady.includes(series.seriesInstanceUID)
                 seriesArray.push({
@@ -100,7 +100,7 @@ class DicomBrowser extends Component {
 
         return seriesArray
     }
-    
+
     /**
      * Check if the series warnings have been all passed
      * @param {Object} series
@@ -137,14 +137,14 @@ class DicomBrowser extends Component {
     render() {
         return (
             // onSelectionChange={e => setSelectedProduct3(e.value)}
-            <div disabled={ !this.props.isAnalysisDone || this.props.isUploadStarted }>
+            <div disabled={!this.props.isAnalysisDone || this.props.isUploadStarted}>
                 <DataTable
                     value={this.buildStudiesRows()}
                     selection={this.props.selectedStudy}
                     onSelectionChange={(e) => this.selectedStudyChanged(e.value)}
                     dataKey="studyInstanceUID"
-                    >
-                    <Column selectionMode="single" headerStyle={{width: '3em'}} />
+                >
+                    <Column selectionMode="single" headerStyle={{ width: '3em' }} />
                     <Column field="studyType" header="Type" />
                     <Column field="studyDescription" header="Description" />
                     <Column field="studyDate" header="Date" />
@@ -155,7 +155,7 @@ class DicomBrowser extends Component {
                     onSelectionChange={(e) => this.selectedSeriesChanged(e.value)}
                     dataKey="seriesInstanceUID"
                     selectionMode="single"
-                    >
+                >
                     <Column field="modality" header="Modality" />
                     <Column field="seriesDescription" header="Description" />
                     <Column field="seriesDate" header="Date" />
@@ -165,27 +165,6 @@ class DicomBrowser extends Component {
     }
 }
 
-const mapStateToProps = state => {
-    return {
-        series: state.Series.series,
-        studies: state.Studies.studies,
-        seriesReady: state.DisplayTables.seriesReady,
-        studiesReady: state.DisplayTables.studiesReady,
-        selectedStudy: state.DisplayTables.selectedStudy,
-        selectedSeries: state.DisplayTables.selectedSeries,
-        warningsSeries: state.Warnings.warningsSeries,
-        warningsStudies: state.WarningsStudy.warningsStudy
-    }
-}
 
-const mapDispatchToProps = {
-    selectStudy,
-    addStudyReady,
-    removeStudyReady,
-    unsetSlotID,
-    addSeriesReady,
-    removeSeriesReady,
-    selectSeries
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(DicomBrowser)
+//export default connect(mapStateToProps, mapDispatchToProps)(DicomBrowser)
+export default DicomBrowser

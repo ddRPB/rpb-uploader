@@ -80,18 +80,18 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
-                        {this.props.event != null ?
+                        {this.props.event != null && this.props.eventRepeatKey != null ?
                             <div className="flex mr-2" >
                                 <StyledDivNameComponent className="font-bold">
                                     Study Event:&nbsp;
                                 </StyledDivNameComponent>
                                 <StyledDivValueComponent>
-                                    {this.props.event}
+                                    {this.props.event} ({this.props.eventRepeatKey})
                                 </StyledDivValueComponent>
                             </div>
                             : null
                         }
-                        {this.props.eventRepeatKey != null ?
+                        {/* {this.props.eventRepeatKey != null ?
                             <div className="flex mr-2" >
                                 <StyledDivNameComponent className="font-bold">
                                     SE Repeat :&nbsp;
@@ -101,7 +101,7 @@ export class SlotPanel extends Component {
                                 </StyledDivValueComponent>
                             </div>
                             : null
-                        }
+                        } */}
                         {this.props.eventStartDate != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -178,7 +178,7 @@ export class SlotPanel extends Component {
                                 {this.getItemLabel()}
                             </StyledDivValueComponent>
                         </div>
-                        <div className="flex mr-2" >
+                        {/* <div className="flex mr-2" >
                             <StyledDivNameComponent className="font-bold">
                                 Item:&nbsp;
                             </StyledDivNameComponent>
@@ -188,7 +188,7 @@ export class SlotPanel extends Component {
                                 {this.getItemGroupRepeatKey()}&#187;
                                 {this.getItem()}
                             </StyledDivValueComponent>
-                        </div>
+                        </div> */}
                     </div>
                     {/* </Card>
                 <Card
@@ -269,4 +269,4 @@ const mapDispatchToProps = {
 }
 
 // Connects Uploader component to Redux store
-export default connect(mapStateToProps, mapDispatchToProps)(SlotPanel)
+export default SlotPanel

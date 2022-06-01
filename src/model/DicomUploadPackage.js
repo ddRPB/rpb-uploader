@@ -32,6 +32,8 @@ export default class DicomUploadPackage {
         const configFactory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, this.uploadSlot);
         this.deIdentificationConfiguration = configFactory.getConfiguration();
 
+        this.apiKey = null;
+        this.uploadServiceUrl = null;
 
     }
 
@@ -67,6 +69,14 @@ export default class DicomUploadPackage {
         if (this.selectedSeriesObjects.length === 0) { return 0 };
 
         return this.selectedFiles.length;
+    }
+
+    setApiKey(apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    setUploadServiceUrl(uploadServiceUrl) {
+        this.uploadServiceUrl = uploadServiceUrl;
     }
 
     async evaluate(setAnalysedFilesCountValue) {
@@ -188,19 +198,19 @@ export default class DicomUploadPackage {
                 }
             }
 
-            if (!chunk.transfered) {
+            if (!chunk.transfered && this.apiKey != null && this.uploadServiceUrl != null) {
                 const args = {
                     method: 'POST',
                     body: chunk.mimeMessage,
                     headers: {
-                        "X-Api-Key": "abc",
+                        "X-Api-Key": this.apiKey,
                         "Content-Type": `multipart/related; boundary=${boundary}; type="application/dicom"`,
                     }
                 };
 
                 try {
                     // let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}123`, args);
-                    let response = await fetch(`http://10.44.89.56/api/v1/dicomweb/studies/${this.studyInstanceUID}`, args);
+                    let response = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/studies/${this.studyInstanceUID}`, args);
                     switch (response.status) {
                         case 200:
                             chunk.transfered = true;

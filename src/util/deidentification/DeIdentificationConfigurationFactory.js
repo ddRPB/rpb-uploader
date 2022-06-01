@@ -557,9 +557,9 @@ export default class DeIdentificationConfigurationFactory {
     }
 
     createTagSpecificReplacementsValuesMap() {
-        if (this.uploadSlot.subjectPseudonym != undefined) {
-            this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.subjectPseudonym)
-            this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.subjectPseudonym)
+        if (this.uploadSlot.pid != undefined) {
+            this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid)
+            this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid)
         }
 
     }

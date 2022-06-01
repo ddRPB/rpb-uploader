@@ -2,11 +2,10 @@
 // Primereact
 import { BlockUI } from 'primereact/blockui';
 import { Divider } from 'primereact/divider';
-import { Message } from 'primereact/message';
 import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
 import React, { Component, Fragment } from 'react';
-import { connect } from 'react-redux';
+import { toast } from 'react-toastify';
 import { addSlot, resetRedux } from '../actions/Slots';
 // DICOM processing
 import DicomFile from '../model/DicomFile';
@@ -23,8 +22,6 @@ import FileUploadDialogPanel from './FileUploadDialogPanel';
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
 import UploadPackageCheckDialogPanel from './UploadPackageCheckDialogPanel';
-import { useParams, useNavigate } from "react-router-dom"
-
 
 
 
@@ -63,7 +60,10 @@ class Uploader extends Component {
         dicomUidReplacements: [],
         pseudomizedFiles: [],
         uploadedFiles: [],
-        verifiedFiles: []
+        verifiedFiles: [],
+        uploadApiKey: null,
+        rpbPortalUrl: "http://10.44.89.56",
+        uploadServiceUrl: "http://10.44.89.56"
     }
 
     seriesSelectionMenuItems = [
@@ -81,6 +81,7 @@ class Uploader extends Component {
 
         this.config = this.props.config
         this.dicomUploadDictionary = new DicomUploadDictionary()
+
         this.selectNodes = this.selectNodes.bind(this);
         this.selectStudy = this.selectStudy.bind(this);
         this.getSelectedFiles = this.updateDicomUploadPackage.bind(this);
@@ -88,40 +89,122 @@ class Uploader extends Component {
         this.submitUploadPackage = this.submitUploadPackage.bind(this);
         this.hideUploadCheckResultsPanel = this.hideUploadCheckResultsPanel.bind(this);
         this.hideFileUploadDialogPanel = this.hideFileUploadDialogPanel.bind(this);
-
         this.setAnalysedFilesCountValue = this.setAnalysedFilesCountValue.bind(this);
         this.setDeIdentifiedFilesCountValue = this.setDeIdentifiedFilesCountValue.bind(this);
         this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
         this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
-
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
+        this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
 
-        this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
-
-
-        this.downloadSlot()
+        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
+        this.getServerUploadParameter();
 
         //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
     }
 
-    async downloadSlot() {
+    createUploadSlotParameterObject() {
+        return {
+            studyIdentifier: this.props.studyIdentifier,
+            siteIdentifier: this.props.siteIdentifier,
+            event: this.props.event,
+            eventRepeatKey: this.props.eventRepeatKey,
+            eventStartDate: this.props.eventStartDate,
+            eventEndDate: this.props.eventEndDate,
+            form: this.props.form,
+            itemGroup: this.props.itemGroup,
+            itemGroupRepeatKey: this.props.itemGroupRepeatKey,
+            item: this.props.item,
+            itemLabel: this.props.itemLabel,
+            subjectid: this.props.subjectid,
+            pid: this.props.pid,
+            dob: this.props.dob,
+            yob: this.props.yob,
+            gender: this.props.gender,
+            uploadServiceUrl: this.state.uploadServiceUrl,
+        }
+    }
 
-        const args = {
-            method: 'GET',
-            headers: {
-                "Cookie": 'JSESSIONID=EC1785788EF50421A7E04F12E36E88C1',
-                "Content-Type": `text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8`,
+    async getServerUploadParameter() {
+        if (this.state.uploadApiKey === null && this.state.rpbPortalUrl != null) {
+            this.fetchUploadParametersFromPortal(this.state.rpbPortalUrl)
+        }
+
+    }
+
+    async fetchUploadParametersFromPortal(url) {
+        toast.dismiss();
+        const fetchPromise = toast.promise(
+            fetch(url + '/pacs/rpbUploader.faces'),
+
+            {
+                pending: 'Connecting to ' + url + '.',
+                // success: 'Connection to ' + url + ' succeed.',
+                error: 'Connection to ' + url + ' failed.'
             }
 
+        )
 
-        };
+        const response = await fetchPromise;
 
-        const resp = await fetch('http://10.44.89.56/pacs/rpbUploader.faces');
-        // const resp = await fetch('http://localhost/pacs/rpbUploader.faces');
-        // window.open('http://10.44.89.56/', '_self');
+        if (response.status != 200) {
+            toast.dismiss();
+            toast.error(
+                <div>
+                    <div>
+                        {'The Server: '}
+                    </div>
+                    <a href={url} target="_blank">{url}</a>
+                    <div>
+                        {' respond with status code: ' + response.status + '.'}
+                    </div>
+                </div>
+                ,
+                {
+                    autoClose: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                });
+            return;
+        }
 
-        console.log(resp);
-        console.log(await resp.json());
+        if (response.status == 200 && response.redirected == true) {
+            toast.dismiss();
+            toast.error(
+                <div>
+                    <div>
+                        {'There is a problem. Please open: '}
+                    </div>
+                    <a href={response.url} target="_blank">{response.url}</a>
+                    <div>
+                        {' and try again.'}
+                    </div>
+                </div>
+                ,
+                {
+                    autoClose: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                });
+
+            return;
+        }
+
+        const responseJson = await response.json();
+
+        if (responseJson.apiKey != null) {
+            this.setState({ uploadApiKey: responseJson.apiKey });
+            this.dicomUploadPackage.setApiKey(this.state.uploadApiKey);
+            this.dicomUploadPackage.setUploadServiceUrl(this.state.uploadServiceUrl);
+            toast.dismiss();
+
+            toast.success(
+                <div>
+                    {'Connection succeed.'}
+                </div>
+            );
+        }
+
+        return;
     }
 
     setAnalysedFilesCountValue(value) {
@@ -173,9 +256,9 @@ class Uploader extends Component {
 
     resetAll() {
         this.setState({ ...this.defaultState });
-        this.props.resetRedux();
+        // this.props.resetRedux();
         this.dicomUploadDictionary = new DicomUploadDictionary();
-        this.dicomUploadPackage = new DicomUploadPackage(this.props.config.availableUploadSlots[0]);
+        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
     }
 
     hideUploadCheckResultsPanel() {
@@ -305,11 +388,11 @@ class Uploader extends Component {
      * Load all available upload slots in slot reducer
      */
     loadAvailableUploadSlots = () => {
-        let uploadSlots = this.props.config.availableUploadSlots
+        // let uploadSlots = this.props.config.availableUploadSlots
 
-        uploadSlots.forEach(uploadSlot => {
-            this.props.addSlot(uploadSlot)
-        })
+        // uploadSlots.forEach(uploadSlot => {
+        //     this.props.addSlot(uploadSlot)
+        // })
     }
 
     /**
@@ -328,7 +411,7 @@ class Uploader extends Component {
         // At first drop notify user started action
         if (this.state.fileParsed === 0) {
             // Config provides this function to log to console
-            this.config.onStartUsing()
+            // this.config.onStartUsing()
         }
 
         // Add number of files to be parsed to the previous number (incremental parsing)
@@ -452,137 +535,137 @@ class Uploader extends Component {
      * Render the component
      */
     render = () => {
-        if (this.config.availableUploadSlots.length > 0) {
-            return (
-                <Fragment>
-                    <BlockUI blocked={this.state.blockedPanel}>
-                        <SlotPanel
-                            studyIdentifier={this.props.studyIdentifier}
-                            siteIdentifier={this.props.siteIdentifier}
-                            event={this.props.event}
-                            eventRepeatKey={this.props.eventRepeatKey}
-                            eventStartDate={this.props.eventStartDate}
-                            eventEndDate={this.props.eventEndDate}
-                            form={this.props.form}
-                            itemGroup={this.props.itemGroup}
-                            itemGroupRepeatKey={this.props.itemGroupRepeatKey}
-                            item={this.props.item}
-                            itemLabel={this.props.itemLabel}
 
-                            subjectid={this.props.subjectid}
-                            pid={this.props.pid}
-                            dob={this.props.dob}
-                            yob={this.props.yob}
-                            gender={this.props.gender}
-                        />
+        return (
+            <Fragment>
+                <BlockUI blocked={this.state.blockedPanel}>
+                    <SlotPanel
+                        studyIdentifier={this.props.studyIdentifier}
+                        siteIdentifier={this.props.siteIdentifier}
+                        event={this.props.event}
+                        eventRepeatKey={this.props.eventRepeatKey}
+                        eventStartDate={this.props.eventStartDate}
+                        eventEndDate={this.props.eventEndDate}
+                        form={this.props.form}
+                        itemGroup={this.props.itemGroup}
+                        itemGroupRepeatKey={this.props.itemGroupRepeatKey}
+                        item={this.props.item}
+                        itemLabel={this.props.itemLabel}
 
-                        <Divider />
+                        subjectid={this.props.subjectid}
+                        pid={this.props.pid}
+                        dob={this.props.dob}
+                        yob={this.props.yob}
+                        gender={this.props.gender}
+                    />
 
-                        <DicomDropZone
-                            addFile={this.addFile}
-                            isUnzipping={this.state.isUnzipping}
-                            isParsingFiles={this.state.isParsingFiles}
-                            isUploadStarted={this.state.isUploadStarted}
-                            fileParsed={this.state.fileParsed}
-                            fileIgnored={Object.keys(this.state.ignoredFiles).length}
-                            fileLoaded={this.state.fileLoaded}
-                        />
+                    <Divider />
 
-                        <Divider />
+                    <DicomDropZone
+                        addFile={this.addFile}
+                        isUnzipping={this.state.isUnzipping}
+                        isParsingFiles={this.state.isParsingFiles}
+                        isUploadStarted={this.state.isUploadStarted}
+                        fileParsed={this.state.fileParsed}
+                        fileIgnored={Object.keys(this.state.ignoredFiles).length}
+                        fileLoaded={this.state.fileLoaded}
+                    />
 
-                        <DicomParsingMenu
-                            fileLoaded={this.state.fileLoaded}
-                            fileParsed={this.state.fileParsed}
-                            dataIgnoredFiles={this.state.ignoredFiles}
-                            selectedNodeKeys={this.state.selectedNodeKeys}
-                            selectedDicomFiles={this.state.selectedDicomFiles}
-                            resetAll={this.resetAll}
-                            submitUploadPackage={this.submitUploadPackage}
-                        />
+                    <Divider />
 
-                        <Divider />
-
-                        <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
-                            <DicomStudySelection
-                                studies={this.state.studyArray}
-                                selectStudy={this.selectStudy}
-                                selectedStudy={this.state.selectedStudy}
-                            />
-                        </div>
-
-                        <Divider />
-
-                        <div hidden={!this.state.selectedStudy} className="text-sm">
-                            <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
-                        </div>
-
-                        <div className="mb-3 text-sm" hidden={!this.state.selectedStudy}>
-                            <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
-                                <TreeSelection
-                                    rTView={true}
-                                    selectedStudy={this.state.selectedStudy}
-                                    seriesTree={"allRootTree"}
-                                    selectNodes={this.selectNodes}
-                                    selectedNodeKeys={this.state.selectedNodeKeys}
-                                >
-                                </TreeSelection>
-                            </div>
-                        </div>
-
-                        <div className="mb-3" hidden={!this.state.selectedStudy}>
-                            <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
-                                <TreeSelection
-                                    rTView={true}
-                                    selectedStudy={this.state.selectedStudy}
-                                    seriesTree={"rtViewTree"}
-                                    selectNodes={this.selectNodes}
-                                    selectedNodeKeys={this.state.selectedNodeKeys}
-                                >
-                                </TreeSelection>
-                            </div>
-                        </div>
-
-                        <ScrollTop />
-
-
-
-                    </BlockUI>
-
-                    <UploadPackageCheckDialogPanel
-                        uploadPackageCheckFailedPanel={this.state.uploadPackageCheckDialogPanel}
-                        evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
-                        hideUploadCheckResultsPanel={this.hideUploadCheckResultsPanel}
-                    ></UploadPackageCheckDialogPanel>
-
-                    <FileUploadDialogPanel
-                        fileUploadDialogPanel={this.state.fileUploadDialogPanel}
-                        hideFileUploadDialogPanel={this.hideFileUploadDialogPanel}
+                    <DicomParsingMenu
+                        fileLoaded={this.state.fileLoaded}
+                        fileParsed={this.state.fileParsed}
+                        dataIgnoredFiles={this.state.ignoredFiles}
+                        selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
-                        uploadProcessState={this.state.uploadProcessState}
+                        resetAll={this.resetAll}
+                        submitUploadPackage={this.submitUploadPackage}
+                        getServerUploadParameter={this.getServerUploadParameter}
+                        uploadApiKey={this.state.uploadApiKey}
+                    />
 
-                        setAnalysedFilesCountValue={this.setAnalysedFilesCountValue}
-                        setDeIdentifiedFilesCountValue={this.setDeIdentifiedFilesCountValue}
-                        setUploadedFilesCountValue={this.setUploadedFilesCountValue}
-                        setVerifiedUploadedFilesCountValue={this.setVerifiedUploadedFilesCountValue}
+                    <Divider />
 
-                        analysedFilesCount={this.state.analysedFilesCount}
-                        deIdentifiedFilesCount={this.state.deIdentifiedFilesCount}
-                        uploadedFilesCount={this.state.uploadedFilesCount}
-                        verifiedUploadedFilesCount={this.state.verifiedUploadedFilesCount}
+                    <div className="mb-3" hidden={!this.state.isParsingFiles && !this.state.isFilesLoaded}>
+                        <DicomStudySelection
+                            studies={this.state.studyArray}
+                            selectStudy={this.selectStudy}
+                            selectedStudy={this.state.selectedStudy}
+                        />
+                    </div>
 
-                        evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
-                        dicomUidReplacements={this.state.dicomUidReplacements}
-                        retrySubmitUploadPackage={this.retrySubmitUploadPackage}
-                    >
-                    </FileUploadDialogPanel>
+                    <Divider />
 
-                </Fragment >
+                    <div hidden={!this.state.selectedStudy} className="text-sm">
+                        <TabMenu model={this.seriesSelectionMenuItems} activeIndex={this.state.seriesSelectionState} onTabChange={(e) => this.setState({ seriesSelectionState: e.index })} />
+                    </div>
+
+                    <div className="mb-3 text-sm" hidden={!this.state.selectedStudy}>
+                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 0}>
+                            <TreeSelection
+                                rTView={true}
+                                selectedStudy={this.state.selectedStudy}
+                                seriesTree={"allRootTree"}
+                                selectNodes={this.selectNodes}
+                                selectedNodeKeys={this.state.selectedNodeKeys}
+                            >
+                            </TreeSelection>
+                        </div>
+                    </div>
+
+                    <div className="mb-3" hidden={!this.state.selectedStudy}>
+                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
+                            <TreeSelection
+                                rTView={true}
+                                selectedStudy={this.state.selectedStudy}
+                                seriesTree={"rtViewTree"}
+                                selectNodes={this.selectNodes}
+                                selectedNodeKeys={this.state.selectedNodeKeys}
+                            >
+                            </TreeSelection>
+                        </div>
+                    </div>
+
+                    <ScrollTop />
 
 
-            )
-        } else {
-            return <Message severity="warn" text="No upload slots available" />
-        }
+
+                </BlockUI>
+
+                <UploadPackageCheckDialogPanel
+                    uploadPackageCheckFailedPanel={this.state.uploadPackageCheckDialogPanel}
+                    evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
+                    hideUploadCheckResultsPanel={this.hideUploadCheckResultsPanel}
+                ></UploadPackageCheckDialogPanel>
+
+                <FileUploadDialogPanel
+                    fileUploadDialogPanel={this.state.fileUploadDialogPanel}
+                    hideFileUploadDialogPanel={this.hideFileUploadDialogPanel}
+                    selectedDicomFiles={this.state.selectedDicomFiles}
+                    uploadProcessState={this.state.uploadProcessState}
+
+                    setAnalysedFilesCountValue={this.setAnalysedFilesCountValue}
+                    setDeIdentifiedFilesCountValue={this.setDeIdentifiedFilesCountValue}
+                    setUploadedFilesCountValue={this.setUploadedFilesCountValue}
+                    setVerifiedUploadedFilesCountValue={this.setVerifiedUploadedFilesCountValue}
+
+                    analysedFilesCount={this.state.analysedFilesCount}
+                    deIdentifiedFilesCount={this.state.deIdentifiedFilesCount}
+                    uploadedFilesCount={this.state.uploadedFilesCount}
+                    verifiedUploadedFilesCount={this.state.verifiedUploadedFilesCount}
+
+                    evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
+                    dicomUidReplacements={this.state.dicomUidReplacements}
+                    retrySubmitUploadPackage={this.retrySubmitUploadPackage}
+                >
+                </FileUploadDialogPanel>
+
+            </Fragment >
+
+
+        )
+
     }
 }
 
@@ -600,4 +683,4 @@ const mapDispatchToProps = {
 }
 
 // Connects Uploader component to Redux store
-export default connect(mapStateToProps, mapDispatchToProps)(Uploader)
+export default Uploader
