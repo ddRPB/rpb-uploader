@@ -542,18 +542,27 @@ class Uploader extends Component {
                     <SlotPanel
                         studyIdentifier={this.props.studyIdentifier}
                         siteIdentifier={this.props.siteIdentifier}
+                        studyInstanceItemOid={this.props.studyInstanceItemOid}
+
                         event={this.props.event}
                         eventRepeatKey={this.props.eventRepeatKey}
                         eventStartDate={this.props.eventStartDate}
                         eventEndDate={this.props.eventEndDate}
+                        eventName={this.props.eventName}
+                        eventDescription={this.props.eventDescription}
+
                         form={this.props.form}
                         itemGroup={this.props.itemGroup}
                         itemGroupRepeatKey={this.props.itemGroupRepeatKey}
                         item={this.props.item}
                         itemLabel={this.props.itemLabel}
+                        itemDescription={this.props.itemDescription}
 
-                        subjectid={this.props.subjectid}
+                        subjectId={this.props.subjectId}
+                        subjectKey={this.props.subjectKey}
                         pid={this.props.pid}
+                        dicomPatientIdItemOid={this.props.dicomPatientIdItemOid}
+
                         dob={this.props.dob}
                         yob={this.props.yob}
                         gender={this.props.gender}

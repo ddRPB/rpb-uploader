@@ -40,18 +40,27 @@ function App(props) {
             {...props}
             studyIdentifier={searchParams.get('studyidentifier')}
             siteIdentifier={searchParams.get('siteidentifier')}
+            studyInstanceItemOid={searchParams.get('studyinstanceitemoid')}
+
             event={searchParams.get('event')}
             eventRepeatKey={searchParams.get('eventrepeatkey')}
             eventStartDate={searchParams.get('eventstartdate')}
             eventEndDate={searchParams.get('eventenddate')}
+            eventName={searchParams.get('eventname')}
+            eventDescription={searchParams.get('eventdescription')}
+
             form={searchParams.get('form')}
             itemGroup={searchParams.get('itemgroup')}
             itemGroupRepeatKey={searchParams.get('itemgrouprepeatkey')}
             item={searchParams.get('item')}
             itemLabel={searchParams.get('itemlabel')}
+            itemDescription={searchParams.get('itemdescription')}
 
             subjectId={searchParams.get('subjectid')}
+            subjectKey={searchParams.get('subjectkey')}
             pid={searchParams.get('pid')}
+            dicomPatientIdItemOid={searchParams.get('dicompatientiditemoid')}
+
             dob={searchParams.get('dob')}
             yob={searchParams.get('yob')}
             gender={searchParams.get('gender')}

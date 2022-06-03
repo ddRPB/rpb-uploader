@@ -80,50 +80,6 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
-                        {this.props.event != null && this.props.eventRepeatKey != null ?
-                            <div className="flex mr-2" >
-                                <StyledDivNameComponent className="font-bold">
-                                    Study Event:&nbsp;
-                                </StyledDivNameComponent>
-                                <StyledDivValueComponent>
-                                    {this.props.event} ({this.props.eventRepeatKey})
-                                </StyledDivValueComponent>
-                            </div>
-                            : null
-                        }
-                        {/* {this.props.eventRepeatKey != null ?
-                            <div className="flex mr-2" >
-                                <StyledDivNameComponent className="font-bold">
-                                    SE Repeat :&nbsp;
-                                </StyledDivNameComponent>
-                                <StyledDivValueComponent>
-                                    {this.props.eventRepeatKey}
-                                </StyledDivValueComponent>
-                            </div>
-                            : null
-                        } */}
-                        {this.props.eventStartDate != null ?
-                            <div className="flex mr-2">
-                                <StyledDivNameComponent className="font-bold">
-                                    Start Date:&nbsp;
-                                </StyledDivNameComponent>
-                                <StyledDivValueComponent>
-                                    {this.props.eventStartDate}
-                                </StyledDivValueComponent>
-                            </div>
-                            : null
-                        }
-                        {this.props.eventEndDate != null ?
-                            <div className="flex mr-2">
-                                <StyledDivNameComponent className="font-bold">
-                                    End Date:&nbsp;
-                                </StyledDivNameComponent>
-                                <StyledDivValueComponent>
-                                    {this.props.eventEndDate}
-                                </StyledDivValueComponent>
-                            </div>
-                            : null
-                        }
                         {/* <div className="flex mr-2">
                             <StyledDivNameComponent className="font-bold">
                                 Form:&nbsp;
@@ -167,40 +123,25 @@ export class SlotPanel extends Component {
 
 
                     </div>
-                    {/* </Card>
-                <Card> */}
-                    <div className="mr-2 flex flex-wrap card-container text-sm">
-                        <div className="flex mr-2" >
-                            <StyledDivNameComponent className="font-bold">
-                                Item Label:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getItemLabel()}
-                            </StyledDivValueComponent>
-                        </div>
-                        {/* <div className="flex mr-2" >
-                            <StyledDivNameComponent className="font-bold">
-                                Item:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getForm()}&#187;
-                                {this.getItemGroup()}&#187;
-                                {this.getItemGroupRepeatKey()}&#187;
-                                {this.getItem()}
-                            </StyledDivValueComponent>
-                        </div> */}
-                    </div>
-                    {/* </Card>
-                <Card
-                > */}
                     <div className="flex flex-wrap card-container text-sm">
-                        {this.props.subjectid != null ?
+                        {this.props.subjectId != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
-                                    Study Subject:&nbsp;
+                                    Subject ID:&nbsp;
                                 </StyledDivNameComponent>
                                 <StyledDivValueComponent>
-                                    {this.props.subjectid}
+                                    {this.props.subjectId}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {this.props.subjectKey != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Subject Key:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.subjectKey}
                                 </StyledDivValueComponent>
                             </div>
                             : null
@@ -249,6 +190,86 @@ export class SlotPanel extends Component {
                             : null
                         }
                     </div>
+                    {/* </Card>
+                <Card> */}
+                    <div className="mr-2 flex flex-wrap card-container text-sm">
+                        {this.props.eventName != null && this.props.eventRepeatKey != null ?
+                            <div className="flex mr-2" >
+                                <StyledDivNameComponent className="font-bold">
+                                    Study Event:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventName} ({this.props.eventRepeatKey})
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {/* {this.props.eventRepeatKey != null ?
+                            <div className="flex mr-2" >
+                                <StyledDivNameComponent className="font-bold">
+                                    SE Repeat :&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventRepeatKey}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        } */}
+                        {this.props.eventStartDate != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Start Date:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventStartDate}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {this.props.eventEndDate != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    End Date:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventEndDate}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+
+                        <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item Label:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getItemLabel()}
+                            </StyledDivValueComponent>
+                        </div>
+                        <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.props.itemDescription}
+                            </StyledDivValueComponent>
+                        </div>
+                        {/* <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getForm()}&#187;
+                                {this.getItemGroup()}&#187;
+                                {this.getItemGroupRepeatKey()}&#187;
+                                {this.getItem()}
+                            </StyledDivValueComponent>
+                        </div> */}
+                    </div>
+                    {/* </Card>
+                <Card
+                > */}
+
                 </Card>
             </div >
         )
