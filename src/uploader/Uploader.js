@@ -51,6 +51,7 @@ class Uploader extends Component {
         deIdentifiedFilesCount: 0,
         uploadedFilesCount: 0,
         verifiedUploadedFilesCount: 0,
+        studyIsLinked: false,
         uploadProcessState: 0,
         progressPanelValue: 0,
         blockedPanel: false,
@@ -93,8 +94,10 @@ class Uploader extends Component {
         this.setDeIdentifiedFilesCountValue = this.setDeIdentifiedFilesCountValue.bind(this);
         this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
         this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
+        this.setStudyIsLinked = this.setStudyIsLinked.bind(this);
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
         this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
+        this.redirectToPortal = this.redirectToPortal.bind(this);
 
         this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
         this.getServerUploadParameter();
@@ -106,6 +109,8 @@ class Uploader extends Component {
         return {
             studyIdentifier: this.props.studyIdentifier,
             siteIdentifier: this.props.siteIdentifier,
+            studyInstanceItemOid: this.props.studyInstanceItemOid,
+            studyOid: this.props.studyOid,
             event: this.props.event,
             eventRepeatKey: this.props.eventRepeatKey,
             eventStartDate: this.props.eventStartDate,
@@ -115,8 +120,10 @@ class Uploader extends Component {
             itemGroupRepeatKey: this.props.itemGroupRepeatKey,
             item: this.props.item,
             itemLabel: this.props.itemLabel,
-            subjectid: this.props.subjectid,
+            subjectId: this.props.subjectId,
+            subjectKey: this.props.subjectKey,
             pid: this.props.pid,
+            dicomPatientIdItemOid: this.props.dicomPatientIdItemOid,
             dob: this.props.dob,
             yob: this.props.yob,
             gender: this.props.gender,
@@ -223,6 +230,14 @@ class Uploader extends Component {
         this.setState({ verifiedUploadedFilesCount: value });
     }
 
+    setStudyIsLinked(value) {
+        this.setState({ studyIsLinked: value });
+    }
+
+    redirectToPortal() {
+        window.location = "https://radplanbio.uniklinikum-dresden.de";
+    }
+
     selectNodes(e) {
         const selectedNodes = { ...e.value };
         this.updateDicomUploadPackage(selectedNodes);
@@ -256,7 +271,6 @@ class Uploader extends Component {
 
     resetAll() {
         this.setState({ ...this.defaultState });
-        // this.props.resetRedux();
         this.dicomUploadDictionary = new DicomUploadDictionary();
         this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
     }
@@ -283,15 +297,21 @@ class Uploader extends Component {
     async submitUploadPackage() {
         let uids, errors = [];
 
+        this.setState({
+            fileUploadDialogPanel: true,
+            evaluationUploadCheckResults: [],
+        });
+
+        // Starting step 1 - Evaluating the files, extracting the Uids, creating a Map with the replacements
+
         if (this.state.dicomUidReplacements.length === 0) {
-            // evaluation step
+            // Step 1 was not finished before - start evaluation of the package and reset all progress counter to 0
             this.setState({
-                blockedPanel: true,
-                fileUploadDialogPanel: true,
                 uploadProcessState: 0,
                 analysedFilesCount: 0,
                 deIdentifiedFilesCount: 0,
                 uploadedFilesCount: 0,
+                verifiedUploadedFilesCount: 0,
                 dicomUidReplacements: [],
             });
 
@@ -300,73 +320,74 @@ class Uploader extends Component {
             if (errors.length > 0) {
                 this.setState({
                     evaluationUploadCheckResults: errors,
-                    blockedPanel: false
                 });
 
                 return;
             }
 
-            // prepare de-identification
+            // preparing de-identification
             const dicomUIDGenerator = new DicomUIDGenerator('2.25.');
             const dicomUidReplacements = dicomUIDGenerator.getOriginalUidToPseudomizedUidMap(uids);
 
-            // start de-identification step
-            // upload results
             this.setState({
                 dicomUidReplacements: dicomUidReplacements,
-                uploadProcessState: 1
-            });
-        } else { // replacements are already created
-            this.setState({
-                blockedPanel: true,
-                fileUploadDialogPanel: true,
-                uploadProcessState: 1,
-                deIdentifiedFilesCount: 0,
-                uploadedFilesCount: 0,
-                evaluationUploadCheckResults: errors
             });
         }
+
+        // Starting step 2 - de-identification and upload of chunks
+
+        this.setState({
+            uploadProcessState: 1,
+        });
 
         ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.setDeIdentifiedFilesCountValue, this.setUploadedFilesCountValue));
 
         if (errors.length > 0) {
             this.setState({
                 evaluationUploadCheckResults: errors,
-                blockedPanel: false
             });
 
             return;
         }
 
+        // Starting step 2 - verifying uploads to the RPB backend
 
-        // verification step
+        this.setState({
+            uploadProcessState: 2,
+        });
+
+        const verificationResults = await this.dicomUploadPackage.verifyUpload(this.setVerifiedUploadedFilesCountValue);
+
+        if (verificationResults.errors.length > 0) {
+            this.setState({
+                evaluationUploadCheckResults: verificationResults.errors,
+            });
+
+            return;
+        }
+
+        // // Starting step 3 - linking Dicom series with item
+
+        this.setState({
+            uploadProcessState: 3,
+        });
+
+        const linkingResult = await this.dicomUploadPackage.linkUploadedStudy(this.setStudyIsLinked);
+
+        if (linkingResult.errors.length > 0) {
+            this.setState({
+                evaluationUploadCheckResults: linkingResult.errors,
+            });
+
+            return;
+        }
+
         // this.setState({
-        //     uploadProcessState: 2,
-        //     progressPanelValue: 0
+        //     fileUploadDialogPanel: false,
         // });
 
-        // const uploadResult = await this.dicomUploadPackage.upload();
 
-        // if (uploadResult.errors.length > 0) {
-        //     this.setState({
-        //         evaluationUploadCheckResults: uploadResult.errors,
-        //         blockedPanel: false
-        //     });
-
-        //     return;
-        // }
-
-
-
-        this.resetAll();
-        this.setState({
-            blockedPanel: false,
-            fileUploadDialogPanel: false,
-            uploadProcessState: 0,
-            analysedFilesCount: 0,
-            deIdentifiedFilesCount: 0,
-            uploadedFilesCount: 0,
-        });
+        // this.resetAll();
 
     }
 
@@ -658,11 +679,14 @@ class Uploader extends Component {
                     setDeIdentifiedFilesCountValue={this.setDeIdentifiedFilesCountValue}
                     setUploadedFilesCountValue={this.setUploadedFilesCountValue}
                     setVerifiedUploadedFilesCountValue={this.setVerifiedUploadedFilesCountValue}
+                    setStudyIsLinked={this.setStudyIsLinked}
+                    redirectToPortal={this.redirectToPortal}
 
                     analysedFilesCount={this.state.analysedFilesCount}
                     deIdentifiedFilesCount={this.state.deIdentifiedFilesCount}
                     uploadedFilesCount={this.state.uploadedFilesCount}
                     verifiedUploadedFilesCount={this.state.verifiedUploadedFilesCount}
+                    studyIsLinked={this.state.studyIsLinked}
 
                     evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
                     dicomUidReplacements={this.state.dicomUidReplacements}

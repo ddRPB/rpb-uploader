@@ -41,6 +41,7 @@ function App(props) {
             studyIdentifier={searchParams.get('studyidentifier')}
             siteIdentifier={searchParams.get('siteidentifier')}
             studyInstanceItemOid={searchParams.get('studyinstanceitemoid')}
+            studyOid={searchParams.get('studyoid')}
 
             event={searchParams.get('event')}
             eventRepeatKey={searchParams.get('eventrepeatkey')}

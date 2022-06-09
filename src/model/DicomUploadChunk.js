@@ -2,20 +2,33 @@
 export default class DicomUploadChunk {
 
 
-    constructor(seriesUid) {
+    constructor(studyUid, seriesUid) {
+        this.originalStudyUid = studyUid;
         this.originalSeriesUid = seriesUid;
+        this.deIdentifiedStudyUid = "";
+        this.deIdentifiedSeriesUid = "";
         this.originalSoapInstanceUids = [];
 
         this.originalFileNames = [];
 
         this.deIdentified = false;
         this.transfered = false;
+        this.uploadVerified = false;
 
         this.originalInstances = [];
         this.deidentifiedInstances = [];
         this.mimeMessage = null;
         this.messages = [];
 
+    }
+
+
+    setDeIdentifiedStudyUid(studyUid) {
+        this.deIdentifiedStudyUid = studyUid;
+    }
+
+    setDeIdentifiedSeriesUid(seriesUid) {
+        this.deIdentifiedSeriesUid = seriesUid;
     }
 
     addInstance(sopInstanceUid, fileObject) {
@@ -43,6 +56,5 @@ export default class DicomUploadChunk {
 
     cleanupAfterTransfer() {
         this.originalInstances = [];
-        this.mimeMessage = [];
     }
 }
