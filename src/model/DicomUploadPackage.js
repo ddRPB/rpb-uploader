@@ -409,7 +409,19 @@ export default class DicomUploadPackage {
             let response = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/subjects/${this.uploadSlot.pid}/studies/${this.replacedStudyInstanceUID}/`, args);
 
             if (response.status === 200) {
-                setStudyIsLinked(true);
+                const result = await response.json();
+                if (result.success) {
+                    setStudyIsLinked(true);
+                } else {
+                    errors.push(
+                        this.createErrorMessageObject(
+                            'Error Linking the DicomData.',
+                            'Error Linking the DicomData. - ' + result.errors.toString(),
+                            '',
+                            '',
+                            null
+                        ));
+                }
             } else {
                 errors.push(
                     this.createErrorMessageObject(

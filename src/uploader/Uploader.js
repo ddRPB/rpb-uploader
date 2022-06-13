@@ -235,7 +235,7 @@ class Uploader extends Component {
     }
 
     redirectToPortal() {
-        window.location = "https://radplanbio.uniklinikum-dresden.de";
+        window.location = `${this.state.rpbPortalUrl}/pacs/dicomPatientStudies.faces?pid=${this.props.pid}&eventid=${this.props.event}&eventrepeatkey=${this.props.eventRepeatKey}`;
     }
 
     selectNodes(e) {
