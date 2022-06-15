@@ -27,7 +27,7 @@ export default class FileUploadDialogPanel extends Component {
             <Dialog
                 header={"Upload Dialog"}
                 visible={this.props.fileUploadDialogPanel}
-                // closable={false}
+                closable={this.props.evaluationUploadCheckResults.length > 0}
                 // style={{ width: '50vw' }}
                 maximized={true}
                 onHide={this.props.hideFileUploadDialogPanel}

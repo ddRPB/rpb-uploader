@@ -1,3 +1,4 @@
+import pWaitFor from 'p-wait-for';
 import DeIdentificationProfiles from "../constants/DeIdentificationProfiles";
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
@@ -36,6 +37,9 @@ export default class DicomUploadPackage {
         this.apiKey = null;
         this.uploadServiceUrl = null;
 
+        // this.evaluateUploadOfSeries = this.evaluateUploadOfSeries.bind(this);
+        this.updateSelectedFilesArray = this.updateSelectedFilesArray.bind(this);
+
     }
 
     setSelectedSeries(selectedSeriesObjects) {
@@ -48,14 +52,30 @@ export default class DicomUploadPackage {
         this.studyInstanceUID = studyInstanceUID;
     }
 
-    updateSelectedFilesArray(selectedSeriesObjects) {
+    async updateSelectedFilesArray(selectedSeriesObjects) {
         this.selectedFiles = [];
         for (let uid in selectedSeriesObjects) {
             const selectedSeries = selectedSeriesObjects[uid];
             let result = (Object.keys(selectedSeries.instances).map(function (key, index) { return selectedSeries.instances[key].fileObject; }));
             this.selectedFiles = this.selectedFiles.concat(result);
         }
+
+        // console.log("test");
+
+        // console.log(await pWaitFor(async () => {
+        //     console.log("run");
+        //     return this.evaluateUploadOfSeries("test");
+        //     // return new Promise((resolve, reject) => {
+        //     //     resolve(true);
+        //     // })
+        // }, { timeout: 60 * 1000 }));
+
+
     }
+
+    // evaluateUploadOfSeries = async (test) => new Promise((resolve, reject) => {
+    //     resolve(true);
+    // })
 
     getSelectedFiles() {
         return this.selectedFiles;
@@ -80,7 +100,23 @@ export default class DicomUploadPackage {
         this.uploadServiceUrl = uploadServiceUrl;
     }
 
-    async evaluate(setAnalysedFilesCountValue) {
+    resetUploadProcess() {
+        this.uploadChunks = [];
+        this.processedChunksCount = 0;
+
+        this.pseudomizedFiles = [];
+        this.uploadedFiles = [];
+        this.verifiedFiles = [];
+
+        this.replacedStudyInstanceUID = '';
+
+        // ToDo: cancel linking
+    }
+
+    /**
+     * 
+     */
+    async prepareUpload(setAnalysedFilesCountValue) {
         let uids = [];
         let errors = []
         let processedFilesCount = 0;
@@ -138,6 +174,7 @@ export default class DicomUploadPackage {
                         null
                     ));
                 return {
+                    // Stop on first error
                     errors: errors
                 };
             }
@@ -278,9 +315,21 @@ export default class DicomUploadPackage {
 
     }
 
-    async verifyUpload(setVerifiedUploadedFilesCountValue) {
+    async verifyUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
         let errors = []
         let verifiedInstances = 0;
+
+        // for (let uid in this.selectedSeriesObjects) {
+        //     const selectedSeries = this.selectedSeriesObjects[uid];
+        //     const deIdentifiedSeriesInstanceUID = dicomUidReplacements.get(uid);
+        //     const deIdentifiedStudyInstanceUID = selectedSeries.studyInstanceUID;
+        //     console.log(`Verify series ${uid} - ${deIdentifiedSeriesInstanceUID} - ${deIdentifiedStudyInstanceUID}`);
+        //     const poller = await promisePoller({
+        //         taskFn: () => {return this.evaluateUploadOfSeries()},
+        //         interval: 500,
+        //         timeout: 2000
+        //     });
+        // }
 
         for (let chunk of this.uploadChunks) {
             if (!chunk.uploadVerified && chunk.transfered) {
@@ -295,6 +344,9 @@ export default class DicomUploadPackage {
                     };
 
                     let response = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/subjects/${this.uploadSlot.pid}/studies/${chunk.deIdentifiedStudyUid}/series/${chunk.deIdentifiedSeriesUid}/instances/${deIdentifiedInstance.sopInstanceUid}`, args);
+
+                    let response2 = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/subjects/${this.uploadSlot.pid}/studies/${chunk.deIdentifiedStudyUid}/series/${chunk.deIdentifiedSeriesUid}`, args);
+                    console.log(await response2.json());
 
                     if (response.status === 200) {
                         verifiedUploadResults.push(await response.json());
@@ -401,7 +453,7 @@ export default class DicomUploadPackage {
                 method: 'POST',
                 headers: {
                     "X-Api-Key": this.apiKey,
-                    "Content-Type": `application/json`,
+                    "Content-Type": `application / json`,
                 },
                 body: JSON.stringify(jsonBody)
             };
@@ -439,6 +491,8 @@ export default class DicomUploadPackage {
             errors: errors
         };
     }
+
+
 
 
     createErrorMessageObject(
