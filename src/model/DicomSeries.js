@@ -9,7 +9,10 @@ import DicomFile from './DicomFile'
  */
 export default class DicomSeries {
 
-    instances = {}
+    instances = {};
+    deIdentifiedStudyInstanceUID = null;
+    deIdentifiedSeriesInstanceUID = null;
+    uploadVerified = false;
 
     constructor(seriesInstanceUID, seriesDate, seriesDescription, modality, studyInstanceUID, parameters) {
         this.seriesInstanceUID = seriesInstanceUID
@@ -20,30 +23,43 @@ export default class DicomSeries {
         this.parameters = parameters
     }
 
-    getSeriesInstanceUID(){
+    getSeriesInstanceUID() {
         if (this.seriesInstanceUID == null) {
             throw new Error('Null SeriesInstanceUID')
         }
         return this.seriesInstanceUID
     }
 
-    getSeriesDate(){
+    getSeriesDate() {
         return this.seriesDate == null ? '' : this.seriesDate
     }
 
-    getSeriesDescription(){
+    getSeriesDescription() {
         return this.seriesDescription == null ? '' : this.seriesDescription
     }
 
-    getModality(){
+    getModality() {
         return this.modality == null ? '' : this.modality
     }
 
     getStudyInstanceUID() {
-        if (this.studyInstanceUID == null){
+        if (this.studyInstanceUID == null) {
             throw new Error('Null StudyInstanceUID')
         }
         return this.studyInstanceUID
+    }
+
+
+    setDeIdentifiedStudyInstanceUID(uid) {
+        this.deIdentifiedStudyInstanceUID = uid;
+    }
+
+    setDeIdentifiedStudyInstanceUID(uid) {
+        this.deIdentifiedStudyInstanceUID = uid;
+    }
+
+    setUploadVerified(isVerified) {
+        this.uploadVerified = isVerified;
     }
 
     addInstance(dicomInstance) {
@@ -67,7 +83,7 @@ export default class DicomSeries {
         return Object.values(this.instances)
     }
 
-    getInstancesObject(){
+    getInstancesObject() {
         return this.instances
     }
 

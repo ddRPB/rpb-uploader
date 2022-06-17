@@ -20,8 +20,8 @@ export default class FileUploadDialogPanel extends Component {
             { label: 'Link Study' }
         ];
 
-        const StyledCommandButton = styledComponents(Button)`{ width: 135px }`;
-        const StyledDisabbledButton = styledComponents(Button)`{ width: 135px }`;
+        const StyledCommandButton = styledComponents(Button)`{ width: 140px }`;
+        const StyledDisabbledButton = styledComponents(Button)`{ width: 140px }`;
 
         return (
             <Dialog

@@ -1,4 +1,5 @@
 import pWaitFor from 'p-wait-for';
+import { collapseToast } from 'react-toastify';
 import DeIdentificationProfiles from "../constants/DeIdentificationProfiles";
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
@@ -38,7 +39,7 @@ export default class DicomUploadPackage {
         this.uploadServiceUrl = null;
 
         // this.evaluateUploadOfSeries = this.evaluateUploadOfSeries.bind(this);
-        this.updateSelectedFilesArray = this.updateSelectedFilesArray.bind(this);
+        this.verifySeriesUpload = this.verifySeriesUpload.bind(this);
 
     }
 
@@ -52,7 +53,7 @@ export default class DicomUploadPackage {
         this.studyInstanceUID = studyInstanceUID;
     }
 
-    async updateSelectedFilesArray(selectedSeriesObjects) {
+    updateSelectedFilesArray(selectedSeriesObjects) {
         this.selectedFiles = [];
         for (let uid in selectedSeriesObjects) {
             const selectedSeries = selectedSeriesObjects[uid];
@@ -60,22 +61,7 @@ export default class DicomUploadPackage {
             this.selectedFiles = this.selectedFiles.concat(result);
         }
 
-        // console.log("test");
-
-        // console.log(await pWaitFor(async () => {
-        //     console.log("run");
-        //     return this.evaluateUploadOfSeries("test");
-        //     // return new Promise((resolve, reject) => {
-        //     //     resolve(true);
-        //     // })
-        // }, { timeout: 60 * 1000 }));
-
-
     }
-
-    // evaluateUploadOfSeries = async (test) => new Promise((resolve, reject) => {
-    //     resolve(true);
-    // })
 
     getSelectedFiles() {
         return this.selectedFiles;
@@ -315,21 +301,103 @@ export default class DicomUploadPackage {
 
     }
 
-    async verifyUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
-        let errors = []
+    async verifySeriesUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
+        let errors = [];
         let verifiedInstances = 0;
 
-        // for (let uid in this.selectedSeriesObjects) {
-        //     const selectedSeries = this.selectedSeriesObjects[uid];
-        //     const deIdentifiedSeriesInstanceUID = dicomUidReplacements.get(uid);
-        //     const deIdentifiedStudyInstanceUID = selectedSeries.studyInstanceUID;
-        //     console.log(`Verify series ${uid} - ${deIdentifiedSeriesInstanceUID} - ${deIdentifiedStudyInstanceUID}`);
-        //     const poller = await promisePoller({
-        //         taskFn: () => {return this.evaluateUploadOfSeries()},
-        //         interval: 500,
-        //         timeout: 2000
-        //     });
-        // }
+        for (let uid in this.selectedSeriesObjects) {
+
+            const selectedSeries = this.selectedSeriesObjects[uid];
+            const deIdentifiedSeriesUid = dicomUidReplacements.get(uid);
+            console.log(`verify study -> ${this.replacedStudyInstanceUID}`);
+            console.log(`verify series ${uid} -> ${deIdentifiedSeriesUid}`);
+
+            if (selectedSeries.getInstancesSize() != null) {
+                let counter = 0;
+                const interval = selectedSeries.getInstancesSize() * 100;
+                const timeout = selectedSeries.getInstancesSize() * 10000;
+                let pollResult;
+                try {
+                    pollResult = await pWaitFor(async () => {
+                        console.log(`run ${counter}`);
+                        counter++;
+                        return this.evaluateUploadOfSeries(this.uploadSlot.pid, this.replacedStudyInstanceUID, deIdentifiedSeriesUid, selectedSeries.getInstancesSize());
+
+                    }, {
+                        interval: interval,
+                        timeout: timeout
+                    }
+                    );
+
+                    console.log(`poll result ${pollResult}`);
+                } catch (e) {
+                    errors.push(
+                        this.createErrorMessageObject(
+                            'Verification failed.',
+                            `Verification failed - The uploaded file is not available on the system yet. Please try again. ${e.toString()}`,
+                            uid,
+                            "",
+                            "",
+                            null
+                        ));
+                    return {
+                        errors: errors
+                    };
+                }
+
+
+                selectedSeries.setUploadVerified(true);
+                verifiedInstances += selectedSeries.getInstancesSize();
+                setVerifiedUploadedFilesCountValue(verifiedInstances);
+            }
+        }
+
+        return {
+            errors: errors
+        };
+
+
+    }
+
+    evaluateUploadOfSeries = async (pid, studyUid, seriesUid, expectedSize) => new Promise(async (resolve, reject) => {
+        console.log(`evaluate ${pid} ${studyUid} ${seriesUid} size ${expectedSize}`);
+        const args = {
+            method: 'GET',
+            headers: {
+                "X-Api-Key": this.apiKey
+            }
+        };
+
+        try {
+            const response = await fetch(`${this.uploadServiceUrl}/api/v1/pacs/subjects/${pid}/studies/${studyUid}/series/${seriesUid}`, args);
+
+            if (response.status != 200) {
+                reject(`There is a problem with the service ${this.uploadServiceUrl}. The response is: ${response.status}. Please try again.`);
+            }
+
+            const jsonResponse = await response.json();
+
+            if (jsonResponse.Series.length > 0) {
+                if (jsonResponse.Series[0].Images.length === expectedSize) {
+                    resolve(true);
+                }
+            }
+
+        } catch (e) {
+            reject(e);
+        }
+
+
+        resolve(false);
+
+    })
+
+
+
+
+    async verifyUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
+        let errors = [];
+        let verifiedInstances = 0;
 
         for (let chunk of this.uploadChunks) {
             if (!chunk.uploadVerified && chunk.transfered) {
@@ -343,10 +411,9 @@ export default class DicomUploadPackage {
                         }
                     };
 
-                    let response = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/subjects/${this.uploadSlot.pid}/studies/${chunk.deIdentifiedStudyUid}/series/${chunk.deIdentifiedSeriesUid}/instances/${deIdentifiedInstance.sopInstanceUid}`, args);
+                    let response = await fetch(`${this.uploadServiceUrl}/api/v1/pacs/subjects/${this.uploadSlot.pid}/studies/${chunk.deIdentifiedStudyUid}/series/${chunk.deIdentifiedSeriesUid}/instances/${deIdentifiedInstance.sopInstanceUid}`, args);
 
-                    let response2 = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/subjects/${this.uploadSlot.pid}/studies/${chunk.deIdentifiedStudyUid}/series/${chunk.deIdentifiedSeriesUid}`, args);
-                    console.log(await response2.json());
+
 
                     if (response.status === 200) {
                         verifiedUploadResults.push(await response.json());
@@ -420,9 +487,11 @@ export default class DicomUploadPackage {
     async linkUploadedStudy(setStudyIsLinked) {
         let errors = []
 
-        const allVerified = this.uploadChunks.
-            map(chunk => chunk.uploadVerified).
-            reduce((prev, curr) => { return prev && curr });
+        // const allVerified = this.uploadChunks.
+        //     map(chunk => chunk.uploadVerified).
+        //     reduce((prev, curr) => { return prev && curr });
+
+        const allVerified = true;
 
         if (!allVerified) {
             errors.push(
@@ -453,12 +522,12 @@ export default class DicomUploadPackage {
                 method: 'POST',
                 headers: {
                     "X-Api-Key": this.apiKey,
-                    "Content-Type": `application / json`,
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(jsonBody)
             };
 
-            let response = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/subjects/${this.uploadSlot.pid}/studies/${this.replacedStudyInstanceUID}/`, args);
+            let response = await fetch(`${this.uploadServiceUrl}/api/v1/odm/`, args);
 
             if (response.status === 200) {
                 const result = await response.json();

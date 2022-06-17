@@ -4,7 +4,7 @@ import { BlockUI } from 'primereact/blockui';
 import { Divider } from 'primereact/divider';
 import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
-import React, { Component, Fragment } from 'react';
+import { Component, Fragment } from 'react';
 import { toast } from 'react-toastify';
 import { addSlot, resetRedux } from '../actions/Slots';
 // DICOM processing
@@ -240,6 +240,18 @@ class Uploader extends Component {
 
     selectNodes(e) {
         const selectedNodes = { ...e.value };
+
+        // reset upload process indicators
+        this.setState({
+            uploadProcessState: 0,
+            analysedFilesCount: 0,
+            deIdentifiedFilesCount: 0,
+            uploadedFilesCount: 0,
+            verifiedUploadedFilesCount: 0,
+            dicomUidReplacements: [],
+        });
+        this.dicomUploadPackage.resetUploadProcess();
+
         this.updateDicomUploadPackage(selectedNodes);
         this.setState({
             selectedNodeKeys: selectedNodes,
@@ -315,7 +327,7 @@ class Uploader extends Component {
                 dicomUidReplacements: [],
             });
 
-            ({ uids, errors } = await this.dicomUploadPackage.evaluate(this.setAnalysedFilesCountValue));
+            ({ uids, errors } = await this.dicomUploadPackage.prepareUpload(this.setAnalysedFilesCountValue));
 
             if (errors.length > 0) {
                 this.setState({
@@ -356,7 +368,7 @@ class Uploader extends Component {
             uploadProcessState: 2,
         });
 
-        const verificationResults = await this.dicomUploadPackage.verifyUpload(this.setVerifiedUploadedFilesCountValue);
+        const verificationResults = await this.dicomUploadPackage.verifySeriesUpload(this.state.dicomUidReplacements, this.setVerifiedUploadedFilesCountValue);
 
         if (verificationResults.errors.length > 0) {
             this.setState({
