@@ -1,5 +1,4 @@
-import pWaitFor from 'p-wait-for';
-import { collapseToast } from 'react-toastify';
+import promisePoller from 'promise-poller';
 import DeIdentificationProfiles from "../constants/DeIdentificationProfiles";
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
@@ -117,9 +116,17 @@ export default class DicomUploadPackage {
 
                     for (let sopInstanceUid in selectedSeries.instances) {
                         const fileObject = selectedSeries.instances[sopInstanceUid];
+                        console.log(`Evaluate instance ${sopInstanceUid}`);
 
-                        const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
-                        const uidArray = await inspector.analyzeFile()
+                        let uidArray = [];
+                        try {
+                            const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
+                            uidArray = await inspector.analyzeFile()
+                        } catch (e) {
+                            console.log("Deidentification problem - " + sopInstanceUid + ":" + e);
+                            throw "Deidentification problem - " + sopInstanceUid + ":" + e
+                        }
+
                         uids = uids.concat(uidArray);
 
                         if (currentChunk.getCount() < this.chunkSize) {
@@ -314,22 +321,21 @@ export default class DicomUploadPackage {
 
             if (selectedSeries.getInstancesSize() != null) {
                 let counter = 0;
-                const interval = selectedSeries.getInstancesSize() * 100;
-                const timeout = selectedSeries.getInstancesSize() * 10000;
-                let pollResult;
+                const interval = 5000;
+                const timeout = 5000000;
+                const pollTask = () => this.evaluateUploadOfSeries(this.uploadSlot.pid, this.replacedStudyInstanceUID, deIdentifiedSeriesUid, selectedSeries.getInstancesSize());
+                let poller;
                 try {
-                    pollResult = await pWaitFor(async () => {
-                        console.log(`run ${counter}`);
-                        counter++;
-                        return this.evaluateUploadOfSeries(this.uploadSlot.pid, this.replacedStudyInstanceUID, deIdentifiedSeriesUid, selectedSeries.getInstancesSize());
-
-                    }, {
+                    poller = promisePoller({
+                        taskFn: pollTask,
                         interval: interval,
-                        timeout: timeout
-                    }
-                    );
+                        timeout: 5000,
+                        retries: 25
+                    });
 
+                    const pollResult = await poller;
                     console.log(`poll result ${pollResult}`);
+
                 } catch (e) {
                     errors.push(
                         this.createErrorMessageObject(
@@ -380,6 +386,7 @@ export default class DicomUploadPackage {
             if (jsonResponse.Series.length > 0) {
                 if (jsonResponse.Series[0].Images.length === expectedSize) {
                     resolve(true);
+                    // reject();
                 }
             }
 
@@ -388,7 +395,7 @@ export default class DicomUploadPackage {
         }
 
 
-        resolve(false);
+        reject();
 
     })
 
