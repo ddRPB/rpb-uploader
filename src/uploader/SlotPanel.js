@@ -135,7 +135,7 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
-                        {this.props.subjectKey != null ?
+                        {/* {this.props.subjectKey != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
                                     Subject Key:&nbsp;
@@ -145,7 +145,7 @@ export class SlotPanel extends Component {
                                 </StyledDivValueComponent>
                             </div>
                             : null
-                        }
+                        } */}
                         {this.props.pid != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -246,14 +246,14 @@ export class SlotPanel extends Component {
                                 {this.getItemLabel()}
                             </StyledDivValueComponent>
                         </div>
-                        <div className="flex mr-2" >
+                        {/* <div className="flex mr-2" >
                             <StyledDivNameComponent className="font-bold">
                                 Item:&nbsp;
                             </StyledDivNameComponent>
                             <StyledDivValueComponent>
                                 {this.props.itemDescription}
                             </StyledDivValueComponent>
-                        </div>
+                        </div> */}
                         {/* <div className="flex mr-2" >
                             <StyledDivNameComponent className="font-bold">
                                 Item:&nbsp;
