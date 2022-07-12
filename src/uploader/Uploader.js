@@ -53,18 +53,18 @@ class Uploader extends Component {
         verifiedUploadedFilesCount: 0,
         studyIsLinked: false,
         uploadProcessState: 0,
-        progressPanelValue: 0,
         blockedPanel: false,
         uploadPackageCheckFailedPanel: false,
         fileUploadDialogPanel: false,
+        fileUploadInProgress: false,
         evaluationUploadCheckResults: [],
         dicomUidReplacements: [],
         pseudomizedFiles: [],
         uploadedFiles: [],
         verifiedFiles: [],
         uploadApiKey: null,
-        rpbPortalUrl: "http://10.44.89.56",
-        uploadServiceUrl: "http://10.44.89.56"
+        rpbPortalUrl: "http://10.44.89.55",
+        uploadServiceUrl: "http://10.44.89.55"
     }
 
     seriesSelectionMenuItems = [
@@ -312,6 +312,7 @@ class Uploader extends Component {
         this.setState({
             fileUploadDialogPanel: true,
             evaluationUploadCheckResults: [],
+            fileUploadInProgress: true,
         });
 
         // Starting step 1 - Evaluating the files, extracting the Uids, creating a Map with the replacements
@@ -332,6 +333,7 @@ class Uploader extends Component {
             if (errors.length > 0) {
                 this.setState({
                     evaluationUploadCheckResults: errors,
+                    fileUploadInProgress: false,
                 });
 
                 return;
@@ -346,10 +348,27 @@ class Uploader extends Component {
             });
         }
 
-        // Starting step 2 - de-identification and upload of chunks
+        // // Starting step 2 - linking Dicom series with item
 
         this.setState({
             uploadProcessState: 1,
+        });
+
+        const linkingResult = await this.dicomUploadPackage.linkUploadedStudy(this.setStudyIsLinked, this.state.dicomUidReplacements);
+
+        if (linkingResult.errors.length > 0) {
+            this.setState({
+                evaluationUploadCheckResults: linkingResult.errors,
+                fileUploadInProgress: false,
+            });
+
+            return;
+        }
+
+        // Starting step 3 - de-identification and upload of chunks
+
+        this.setState({
+            uploadProcessState: 2,
         });
 
         ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.setDeIdentifiedFilesCountValue, this.setUploadedFilesCountValue));
@@ -357,15 +376,16 @@ class Uploader extends Component {
         if (errors.length > 0) {
             this.setState({
                 evaluationUploadCheckResults: errors,
+                fileUploadInProgress: false,
             });
 
             return;
         }
 
-        // Starting step 2 - verifying uploads to the RPB backend
+        // Starting step 4 - verifying uploads to the RPB backend
 
         this.setState({
-            uploadProcessState: 2,
+            uploadProcessState: 3,
         });
 
         const verificationResults = await this.dicomUploadPackage.verifySeriesUpload(this.state.dicomUidReplacements, this.setVerifiedUploadedFilesCountValue);
@@ -373,33 +393,22 @@ class Uploader extends Component {
         if (verificationResults.errors.length > 0) {
             this.setState({
                 evaluationUploadCheckResults: verificationResults.errors,
+                fileUploadInProgress: false,
             });
 
             return;
         }
-
-        // // Starting step 3 - linking Dicom series with item
 
         this.setState({
-            uploadProcessState: 3,
+            fileUploadInProgress: false,
         });
 
-        const linkingResult = await this.dicomUploadPackage.linkUploadedStudy(this.setStudyIsLinked);
-
-        if (linkingResult.errors.length > 0) {
-            this.setState({
-                evaluationUploadCheckResults: linkingResult.errors,
-            });
-
-            return;
-        }
-
-        // this.setState({
-        //     fileUploadDialogPanel: false,
-        // });
+        console.log('test' + this.state.fileUploadInProgress);
 
 
-        // this.resetAll();
+
+
+        return;
 
     }
 
@@ -684,6 +693,7 @@ class Uploader extends Component {
                 <FileUploadDialogPanel
                     fileUploadDialogPanel={this.state.fileUploadDialogPanel}
                     hideFileUploadDialogPanel={this.hideFileUploadDialogPanel}
+                    fileUploadInProgress={this.state.fileUploadInProgress}
                     selectedDicomFiles={this.state.selectedDicomFiles}
                     uploadProcessState={this.state.uploadProcessState}
 

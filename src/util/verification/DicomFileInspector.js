@@ -11,7 +11,7 @@ export default class DicomFileInspector {
     constructor(fileObject, deIdentificationConfiguration) {
         this.fileObject = fileObject;
         this.deIdentificationConfiguration = deIdentificationConfiguration;
-        this.uids = new Array();
+        this.uids = [];
 
     }
 
@@ -20,11 +20,16 @@ export default class DicomFileInspector {
     }
 
     async analyzeFile() {
-        const reader = await this.__pFileReader(this.fileObject.fileObject);
-        const arrayBuffer = reader.result;
+        try {
+            const reader = await this.__pFileReader(this.fileObject.fileObject);
+            const arrayBuffer = reader.result;
 
-        const uidArray = await this.readDicomFile(arrayBuffer);
-        return uidArray;
+            const uidArray = await this.readDicomFile(arrayBuffer);
+            return uidArray;
+        } catch (e) {
+            console.log("DicomFileInspector.analyzeFile : " + e.toString());
+        }
+
     }
 
     getUids() {
@@ -39,17 +44,33 @@ export default class DicomFileInspector {
                 resolve(fileReader);
             }
             fileReader.onerror = (error) => {
+                console.log("DicomFileInspector.__pFileReader: " + error);
                 reject(error);
             }
         });
     }
 
     readDicomFile(arrayBuffer) {
+
         let uidArray = [];
-        this.dataSet = DicomMessage.readFile(arrayBuffer);
-        uidArray = uidArray.concat(this.parseDicomData(this.dataSet.meta));
-        uidArray = uidArray.concat(this.parseDicomData(this.dataSet.dict));
+
+        try {
+            this.dataSet = DicomMessage.readFile(arrayBuffer);
+        } catch (e) {
+            console.log("DicomFileInspector.readDicomFile.readFile: " + e.toString());
+        }
+        try {
+            uidArray = uidArray.concat(this.parseDicomData(this.dataSet.meta));
+        } catch (e) {
+            console.log("DicomFileInspector.readDicomFile.this.dataSet.meta: " + e.toString());
+        } try {
+            uidArray = uidArray.concat(this.parseDicomData(this.dataSet.dict));
+        } catch (e) {
+            console.log("DicomFileInspector.readDicomFile  this.dataSet.dict: " + e.toString());
+        }
+
         return uidArray;
+
     }
 
     parseDicomData(dataSetDict) {

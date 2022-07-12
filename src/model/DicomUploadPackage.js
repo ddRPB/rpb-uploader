@@ -322,15 +322,16 @@ export default class DicomUploadPackage {
             if (selectedSeries.getInstancesSize() != null) {
                 let counter = 0;
                 const interval = 5000;
-                const timeout = 5000000;
+                const timeout = 5000;
+                const retries = 25
                 const pollTask = () => this.evaluateUploadOfSeries(this.uploadSlot.pid, this.replacedStudyInstanceUID, deIdentifiedSeriesUid, selectedSeries.getInstancesSize());
                 let poller;
                 try {
                     poller = promisePoller({
                         taskFn: pollTask,
                         interval: interval,
-                        timeout: 5000,
-                        retries: 25
+                        timeout: timeout,
+                        retries: retries
                     });
 
                     const pollResult = await poller;
@@ -340,7 +341,7 @@ export default class DicomUploadPackage {
                     errors.push(
                         this.createErrorMessageObject(
                             'Verification failed.',
-                            `Verification failed - The uploaded file is not available on the system yet. Please try again. ${e.toString()}`,
+                            `Verification failed - The uploaded file is not available on the system yet. Please try again.`,
                             uid,
                             "",
                             "",
@@ -383,19 +384,20 @@ export default class DicomUploadPackage {
 
             const jsonResponse = await response.json();
 
-            if (jsonResponse.Series.length > 0) {
-                if (jsonResponse.Series[0].Images.length === expectedSize) {
-                    resolve(true);
-                    // reject();
-                }
+            if (jsonResponse.Series.length === 0) {
+                reject('No results yet');
             }
+
+            if (jsonResponse.Series[0].Images.length < expectedSize) {
+                reject('Not all series found');
+            }
+
 
         } catch (e) {
             reject(e);
         }
 
-
-        reject();
+        resolve(true);
 
     })
 
@@ -425,15 +427,16 @@ export default class DicomUploadPackage {
                     if (response.status === 200) {
                         verifiedUploadResults.push(await response.json());
                     } else {
-                        errors.push(
-                            this.createErrorMessageObject(
-                                'Upload Error - With response code: ',
-                                'Upload Error - With response code: ' + response.status.toString(),
-                                chunk.originalSeriesUid,
-                                chunk.getFileNames(),
-                                chunk.getSoapInstanceUids(),
-                                null
-                            ));
+                        // errors.push(
+                        //     this.createErrorMessageObject(
+                        //         'Upload Error - With response code: ',
+                        //         'Upload Error - With response code: ' + response.status.toString(),
+                        //         chunk.originalSeriesUid,
+                        //         chunk.getFileNames(),
+                        //         chunk.getSoapInstanceUids(),
+                        //         null
+                        //     ));
+
                         return { errors: errors };
                     }
                 }
@@ -491,7 +494,7 @@ export default class DicomUploadPackage {
         };
     }
 
-    async linkUploadedStudy(setStudyIsLinked) {
+    async linkUploadedStudy(setStudyIsLinked, dicomUidReplacements) {
         let errors = []
 
         // const allVerified = this.uploadChunks.
@@ -513,7 +516,7 @@ export default class DicomUploadPackage {
 
             const jsonBody = {
                 dicomStudyInstanceItemOid: this.uploadSlot.studyInstanceItemOid,
-                dicomStudyInstanceItemValue: this.replacedStudyInstanceUID,
+                dicomStudyInstanceItemValue: dicomUidReplacements.get(this.studyInstanceUID),
                 dicomPatientIdItemOid: this.uploadSlot.dicomPatientIdItemOid,
                 dicomPatientIdItemValue: this.uploadSlot.pid,
                 itemGroupOid: this.uploadSlot.itemGroup,

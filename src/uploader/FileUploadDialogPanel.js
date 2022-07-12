@@ -7,6 +7,7 @@ import { Divider } from 'primereact/divider'
 import { ScrollTop } from 'primereact/scrolltop'
 import { Steps } from 'primereact/steps'
 import { Toolbar } from 'primereact/toolbar'
+import { ProgressBar } from 'primereact/progressbar'
 import React, { Component } from 'react'
 import styledComponents from 'styled-components'
 
@@ -15,9 +16,9 @@ export default class FileUploadDialogPanel extends Component {
     render = () => {
         const states = [
             { label: 'Evaluate' },
+            { label: 'Link Study' },
             { label: 'DeIdentify and Upload' },
-            { label: 'Verify' },
-            { label: 'Link Study' }
+            { label: 'Verify' }
         ];
 
         const StyledCommandButton = styledComponents(Button)`{ width: 140px }`;
@@ -37,6 +38,15 @@ export default class FileUploadDialogPanel extends Component {
                 <Steps model={states} activeIndex={this.props.uploadProcessState} />
 
                 <Divider />
+                <div
+                    hidden={!this.props.fileUploadInProgress}
+                >
+                    <ProgressBar
+                        mode="indeterminate"
+                    />
+                </div>
+
+                <Divider />
 
                 <React.Fragment>
                     <Toolbar
@@ -51,14 +61,14 @@ export default class FileUploadDialogPanel extends Component {
                                 >
                                     <Badge value={this.props.analysedFilesCount} />
                                 </StyledDisabbledButton>
-                                <StyledDisabbledButton
+                                {/* <StyledDisabbledButton
                                     type="button"
                                     label="DeIdentified:"
                                     className="text-sm p-button-outlined p-button-info"
                                     disabled={true}
                                 >
                                     <Badge value={this.props.deIdentifiedFilesCount} />
-                                </StyledDisabbledButton>
+                                </StyledDisabbledButton> */}
                                 <StyledDisabbledButton
                                     type="button"
                                     label="Uploaded:"
@@ -82,7 +92,7 @@ export default class FileUploadDialogPanel extends Component {
                             <React.Fragment>
                                 <StyledCommandButton
                                     hidden={
-                                        !this.props.studyIsLinked
+                                        !(this.props.studyIsLinked && this.props.verifiedUploadedFilesCount === this.props.uploadedFilesCount && this.props.uploadedFilesCount > 0)
                                     }
                                     className={"text-sm pr-3"} label="Finish" icon="pi pi-check" iconPos="right" onClick={this.props.redirectToPortal} />
                                 <StyledCommandButton
