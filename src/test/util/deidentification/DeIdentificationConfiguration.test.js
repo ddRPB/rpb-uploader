@@ -450,7 +450,7 @@ describe('DeIdentificationConfiguration Tests', () => {
             })
 
             // ToDo: verify standard
-            test("Empty String in Array stays empty.", () => {
+            test("Empty String in Array stays an empty string.", () => {
                 const originalValue = [""];
                 const element = {
                     Value: originalValue
@@ -466,7 +466,7 @@ describe('DeIdentificationConfiguration Tests', () => {
 
                 action(dataSetDictionary, tag, replacementParameter);
 
-                expect(dataSetDictionary[tag].Value).toStrictEqual([]);
+                expect(dataSetDictionary[tag].Value).toStrictEqual([""]);
             })
 
         })
