@@ -1,4 +1,4 @@
-import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithDefinedTagPrivate } from "../../../util/deidentification/DeIdentificationHelper";
+import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "../../../util/deidentification/DeIdentificationHelper";
 
 describe('DeIdentificationHelper Tests',
     () => {
@@ -59,7 +59,7 @@ describe('DeIdentificationHelper Tests',
                     () => {
                         const normalTag = '00080008';
 
-                        const result = replacePrivateTagsWithDefinedTagPrivate(normalTag);
+                        const result = replacePrivateTagsWithStringPrivate(normalTag);
 
                         expect(result).toBe(normalTag);
                     }
@@ -70,7 +70,7 @@ describe('DeIdentificationHelper Tests',
                         const originalTag = '00191511';
                         const expectedTag = 'private';
 
-                        const result = replacePrivateTagsWithDefinedTagPrivate(originalTag);
+                        const result = replacePrivateTagsWithStringPrivate(originalTag);
 
                         expect(result).toBe(expectedTag);
                     }
