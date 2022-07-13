@@ -5,7 +5,7 @@ import MimeMessageBuilder from "../../util/MimeMessageBuilder";
 
 describe("MimeMessageBuilder", () => {
 
-    test("creates a valid Mime message with one Dicom file", async () => {
+    test.skip("creates a valid Mime message with one Dicom file", async () => {
         const basicPath = path.join(__dirname, './../../test/dicomfiles');
         const file = fs.readFileSync(path.join(basicPath, 'image-00000.dcm'));
 
@@ -22,7 +22,6 @@ describe("MimeMessageBuilder", () => {
         const mimeMessageBuilder = new MimeMessageBuilder(boundary);
 
         const result = mimeMessageBuilder.addDicomContent(dataBuffer, fileName, contentId, contentDescription).build();
-        // const result = mimeMessageBuilder.addDicomContent(dataBuffer).build();
         const simpleParser = require('mailparser').simpleParser;
         let parsed = await simpleParser(result);
         let array = parsed.attachments;
