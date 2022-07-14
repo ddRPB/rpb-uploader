@@ -23,9 +23,6 @@ describe('Test DicomUIDGenerator', () => {
             const generatedUidOne = uidGenerator.getUid(originalUid);
             const generatedUidTwo = uidGenerator.getUid(originalUid);
 
-            console.log(generatedUidOne);
-            console.log(generatedUidTwo);
-
             expect(generatedUidOne).not.toBe(originalUid);
             expect(generatedUidTwo).not.toBe(originalUid);
             expect(generatedUidOne).toBe(generatedUidTwo);

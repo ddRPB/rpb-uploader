@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { customAlphabet } from 'nanoid';
 
 //
 // https://stackoverflow.com/questions/58009141/how-to-convert-uuid-guid-to-oid-dicom-uid-in-javascript
@@ -18,13 +18,21 @@ export default class DicomUIDGenerator {
     getUid(originalUid) {
         // TODO: verify that originalUid is valid
         const replacement = this.originalUidToPseudomizedUidMap.get(originalUid);
-        if (replacement === undefined) {
-            const uidPartOne = this.generateNewUidPart();
-            const uidPartTwo = this.generateNewUidPart();
 
-            const uidReplacement = `${uidPartOne}${uidPartTwo}`;
+        if (replacement === undefined) {
             const maxUidSize = 64;
+            const size = maxUidSize - this.prefix.length;
+
+            const custnanoid = customAlphabet('1234567890', size);
+            let uidReplacement = custnanoid();
+
+            // ensure it does not start with 0
+            if (uidReplacement.startsWith('0')) {
+                uidReplacement = uidReplacement.substring(1);
+            }
+
             const replacedDicomUid = (`${this.prefix}${uidReplacement}`).substring(0, maxUidSize);
+
             this.originalUidToPseudomizedUidMap.set(originalUid, replacedDicomUid);
             return replacedDicomUid;
         } else {
@@ -32,26 +40,6 @@ export default class DicomUIDGenerator {
         }
     }
 
-    generateNewUidPart() {
-        const uuid = uuidv4().toString();
-        const uid = uuid.replaceAll('-', '');
-
-        let buffer = Buffer.from(uid);
-
-        const result = [];
-
-        for (let x = 0; x < buffer.length; x++) {
-            result.push(buffer.readUInt8(x) % 10);
-        }
-        const generatedIntUid = result.join('');
-        if (this.generatedUidParts.find(element => element === generatedIntUid)) {
-            this.generateNewUidPart();
-        } else {
-            this.generatedUidParts.push(generatedIntUid);
-            return generatedIntUid;
-        }
-
-    }
 
     getOriginalUidToPseudomizedUidMap(uids) {
         const uidMap = new Map();
