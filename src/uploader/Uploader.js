@@ -12,7 +12,7 @@ import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
-import DicomUIDGenerator from '../util/deidentification/DicomUIDGenerator';
+import DicomUidService from '../util/deidentification/DicomUidService';
 import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
@@ -111,6 +111,7 @@ class Uploader extends Component {
             siteIdentifier: this.props.siteIdentifier,
             studyInstanceItemOid: this.props.studyInstanceItemOid,
             studyOid: this.props.studyOid,
+            studyEdcCode: this.props.studyEdcCode,
             event: this.props.event,
             eventRepeatKey: this.props.eventRepeatKey,
             eventStartDate: this.props.eventStartDate,
@@ -340,8 +341,31 @@ class Uploader extends Component {
             }
 
             // preparing de-identification
-            const dicomUIDGenerator = new DicomUIDGenerator('2.25.');
-            const dicomUidReplacements = dicomUIDGenerator.getOriginalUidToPseudomizedUidMap(uids);
+
+            const dicomUidService = new DicomUidService(uids, this.state.uploadServiceUrl, null, this.state.uploadApiKey);
+            const dicomUidRequestPromise = toast.promise(
+                dicomUidService.getUidMap(),
+                {
+                    pending: 'Requesting DICOM UIDs.',
+                    // success: 'Connection to ' + url + ' succeed.',
+                    error: (err) => `Requesting DICOM UIDs failed ${err.toString()}.`,
+                }
+            )
+            const dicomUidRequestPromiseResult = await dicomUidRequestPromise;
+            const dicomUidReplacements = dicomUidRequestPromiseResult.dicomUidReplacements;
+            errors = dicomUidRequestPromiseResult.errors;
+
+
+            if (errors.length > 0) {
+                this.setState({
+                    evaluationUploadCheckResults: errors,
+                    fileUploadInProgress: false,
+                    dicomUidReplacements: [],
+                });
+
+                return;
+            }
+
 
             this.setState({
                 dicomUidReplacements: dicomUidReplacements,

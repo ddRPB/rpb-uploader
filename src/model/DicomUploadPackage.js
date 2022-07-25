@@ -106,6 +106,8 @@ export default class DicomUploadPackage {
         let errors = []
         let processedFilesCount = 0;
 
+        this.uploadChunks = [];
+
         for (let uid in this.selectedSeriesObjects) {
             try {
                 const selectedSeries = this.selectedSeriesObjects[uid];
@@ -174,7 +176,7 @@ export default class DicomUploadPackage {
         }
 
         return {
-            uids: uids,
+            uids: Array.from(new Set(uids)),
             errors: errors
         };
 
