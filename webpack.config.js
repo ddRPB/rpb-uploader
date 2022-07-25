@@ -64,7 +64,7 @@ module.exports = function (_env, argv) {
             ]
         },
         resolve: {
-            extensions: [".js", ".jsx"]
+            extensions: [".js", ".jsx"],
         },
         plugins: [
             isProduction &&
@@ -80,7 +80,7 @@ module.exports = function (_env, argv) {
             new HtmlWebpackPlugin({
                 template: path.resolve(__dirname, "public/index.html"),
                 inject: true
-            })
+            }),
         ].filter(Boolean)
     };
 };

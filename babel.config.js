@@ -11,10 +11,9 @@ module.exports = {
   plugins: [
     "@babel/plugin-transform-runtime",
     "@babel/plugin-syntax-dynamic-import",
-  ["@babel/plugin-proposal-class-properties",{
-    "loose": true,
-  
-  }],
+    ["@babel/plugin-proposal-class-properties", {
+      "loose": true,
+    }],
     "@babel/plugin-syntax-top-level-await"
   ],
   env: {
@@ -34,6 +33,6 @@ module.exports = {
     test: {
       only: ["src"],
       plugins: ["@babel/plugin-transform-modules-commonjs"]
-    }
+    },
   }
 };
