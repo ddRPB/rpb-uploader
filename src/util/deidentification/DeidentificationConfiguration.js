@@ -5,11 +5,18 @@ import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPriv
 
 export default class DeIdentificationConfiguration {
 
-    constructor(actionConfigurationMap, defaultReplacementsValuesMap, tagSpecificReplacementsValuesMap, additionalTagValuesMap) {
+    constructor(
+        actionConfigurationMap,
+        defaultReplacementsValuesMap,
+        tagSpecificReplacementsValuesMap,
+        additionalTagValuesMap,
+        uploadSlot
+    ) {
         this.actionConfigurationMap = actionConfigurationMap;
         this.defaultReplacementsValuesMap = defaultReplacementsValuesMap;
         this.tagSpecificReplacementsValuesMap = tagSpecificReplacementsValuesMap;
         this.additionalTagValuesMap = additionalTagValuesMap;
+        this.uploadSlot = uploadSlot;
     }
 
 
@@ -50,6 +57,13 @@ export default class DeIdentificationConfiguration {
                     return {
                         action: this.noop,
                         parameter: undefined
+                    };
+                    // return this.noop;
+                    break;
+                case DeIdentificationActionCodes.KP:
+                    return {
+                        action: this.keepAndAddPrefix.bind(this),
+                        parameter: this.uploadSlot.studyEdcCode
                     };
                     // return this.noop;
                     break;
@@ -106,14 +120,14 @@ export default class DeIdentificationConfiguration {
 
             for (let el of originalElementValue) {
                 newElementValue.push(replacement);
-                console.log(`replace ${propertyName} with dummy value ${replacement}`);
+                // console.log(`replace ${propertyName} with dummy value ${replacement}`);
             }
 
             dictionary[propertyName].Value = newElementValue;
 
         } else {
             dictionary[propertyName].Value = replacement;
-            console.log(`replace ${propertyName} with dummy value ${replacement}`);
+            // console.log(`replace ${propertyName} with dummy value ${replacement}`);
         }
     }
 
@@ -129,23 +143,45 @@ export default class DeIdentificationConfiguration {
                         newElementValue.push('');
                     }
                 }
-                console.log(`replace ${propertyName} with dummy value ${replacement}`);
+                // console.log(`replace ${propertyName} with dummy value ${replacement}`);
             } else {
-                console.log(`replace ${propertyName} with zero length array`);
+                // console.log(`replace ${propertyName} with zero length array`);
             }
             dictionary[propertyName].Value = newElementValue;
 
         } else {
             if (originalElementValue.length > 0) {
                 dictionary[propertyName].Value = replacement;
-                console.log(`replace ${propertyName} with dummy value ${replacement}`);
+                // console.log(`replace ${propertyName} with dummy value ${replacement}`);
             } else {
                 newElementValue = '';
                 dictionary[propertyName].Value = newElementValue;
-                console.log(`replace ${propertyName} with zero length value`);
+                // console.log(`replace ${propertyName} with zero length value`);
             }
 
         }
+    }
+
+    keepAndAddPrefix(dictionary, propertyName, prefix) {
+        const originalElementValue = dictionary[propertyName].Value;
+        if (Array.isArray(originalElementValue)) {
+            const newElementValue = [];
+            if (originalElementValue.length > 0) {
+                for (let el of originalElementValue) {
+                    newElementValue.push(prefix + '-' + el);
+
+                }
+                // console.log(`replace ${propertyName} with dummy value ${replacement}`);
+            } else {
+                // console.log(`replace ${propertyName} with zero length array`);
+            }
+            dictionary[propertyName].Value = newElementValue;
+
+        } else {
+            dictionary[propertyName].Value = prefix + '-' + originalElementValue;
+
+        }
+
     }
 
     replaceUID(dictionary, propertyName, dicomUidReplacements) {
@@ -167,7 +203,7 @@ export default class DeIdentificationConfiguration {
 
     removeItem(dictionary, propertyName, dicomUidReplacements) {
         delete dictionary[propertyName];
-        console.log(`remove item ${propertyName}`);
+        // console.log(`remove item ${propertyName}`);
     }
 
     addReplacementTags(dictionary) {

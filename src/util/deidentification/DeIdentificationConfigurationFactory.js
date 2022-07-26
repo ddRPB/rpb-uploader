@@ -18,11 +18,12 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap = new Map();
 
         this.patientIdentitityRemoved = 'true'; // true - current default setting
-        this.appliedDeIdentificationSteps = [];
+        this.rpbSpecificActions = true, // some modifications that are RPB specific 
+            this.appliedDeIdentificationSteps = [];
 
         this.createBasicProfile();
         this.createDefaultReplacementsValuesMap();
-        this.createTagSpecificReplacementsValuesMap()
+        this.createTagSpecificReplacementsValuesMap();
 
         switch (profile) {
             case DeIdentificationProfiles.BASIC:
@@ -34,6 +35,10 @@ export default class DeIdentificationConfigurationFactory {
             default:
                 throw new Error(`Profile "${profile}" does not exist.`);
 
+        }
+
+        if (this.rpbSpecificActions) {
+            this.createRpbAction();
         }
 
         this.addAdditionalDeIdentificationRelatedTags();
@@ -544,6 +549,12 @@ export default class DeIdentificationConfigurationFactory {
 
     }
 
+    createRpbAction() {
+        this.actionConfigurationMap.set('00081030', { action: DeIdentificationActionCodes.KP });
+        this.actionConfigurationMap.set('0008103E', { action: DeIdentificationActionCodes.KP });
+        this.actionConfigurationMap.set('00080090', { action: DeIdentificationActionCodes.D });
+    }
+
     createDefaultReplacementsValuesMap() {
         this.defaultReplacementsValuesMap.set('default', '');
         // Date
@@ -560,6 +571,9 @@ export default class DeIdentificationConfigurationFactory {
         if (this.uploadSlot.pid != undefined) {
             this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid)
             this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid)
+            if (this.rpbSpecificActions) {
+                this.tagSpecificReplacementsValuesMap.set('00080090', `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`)
+            }
         }
 
     }
@@ -586,9 +600,8 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap.set('00120062', this.patientIdentitityRemoved);
         this.additionalTagValuesMap.set(
             '00120063',
-            'Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
-
-
+            'Per DICOM PS 3.15 AnnexE. Details in 0012,0064'
+        );
 
         // https://dicom.innolitics.com/ciods/enhanced-sr/patient/00120064/00080100
         // https://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_8.html#chapter_8
@@ -631,6 +644,12 @@ export default class DeIdentificationConfigurationFactory {
     }
 
     getConfiguration() {
-        return new DeIdentificationConfiguration(this.actionConfigurationMap, this.defaultReplacementsValuesMap, this.tagSpecificReplacementsValuesMap, this.additionalTagValuesMap);
+        return new DeIdentificationConfiguration(
+            this.actionConfigurationMap,
+            this.defaultReplacementsValuesMap,
+            this.tagSpecificReplacementsValuesMap,
+            this.additionalTagValuesMap,
+            this.uploadSlot
+        );
     }
 }

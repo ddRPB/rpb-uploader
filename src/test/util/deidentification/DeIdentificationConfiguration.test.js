@@ -2,7 +2,12 @@ import DeIdentificationProfiles from "../../../constants/DeIdentificationProfile
 import DeIdentificationConfigurationFactory from "../../../util/deidentification/DeIdentificationConfigurationFactory";
 
 describe('DeIdentificationConfiguration Tests', () => {
-    const uploadSlot = {};
+    const uploadSlot = {
+        studyEdcCode: 'dummy-edc-code',
+        subjectId: 'dummy-subject-id',
+        pid: 'dummyPid'
+
+    };
 
 
     describe('Basic Tests', () => {
@@ -499,6 +504,51 @@ describe('DeIdentificationConfiguration Tests', () => {
     })
 
     describe('DeIdentification K actions', () => {
+        // keep
+        //Todo
+    })
+
+    describe('DeIdentification KP actions', () => {
+        test("Adds a prefix to the the original String value.", () => {
+            const originalValue = 'originalValue';
+            const dataSetDictionary = {};
+
+            const element = {
+                Value: originalValue
+            };
+            const tag = '00081030';
+            const vr = "dummy";
+            dataSetDictionary[tag] = element;
+
+            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+            const configuration = factory.getConfiguration();
+            let { action, parameter } = configuration.getTask(tag, vr);
+
+            action(dataSetDictionary, tag, parameter);
+
+            expect(dataSetDictionary[tag].Value).toBe(parameter + '-' + originalValue);
+        })
+
+        test("Adds a prefix to the the original String value in an Array.", () => {
+            const originalValue = ['originalValue'];
+            const dataSetDictionary = {};
+
+            const element = {
+                Value: originalValue
+            };
+            const tag = '00081030';
+            const vr = "dummy";
+            dataSetDictionary[tag] = element;
+
+            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+            const configuration = factory.getConfiguration();
+            let { action, parameter } = configuration.getTask(tag, vr);
+
+            action(dataSetDictionary, tag, parameter);
+
+            expect(dataSetDictionary[tag].Value).toStrictEqual([parameter + '-' + originalValue]);
+        })
+
         // keep
         //Todo
     })
