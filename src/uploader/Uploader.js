@@ -308,7 +308,7 @@ class Uploader extends Component {
     }
 
     async submitUploadPackage() {
-        let uids, errors = [];
+        let uids, identities, errors = [];
 
         this.setState({
             fileUploadDialogPanel: true,
@@ -329,7 +329,7 @@ class Uploader extends Component {
                 dicomUidReplacements: [],
             });
 
-            ({ uids, errors } = await this.dicomUploadPackage.prepareUpload(this.setAnalysedFilesCountValue));
+            ({ uids, identities, errors } = await this.dicomUploadPackage.prepareUpload(this.setAnalysedFilesCountValue));
 
             if (errors.length > 0) {
                 this.setState({

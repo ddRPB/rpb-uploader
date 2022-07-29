@@ -571,8 +571,15 @@ export default class DeIdentificationConfigurationFactory {
         if (this.uploadSlot.pid != undefined) {
             this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid)
             this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid)
-            if (this.rpbSpecificActions) {
-                this.tagSpecificReplacementsValuesMap.set('00080090', `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`)
+
+        }
+
+        if (this.rpbSpecificActions) {
+            if (this.uploadSlot.studyEdcCode != null && this.uploadSlot.subjectId != null) {
+                this.tagSpecificReplacementsValuesMap.set(
+                    '00080090',
+                    `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`
+                );
             }
         }
 

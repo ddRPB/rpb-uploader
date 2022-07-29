@@ -106,6 +106,21 @@ describe('Test DeIdentificationConfigurationFactory', () => {
             expect(deIdentConfig.getReplacementValue('00100020')).toStrictEqual(dummyPid);
             expect(deIdentConfig.getReplacementValue('00080090')).toStrictEqual('(' + dummyStudyEdcCode + ')' + '-' + dummySubjectId);
 
+        })
+
+        test("Test additional de-identification specific tags", () => {
+            const profile = DeIdentificationProfiles.BASIC;
+            const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+            const deIdentConfig = factory.getConfiguration();
+
+            const tagDict = {};
+
+            deIdentConfig.addReplacementTags(tagDict);
+
+
+            expect(tagDict['00120062'].Value).toStrictEqual(['true']);
+            expect(tagDict['00120063'].Value).toStrictEqual(['Per DICOM PS 3.15 AnnexE. Details in 0012,0064']);
+
 
         })
 

@@ -103,6 +103,7 @@ export default class DicomUploadPackage {
      */
     async prepareUpload(setAnalysedFilesCountValue) {
         let uids = [];
+        let identityData = [];
         let errors = []
         let processedFilesCount = 0;
 
@@ -121,15 +122,17 @@ export default class DicomUploadPackage {
                         console.log(`Evaluate instance ${sopInstanceUid}`);
 
                         let uidArray = [];
+                        let identities = [];
                         try {
                             const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
-                            uidArray = await inspector.analyzeFile()
+                            ({ uidArray, identities } = await inspector.analyzeFile());
                         } catch (e) {
                             console.log("Deidentification problem - " + sopInstanceUid + ":" + e);
                             throw "Deidentification problem - " + sopInstanceUid + ":" + e
                         }
 
                         uids = uids.concat(uidArray);
+                        identityData = identityData.concat(identities);
 
                         if (currentChunk.getCount() < this.chunkSize) {
                             currentChunk.addInstance(sopInstanceUid, fileObject);
@@ -177,6 +180,7 @@ export default class DicomUploadPackage {
 
         return {
             uids: Array.from(new Set(uids)),
+            identities: Array.from(new Set(identityData)),
             errors: errors
         };
 
