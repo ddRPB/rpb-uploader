@@ -1,7 +1,6 @@
 // React
 import { Card } from 'primereact/card';
 import React, { Component } from 'react';
-import { connect } from "react-redux";
 import styledComponents from 'styled-components';
 
 

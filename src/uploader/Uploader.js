@@ -6,12 +6,10 @@ import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
 import { Component, Fragment } from 'react';
 import { toast } from 'react-toastify';
-import { addSlot, resetRedux } from '../actions/Slots';
 // DICOM processing
 import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
-import { ALREADY_KNOWN_STUDY, NULL_SLOT_ID } from '../model/Warning';
 import DicomUidService from '../util/deidentification/DicomUidService';
 import TreeBuilder from '../util/TreeBuilder';
 import DicomDropZone from './DicomDropZone';
@@ -83,6 +81,10 @@ class Uploader extends Component {
         this.config = this.props.config
         this.dicomUploadDictionary = new DicomUploadDictionary()
 
+        /**
+         * these functions can run within other components (via props) - binding specifies the context (this)
+         * independent were the fuction is called
+         */
         this.selectNodes = this.selectNodes.bind(this);
         this.selectStudy = this.selectStudy.bind(this);
         this.getSelectedFiles = this.updateDicomUploadPackage.bind(this);
@@ -100,9 +102,12 @@ class Uploader extends Component {
         this.redirectToPortal = this.redirectToPortal.bind(this);
 
         this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
-        this.getServerUploadParameter();
 
-        //TODO: I would rather use DICOM stow-rs instead of uploading files on file system
+        /**
+         * some parameters can`t be transfered within the URL - 
+         * they will be requested from the RPB portal if the session is alive.
+         */
+        this.getServerUploadParameter();
     }
 
     createUploadSlotParameterObject() {
@@ -134,11 +139,15 @@ class Uploader extends Component {
 
     async getServerUploadParameter() {
         if (this.state.uploadApiKey === null && this.state.rpbPortalUrl != null) {
-            this.fetchUploadParametersFromPortal(this.state.rpbPortalUrl)
+            this.fetchUploadParametersFromPortal(this.state.rpbPortalUrl);
         }
-
     }
 
+    /**
+     * Some parameters can`t be transfered within the URL parameters.
+     * This function will fetch the parameters from the RPB portal.
+     * The dialog (toast) will interact with the user if necessary.
+     */
     async fetchUploadParametersFromPortal(url) {
         toast.dismiss();
         const fetchPromise = toast.promise(
@@ -154,6 +163,7 @@ class Uploader extends Component {
 
         const response = await fetchPromise;
 
+        // request failed for some reasons
         if (response.status != 200) {
             toast.dismiss();
             toast.error(
@@ -175,6 +185,7 @@ class Uploader extends Component {
             return;
         }
 
+        // User session on the portal is probably not active anymore.
         if (response.status == 200 && response.redirected == true) {
             toast.dismiss();
             toast.error(
@@ -197,6 +208,7 @@ class Uploader extends Component {
             return;
         }
 
+        // request succeed
         const responseJson = await response.json();
 
         if (responseJson.apiKey != null) {
@@ -235,10 +247,16 @@ class Uploader extends Component {
         this.setState({ studyIsLinked: value });
     }
 
+    /**
+     * Redirects the browser window to the landing page of the portal
+     */
     redirectToPortal() {
         window.location = `${this.state.rpbPortalUrl}/pacs/dicomPatientStudies.faces?pid=${this.props.pid}&eventid=${this.props.event}&eventrepeatkey=${this.props.eventRepeatKey}`;
     }
 
+    /**
+     * Will be called in the TreeSelection component if a node has been selected.
+     */
     selectNodes(e) {
         const selectedNodes = { ...e.value };
 
@@ -261,10 +279,16 @@ class Uploader extends Component {
         );
     }
 
+    /**
+     * Will be called in the DicomStudySelection component if a study has been selected.
+     */
     selectStudy(e) {
         this.setState({ selectedStudy: { ...e.value }, selectedNodeKeys: [], selectedDicomFiles: 0 });
     }
 
+    /**
+     * Updates the DicomUploadPackage if the selection of series nodes changes
+     */
     updateDicomUploadPackage(selectedNodesArray) {
         const selectedStudyUID = this.state.selectedStudy.studyInstanceUID;
 
@@ -282,6 +306,9 @@ class Uploader extends Component {
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
     }
 
+    /**
+     * Resets the uploader to the state in the beginning
+     */
     resetAll() {
         this.setState({ ...this.defaultState });
         this.dicomUploadDictionary = new DicomUploadDictionary();
@@ -440,14 +467,14 @@ class Uploader extends Component {
      * Init that fires once after HTML render
      */
     componentDidMount = () => {
-        this.loadAvailableUploadSlots()
+        // this.loadAvailableUploadSlots()
     }
 
     /**
      * Will fire when uploader component is removed from DOM
      */
     componentWillUnmount = () => {
-        this.props.resetRedux()
+        // this.props.resetRedux()
     }
 
     /**
@@ -580,22 +607,22 @@ class Uploader extends Component {
         }
     }
 
-    /**
-     * Generate warnings for a given study
-     * @param {*} studyRedux
-     */
-    getStudyWarning = async (studyRedux) => {
-        let warnings = []
+    // /**
+    //  * Generate warnings for a given study
+    //  * @param {*} studyRedux
+    //  */
+    // getStudyWarning = async (studyRedux) => {
+    //     let warnings = []
 
-        // If Slot ID is not set add Null Slot ID (slotID Needs to be assigned)
-        if (studyRedux.slotID == null) warnings.push(NULL_SLOT_ID)
+    //     // If Slot ID is not set add Null Slot ID (slotID Needs to be assigned)
+    //     if (studyRedux.slotID == null) warnings.push(NULL_SLOT_ID)
 
-        // Check if study is already known by server
-        let newStudy = await this.props.config.isNewStudy(studyRedux.studyInstanceUID)
-        if (!newStudy) warnings.push(ALREADY_KNOWN_STUDY)
+    //     // Check if study is already known by server
+    //     let newStudy = await this.props.config.isNewStudy(studyRedux.studyInstanceUID)
+    //     if (!newStudy) warnings.push(ALREADY_KNOWN_STUDY)
 
-        return warnings
-    }
+    //     return warnings
+    // }
 
     /**
      * Render the component
@@ -742,24 +769,9 @@ class Uploader extends Component {
 
             </Fragment >
 
-
         )
 
     }
 }
 
-// Defines which state from the Redux store should be pulled to the Uploader component
-const mapStateToProps = state => {
-    return {
-        slots: state.Slots.slots,
-    }
-}
-
-// Access to Redux store dispatch methods
-const mapDispatchToProps = {
-    addSlot,
-    resetRedux
-}
-
-// Connects Uploader component to Redux store
 export default Uploader

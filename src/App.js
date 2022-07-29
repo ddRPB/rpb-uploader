@@ -6,19 +6,14 @@ import 'primeicons/primeicons.css'
 import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/saga-blue/theme.css'
 import React, { Fragment } from 'react'
-import { Provider } from 'react-redux'
 // import React, { Component, Fragment } from 'react';
-import { BrowserRouter, Route, Routes, useParams, useSearchParams } from "react-router-dom"
+import { BrowserRouter, Route, Routes, useSearchParams } from "react-router-dom"
 import { ToastContainer } from 'react-toastify'
 // Toastify CSS
 import 'react-toastify/dist/ReactToastify.css'
-import { applyMiddleware, createStore } from 'redux'
-import thunk from 'redux-thunk'
 import 'regenerator-runtime/runtime'
 // Custom RPB Uploader CSS
 import './assets/style/DicomUpload.css'
-// All reducers
-import reducers from './reducers'
 // Uploader component
 import Uploader from './uploader/Uploader'
 
@@ -29,12 +24,9 @@ import Uploader from './uploader/Uploader'
  */
 function App(props) {
 
-    // Immutable global state with middleware for action creators
-    // const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
-
     function UploaderWithParams() {
-        let { studyIdentifier, siteIdentifier, studySubjectIdentifier } = useParams();
-        const [searchParams, setSearchParams] = useSearchParams();
+        // let { studyIdentifier, siteIdentifier, studySubjectIdentifier } = useParams();
+        const [searchParams] = useSearchParams();
 
         return <Uploader
             {...props}
@@ -70,8 +62,8 @@ function App(props) {
     }
 
     function UploaderWithTestParams() {
-        let { studyIdentifier, siteIdentifier, studySubjectIdentifier } = useParams();
-        const [searchParams, setSearchParams] = useSearchParams();
+        // let { studyIdentifier, siteIdentifier, studySubjectIdentifier } = useParams();
+        const [searchParams] = useSearchParams();
 
         return <Uploader
             {...props}
