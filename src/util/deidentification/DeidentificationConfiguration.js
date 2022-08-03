@@ -191,11 +191,9 @@ export default class DeIdentificationConfiguration {
             newElementValue = [];
             for (let uid of originalElementValue) {
                 newElementValue.push(dicomUidReplacements.get(uid));
-                console.log(`replace ${uid} uid with  ${dicomUidReplacements.get(uid)}`);
             }
         } else {
             newElementValue = dicomUidReplacements.get(uid);
-            console.log(`replace ${originalElementValue} uid with  ${dicomUidReplacements.get(originalElementValue)}`);
         }
         dictionary[propertyName].Value = newElementValue;
 
@@ -203,7 +201,6 @@ export default class DeIdentificationConfiguration {
 
     removeItem(dictionary, propertyName, dicomUidReplacements) {
         delete dictionary[propertyName];
-        // console.log(`remove item ${propertyName}`);
     }
 
     addReplacementTags(dictionary) {

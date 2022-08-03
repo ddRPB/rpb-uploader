@@ -14,8 +14,10 @@ import 'react-toastify/dist/ReactToastify.css'
 import 'regenerator-runtime/runtime'
 // Custom RPB Uploader CSS
 import './assets/style/DicomUpload.css'
+import LogLevels from './constants/LogLevels'
 // Uploader component
 import Uploader from './uploader/Uploader'
+import Logger from './util/logging/Logger'
 
 
 /**
@@ -25,8 +27,9 @@ import Uploader from './uploader/Uploader'
 function App(props) {
 
     function UploaderWithParams() {
-        // let { studyIdentifier, siteIdentifier, studySubjectIdentifier } = useParams();
         const [searchParams] = useSearchParams();
+
+        const log = new Logger(LogLevels.TRACE);
 
         return <Uploader
             {...props}
@@ -58,6 +61,8 @@ function App(props) {
             dob={searchParams.get('dob')}
             yob={searchParams.get('yob')}
             gender={searchParams.get('gender')}
+
+            log={log}
         />;
     }
 

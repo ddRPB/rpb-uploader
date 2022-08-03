@@ -78,7 +78,11 @@ class Uploader extends Component {
             ...this.defaultState
         };
 
-        this.config = this.props.config
+        this.config = this.props.config;
+        this.log = this.props.log;
+
+        this.log.trace('Start Uploader', {}, this.props);
+
         this.dicomUploadDictionary = new DicomUploadDictionary()
 
         /**
@@ -101,7 +105,7 @@ class Uploader extends Component {
         this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
         this.redirectToPortal = this.redirectToPortal.bind(this);
 
-        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
+        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log);
 
         /**
          * some parameters can`t be transfered within the URL - 
@@ -138,6 +142,7 @@ class Uploader extends Component {
     }
 
     async getServerUploadParameter() {
+        this.log.trace('Requesting upload parameters.');
         if (this.state.uploadApiKey === null && this.state.rpbPortalUrl != null) {
             this.fetchUploadParametersFromPortal(this.state.rpbPortalUrl);
         }
@@ -149,6 +154,7 @@ class Uploader extends Component {
      * The dialog (toast) will interact with the user if necessary.
      */
     async fetchUploadParametersFromPortal(url) {
+        this.log.trace('Requesting upload parameters.', {}, { url });
         toast.dismiss();
         const fetchPromise = toast.promise(
             fetch(url + '/pacs/rpbUploader.faces'),
@@ -165,6 +171,7 @@ class Uploader extends Component {
 
         // request failed for some reasons
         if (response.status != 200) {
+            this.log.trace('Requesting upload parameters failed', {}, { response });
             toast.dismiss();
             toast.error(
                 <div>
@@ -187,6 +194,7 @@ class Uploader extends Component {
 
         // User session on the portal is probably not active anymore.
         if (response.status == 200 && response.redirected == true) {
+            this.log.trace('Requesting upload parameters failed with redirect', {}, { response });
             toast.dismiss();
             toast.error(
                 <div>
@@ -215,8 +223,10 @@ class Uploader extends Component {
             this.setState({ uploadApiKey: responseJson.apiKey });
             this.dicomUploadPackage.setApiKey(this.state.uploadApiKey);
             this.dicomUploadPackage.setUploadServiceUrl(this.state.uploadServiceUrl);
-            toast.dismiss();
 
+            this.log.trace('Requesting upload parameters succeed.', {}, {});
+
+            toast.dismiss();
             toast.success(
                 <div>
                     {'Connection succeed.'}
@@ -275,8 +285,7 @@ class Uploader extends Component {
         this.setState({
             selectedNodeKeys: selectedNodes,
             selectedDicomFiles: this.dicomUploadPackage.getSelectedFiles()
-        }
-        );
+        });
     }
 
     /**
@@ -304,6 +313,12 @@ class Uploader extends Component {
 
         this.dicomUploadPackage.setStudyInstanceUID(selectedStudyUID);
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
+
+        this.log.trace(
+            "Update DicomUploadPackage with selected nodes",
+            {},
+            { selectedStudyUID, selectedSeriesObjects }
+        );
     }
 
     /**
@@ -313,6 +328,7 @@ class Uploader extends Component {
         this.setState({ ...this.defaultState });
         this.dicomUploadDictionary = new DicomUploadDictionary();
         this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
+        this.log.trace("Reset Uploader component", {}, {});
     }
 
     hideUploadCheckResultsPanel() {
@@ -337,6 +353,8 @@ class Uploader extends Component {
     async submitUploadPackage() {
         let uids, identities, errors = [];
 
+        this.log.trace('Submit upload package.', {}, {})
+
         this.setState({
             fileUploadDialogPanel: true,
             evaluationUploadCheckResults: [],
@@ -347,6 +365,7 @@ class Uploader extends Component {
 
         if (this.state.dicomUidReplacements.length === 0) {
             // Step 1 was not finished before - start evaluation of the package and reset all progress counter to 0
+            this.log.trace('Submit upload package - step 1.', {}, {})
             this.setState({
                 uploadProcessState: 0,
                 analysedFilesCount: 0,
@@ -358,6 +377,8 @@ class Uploader extends Component {
 
             ({ uids, identities, errors } = await this.dicomUploadPackage.prepareUpload(this.setAnalysedFilesCountValue));
 
+            this.log.trace('Upload package prepared.', {}, { uids, identities, errors })
+
             if (errors.length > 0) {
                 this.setState({
                     evaluationUploadCheckResults: errors,
@@ -368,7 +389,7 @@ class Uploader extends Component {
             }
 
             // preparing de-identification
-
+            this.log.trace('Download uids', {}, { serviceUrl: this.state.uploadServiceUrl })
             const dicomUidService = new DicomUidService(uids, this.state.uploadServiceUrl, null, this.state.uploadApiKey);
             const dicomUidRequestPromise = toast.promise(
                 dicomUidService.getUidMap(),
@@ -379,9 +400,11 @@ class Uploader extends Component {
                 }
             )
             const dicomUidRequestPromiseResult = await dicomUidRequestPromise;
+
+            this.log.trace('Download uids request answered', {}, { dicomUidRequestPromiseResult });
+
             const dicomUidReplacements = dicomUidRequestPromiseResult.dicomUidReplacements;
             errors = dicomUidRequestPromiseResult.errors;
-
 
             if (errors.length > 0) {
                 this.setState({
@@ -393,10 +416,12 @@ class Uploader extends Component {
                 return;
             }
 
-
             this.setState({
                 dicomUidReplacements: dicomUidReplacements,
             });
+
+        } else {
+            this.log.trace('DicomUidReplacements already exist - skip evaluation step.', {}, {})
         }
 
         // // Starting step 2 - linking Dicom series with item
@@ -404,6 +429,8 @@ class Uploader extends Component {
         this.setState({
             uploadProcessState: 1,
         });
+
+        this.log.trace('Link Dicom data.', {}, { uidReplacements: this.state.dicomUidReplacements });
 
         const linkingResult = await this.dicomUploadPackage.linkUploadedStudy(this.setStudyIsLinked, this.state.dicomUidReplacements);
 
@@ -422,9 +449,12 @@ class Uploader extends Component {
             uploadProcessState: 2,
         });
 
+        this.log.trace('De-identify and upload Dicom data.', {}, {});
+
         ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.setDeIdentifiedFilesCountValue, this.setUploadedFilesCountValue));
 
         if (errors.length > 0) {
+            this.log.debug("There was a problem during the upload", {}, { errors });
             this.setState({
                 evaluationUploadCheckResults: errors,
                 fileUploadInProgress: false,
@@ -439,9 +469,12 @@ class Uploader extends Component {
             uploadProcessState: 3,
         });
 
+        this.log.trace('Verify uploaded Dicom data.', {}, {});
+
         const verificationResults = await this.dicomUploadPackage.verifySeriesUpload(this.state.dicomUidReplacements, this.setVerifiedUploadedFilesCountValue);
 
         if (verificationResults.errors.length > 0) {
+            this.log.debug("There was a problem during the verification", {}, { errors });
             this.setState({
                 evaluationUploadCheckResults: verificationResults.errors,
                 fileUploadInProgress: false,
@@ -454,10 +487,21 @@ class Uploader extends Component {
             fileUploadInProgress: false,
         });
 
-        console.log('test' + this.state.fileUploadInProgress);
+        this.log.trace('Dicom data upload process successful finished.', {}, {});
 
-
-
+        toast.success(
+            <div>
+                <div>
+                    {'Upload finished'}
+                </div>
+            </div>
+            ,
+            {
+                autoClose: false,
+                position: "top-center",
+                closeOnClick: true,
+                pauseOnHover: true,
+            });
 
         return;
 

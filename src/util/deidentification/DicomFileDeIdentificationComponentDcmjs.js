@@ -7,10 +7,15 @@ const { cleanTags } = dcmjs.anonymizer;
 export default class DicomFileDeIdentificationComponentDcmjs {
 
 
-    constructor(dicomUidReplacements, configuration, fileObject) {
+    constructor(dicomUidReplacements, configuration, fileObject, logger) {
         this.dicomUidReplacements = dicomUidReplacements;
         this.configuration = configuration;
         this.fileObject = fileObject;
+        if (logger != null) {
+            this.log = logger;
+        } else {
+            this.log = new Logger(LogLevels.FATAL);
+        }
 
     }
 
@@ -19,9 +24,11 @@ export default class DicomFileDeIdentificationComponentDcmjs {
     }
 
     async getDeIdentifiedFileContentAsBuffer() {
+        this.log.trace('Start de-identification of file', {}, { name: this.fileObject.fileObject.name })
         const reader = await this.__pFileReader(this.fileObject.fileObject);
 
         const arrayBuffer = reader.result;
+        this.log.trace('file content read', {}, { name: this.fileObject.fileObject.name });
 
         return {
             name: this.fileObject.fileObject.name,
@@ -45,9 +52,16 @@ export default class DicomFileDeIdentificationComponentDcmjs {
 
     deIdentDicomFile(arrayBuffer) {
         this.dataSet = DicomMessage.readFile(arrayBuffer);
+        this.log.trace('DicomMessage file content read.', {}, { name: this.fileObject.fileObject.name });
+
         this.applyDeIdentificationActions(this.dataSet.meta);
+        this.log.trace('Meta section de-identified.', {}, { name: this.fileObject.fileObject.name });
+
         this.applyDeIdentificationActions(this.dataSet.dict);
+        this.log.trace('Dict section de-identified.', {}, { name: this.fileObject.fileObject.name });
+
         this.configuration.addReplacementTags(this.dataSet.dict);
+        this.log.trace('Replacement tags added.', {}, { name: this.fileObject.fileObject.name });
 
         return this.dataSet.write();
     }
@@ -71,14 +85,9 @@ export default class DicomFileDeIdentificationComponentDcmjs {
                         action(dataSetDict, propertyName, parameter);
                         break;
                 }
-
             }
 
-
-
-
         }
-
 
     }
 

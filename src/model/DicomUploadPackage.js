@@ -1,19 +1,29 @@
 import promisePoller from 'promise-poller';
 import DeIdentificationProfiles from "../constants/DeIdentificationProfiles";
+import LogLevels from '../constants/LogLevels';
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
+import Logger from '../util/logging/Logger';
 import MimeMessageBuilder from "../util/MimeMessageBuilder";
 import DicomFileInspector from "../util/verification/DicomFileInspector";
 import DicomUploadChunk from "./DicomUploadChunk";
 
-
+/**
+ * Facade to handle the upload data and the different steps during the upload process.
+ */
 export default class DicomUploadPackage {
 
-    constructor(uploadSlot) {
-        if (uploadSlot != null) {
-            this.uploadSlot = uploadSlot;
+    /**
+     * Facade to handle the upload data and the different steps during the upload process.
+     */
+    constructor(uploadSlot, logger) {
+
+        this.setUploadSlotProperty(uploadSlot);
+
+        if (logger != null) {
+            this.log = logger;
         } else {
-            this.uploadSlot = {};
+            this.log = new Logger(LogLevels.FATAL);
         }
 
         this.selectedSeriesObjects = {};
@@ -34,12 +44,22 @@ export default class DicomUploadPackage {
         const configFactory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, this.uploadSlot);
         this.deIdentificationConfiguration = configFactory.getConfiguration();
 
+        this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);
+
         this.apiKey = null;
         this.uploadServiceUrl = null;
 
         // this.evaluateUploadOfSeries = this.evaluateUploadOfSeries.bind(this);
         this.verifySeriesUpload = this.verifySeriesUpload.bind(this);
 
+    }
+
+    setUploadSlotProperty(uploadSlot) {
+        if (uploadSlot != null) {
+            this.uploadSlot = uploadSlot;
+        } else {
+            this.uploadSlot = {};
+        }
     }
 
     setSelectedSeries(selectedSeriesObjects) {
@@ -99,7 +119,7 @@ export default class DicomUploadPackage {
     }
 
     /**
-     * 
+     * Prepares the data set for the upload
      */
     async prepareUpload(setAnalysedFilesCountValue) {
         let uids = [];
@@ -109,50 +129,46 @@ export default class DicomUploadPackage {
 
         this.uploadChunks = [];
 
-        for (let uid in this.selectedSeriesObjects) {
+        for (let seriesUid in this.selectedSeriesObjects) {
             try {
-                const selectedSeries = this.selectedSeriesObjects[uid];
-                console.log(`Evaluate series ${uid}`);
+                const selectedSeries = this.selectedSeriesObjects[seriesUid];
+                this.log.trace('Prepare upload for series', {}, { seriesUid: seriesUid });
 
                 if (selectedSeries.parameters != null) {
-                    let currentChunk = new DicomUploadChunk(this.studyInstanceUID, uid);
+                    let currentChunk = new DicomUploadChunk(this.studyInstanceUID, seriesUid);
 
                     for (let sopInstanceUid in selectedSeries.instances) {
-                        const fileObject = selectedSeries.instances[sopInstanceUid];
-                        console.log(`Evaluate instance ${sopInstanceUid}`);
+                        this.log.trace('Prepare upload for instance', {}, { sopInstanceUid });
 
+                        const fileObject = selectedSeries.instances[sopInstanceUid];
                         let uidArray = [];
                         let identities = [];
+
                         try {
                             const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
                             ({ uidArray, identities } = await inspector.analyzeFile());
                         } catch (e) {
-                            console.log("Deidentification problem - " + sopInstanceUid + ":" + e);
-                            throw "Deidentification problem - " + sopInstanceUid + ":" + e
+                            const message = 'There was a problem during analysis of the DICOM file.';
+                            const data = { error: e, sopInstanceUid, fileObject };
+                            this.log.debug(message, {}, data);
+                            errors.push({ message, data });
                         }
 
                         uids = uids.concat(uidArray);
                         identityData = identityData.concat(identities);
 
+                        // create new chunk if necessary
                         if (currentChunk.getCount() < this.chunkSize) {
                             currentChunk.addInstance(sopInstanceUid, fileObject);
                         } else {
                             this.uploadChunks.push(currentChunk);
-                            currentChunk = new DicomUploadChunk(this.studyInstanceUID, uid);
+                            currentChunk = new DicomUploadChunk(this.studyInstanceUID, seriesUid);
                             currentChunk.addInstance(sopInstanceUid, fileObject);
                         }
 
+                        // update UI
                         processedFilesCount++;
                         setAnalysedFilesCountValue(processedFilesCount);
-
-                        // errors.push(this.createErrorMessageObject(
-                        //     'Evaluation Error',
-                        //     'message',
-                        //     uid,
-                        //     fileObject.name,
-                        //     sopInstanceUid,
-                        //     null
-                        // ));
 
                     }
 
@@ -162,15 +178,12 @@ export default class DicomUploadPackage {
                 }
 
             } catch (e) {
-                errors.push(
-                    this.createErrorMessageObject(
-                        'Evaluation Error',
-                        'Evaluation Error ' + e.toString(),
-                        uid,
-                        '',
-                        '',
-                        null
-                    ));
+                const message = 'There was a proplem preparing the upload of the series.';
+                const data = { seriesUid, error: e };
+
+                this.log.trace(message, {}, data);
+                errors.push({ message, data });
+
                 return {
                     // Stop on first error
                     errors: errors
@@ -186,6 +199,9 @@ export default class DicomUploadPackage {
 
     }
 
+    /**
+     * De-identifies the data, based on the provided configuration and uploads the de-identified data to the RPB backend
+     */
     async deidentifyAndUpload(dicomUidReplacements, setDeIdentifiedFilesCountValue, setUploadedFilesCountValue) {
         let errors = []
         const replacedStudyUID = dicomUidReplacements.get(this.studyInstanceUID);
@@ -195,21 +211,31 @@ export default class DicomUploadPackage {
 
 
         for (let chunk of this.uploadChunks) {
+
+            this.log.trace(
+                "Start de-identification of chunk", {}, { studyUid: chunk.originalStudyUid, seriesUid: chunk.originalSeriesUid, files: chunk.originalFileNames, }
+            );
+
             const boundary = 'XXXXXXXX---abcd';
             const contentDescription = 'description';
             const mimeMessageBuilder = new MimeMessageBuilder(boundary);
-
 
             if (!chunk.deIdentified) {
                 try {
                     chunk.setDeIdentifiedStudyUid(this.replacedStudyInstanceUID);
                     chunk.setDeIdentifiedSeriesUid(dicomUidReplacements.get(chunk.originalSeriesUid));
 
+                    this.log.trace(
+                        "Start de-identification of chunk.", {}, { seriesUid: chunk.originalSeriesUid, fileNames: chunk.originalFileNames });
 
                     chunk.deidentifiedInstances = [];
                     for (let instance of chunk.originalInstances) {
-                        const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, this.deIdentificationConfiguration, instance.fileObject);
+
+                        this.log.trace("De-identify instance.", {}, { sopInstanceUid: instance.sopInstanceUid, });
+
+                        const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, this.deIdentificationConfiguration, instance.fileObject, this.log);
                         const arrayBuffer = await dicomFileDeIdentificationComponent.getDeIdentifiedFileContentAsBuffer();
+                        this.log.trace("File buffer created", {}, { sopInstanceUid: instance.sopInstanceUid, });
                         const sopInstanceUidReplacement = dicomUidReplacements.get(instance.sopInstanceUid);
 
                         chunk.deidentifiedInstances.push({
@@ -217,11 +243,18 @@ export default class DicomUploadPackage {
                             fileObject: arrayBuffer
                         });
 
+                        this.log.trace("Instance de-identified", {}, { sopInstanceUid: instance.sopInstanceUid, });
+
                         mimeMessageBuilder
                             .addDicomContent(Buffer.from(arrayBuffer.buffer), arrayBuffer.name, sopInstanceUidReplacement, contentDescription);
                     }
 
-                    await Promise.all(chunk.deidentifiedInstances);
+                    // await Promise.all(chunk.deidentifiedInstances);
+
+                    this.log.trace("chunk de-identified", {}, {
+                        studyUid: chunk.originalStudyUid, seriesUid: chunk.originalSeriesUid, files: chunk.originalFileNames,
+                    }
+                    );
 
                     chunk.deIdentified = true;
                     this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
@@ -229,23 +262,26 @@ export default class DicomUploadPackage {
 
                     chunk.mimeMessage = mimeMessageBuilder.build();
 
-                } catch (e) {
+                } catch (error) {
+                    const message = 'There was a problem within the de-identification';
+                    const data = { sopInstanceUid: instance.sopInstanceUid, error };
+                    this.log.debug(message, {}, data);
                     errors.push(
-                        this.createErrorMessageObject(
-                            'Deidentification Error',
-                            'Deidentification Error: ' + e.toString(),
-                            chunk.originalSeriesUid,
-                            chunk.getFileNames(),
-                            chunk.getSoapInstanceUids(),
-                            null
-                        ));
+                        { message, data },
+                    );
                     return {
                         errors: errors
                     };
                 }
+            } else {
+                this.log.trace('Chunk is already de-identified - skip this step', {}, {})
             }
 
             if (!chunk.transfered && this.apiKey != null && this.uploadServiceUrl != null) {
+                this.log.trace(
+                    "Start upload of chunk", {}, { studyUid: chunk.originalStudyUid, seriesUid: chunk.originalSeriesUid, files: chunk.originalFileNames, }
+                );
+
                 const args = {
                     method: 'POST',
                     body: chunk.mimeMessage,
@@ -256,8 +292,8 @@ export default class DicomUploadPackage {
                 };
 
                 try {
-                    // let response = await fetch(`http://localhost:8080/api/v1/dicomweb/studies/${this.studyInstanceUID}123`, args);
                     let response = await fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/studies/${this.replacedStudyInstanceUID}`, args);
+                    const data = { studyUid: chunk.originalStudyUid, seriesUid: chunk.originalSeriesUid, files: chunk.originalFileNames, response };
                     switch (response.status) {
                         case 200:
                             chunk.transfered = true;
@@ -267,70 +303,53 @@ export default class DicomUploadPackage {
                             this.processedChunksCount++;
                             setUploadedFilesCountValue(this.uploadedFiles.length);
 
+                            this.log.trace('Upload of chunk was successful', {}, data);
                             break;
 
                         // todo - 413 - chunk size probably too big
                         default:
-                            errors.push(
-                                this.createErrorMessageObject(
-                                    'Upload Error - With response code: ',
-                                    'Upload Error - With response code: ' + response.status.toString(),
-                                    chunk.originalSeriesUid,
-                                    chunk.getFileNames(),
-                                    chunk.getSoapInstanceUids(),
-                                    null
-                                ));
-                            return {
-                                errors: errors
-                            };
-
+                            this.log.debug('Chunk upload failed', {}, data)
+                            errors.push({ message: 'Chunk upload failed', data });
+                            return { errors: errors };
                     }
 
-                } catch (e) {
-                    errors.push(
-                        this.createErrorMessageObject(
-                            'Upload Error - There is a problem with the upload. Please check the connection. Error message: ',
-                            'Upload Error - There is a problem with the upload. Please check the connection. Error message: ' + e.toString(),
-                            chunk.originalSeriesUid,
-                            chunk.getFileNames(),
-                            chunk.getSoapInstanceUids(),
-                            null
-                        ));
-                    return {
-                        errors: errors
-                    };
-
+                } catch (error) {
+                    const data = { studyUid: chunk.originalStudyUid, seriesUid: chunk.originalSeriesUid, files: chunk.originalFileNames, error };
+                    this.log.debug('Chunk upload process failed', {}, data);
+                    errors.push({ message: 'Chunk upload process failed', data });
+                    return { errors: errors };
                 }
-
 
             }
         }
-
-
-
-        return {
-            errors
-        };
-
+        return { errors };
     }
 
+    /**
+     * Verifies that the uploaded DICOM data passed the backend and are available there
+     */
     async verifySeriesUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
+        this.log.trace('Start verification of series', {}, { dicomUidReplacements });
+
         let errors = [];
         let verifiedInstances = 0;
 
-        for (let uid in this.selectedSeriesObjects) {
+        for (let seriesUid in this.selectedSeriesObjects) {
+            this.log.trace('Start upload verification of specific series', {}, { seriesUid });
 
-            const selectedSeries = this.selectedSeriesObjects[uid];
-            const deIdentifiedSeriesUid = dicomUidReplacements.get(uid);
-            console.log(`verify study -> ${this.replacedStudyInstanceUID}`);
-            console.log(`verify series ${uid} -> ${deIdentifiedSeriesUid}`);
+            const selectedSeries = this.selectedSeriesObjects[seriesUid];
+            const deIdentifiedSeriesUid = dicomUidReplacements.get(seriesUid);
+
+            const data = { pid: this.uploadSlot.pid, studyUid: this.replacedStudyInstanceUID, seriesUid: deIdentifiedSeriesUid, instances: selectedSeries.getInstancesSize() };
 
             if (selectedSeries.getInstancesSize() != null) {
-                let counter = 0;
+                this.log.trace('Query specific series', {}, data);
+
                 const interval = 5000;
                 const timeout = 5000;
                 const retries = 25
                 const pollTask = () => this.evaluateUploadOfSeries(this.uploadSlot.pid, this.replacedStudyInstanceUID, deIdentifiedSeriesUid, selectedSeries.getInstancesSize());
+
                 let poller;
                 try {
                     poller = promisePoller({
@@ -341,23 +360,17 @@ export default class DicomUploadPackage {
                     });
 
                     const pollResult = await poller;
-                    console.log(`poll result ${pollResult}`);
+
+                    data.pollResult = pollResult;
+                    this.log.trace('Query result for specific series', {}, data);
 
                 } catch (e) {
-                    errors.push(
-                        this.createErrorMessageObject(
-                            'Verification failed.',
-                            `Verification failed - The uploaded file is not available on the system yet. Please try again.`,
-                            uid,
-                            "",
-                            "",
-                            null
-                        ));
-                    return {
-                        errors: errors
-                    };
-                }
 
+                    data.error = e;
+                    this.log.debug({ message: 'Query for specific series failed', data });
+                    errors.push({ message: 'Query for specific series failed', data });
+                    return { errors: errors };
+                }
 
                 selectedSeries.setUploadVerified(true);
                 verifiedInstances += selectedSeries.getInstancesSize();
@@ -365,15 +378,18 @@ export default class DicomUploadPackage {
             }
         }
 
-        return {
-            errors: errors
-        };
+        return { errors: errors };
 
 
     }
 
+    /**
+     * Evaluates series upload promise.
+     * Queries the backend for a specific series.
+     */
     evaluateUploadOfSeries = async (pid, studyUid, seriesUid, expectedSize) => new Promise(async (resolve, reject) => {
-        console.log(`evaluate ${pid} ${studyUid} ${seriesUid} size ${expectedSize}`);
+        this.log.trace('Run query for series promise.', {}, { pid, studyUid, seriesUid, expectedSize });
+
         const args = {
             method: 'GET',
             headers: {
@@ -385,22 +401,32 @@ export default class DicomUploadPackage {
             const response = await fetch(`${this.uploadServiceUrl}/api/v1/pacs/subjects/${pid}/studies/${studyUid}/series/${seriesUid}`, args);
 
             if (response.status != 200) {
+                this.log.debug('Query for series promise failed.', {}, { pid, studyUid, seriesUid, expectedSize, response });
                 reject(`There is a problem with the service ${this.uploadServiceUrl}. The response is: ${response.status}. Please try again.`);
             }
 
             const jsonResponse = await response.json();
 
             if (jsonResponse.Series.length === 0) {
+                this.log.trace(
+                    'Query for series promise succeed - but length is zero - backend data processing probably not finished.',
+                    {},
+                    { pid, studyUid, seriesUid, expectedSize, response }
+                );
                 reject('No results yet');
+            } else if (jsonResponse.Series[0].Images.length < expectedSize) {
+                this.log.trace(
+                    'Query for series promise succeed - but length does not fit - backend data processing probably not finished.',
+                    {},
+                    { pid, studyUid, seriesUid, expectedSize, currentSize: jsonResponse.Series[0].Images.length, response }
+                );
+                reject('Not all series instances found yet.');
             }
 
-            if (jsonResponse.Series[0].Images.length < expectedSize) {
-                reject('Not all series found');
-            }
 
-
-        } catch (e) {
-            reject(e);
+        } catch (error) {
+            this.log.debug('Query for series promise failed with error.', {}, { pid, studyUid, seriesUid, expectedSize, error });
+            reject(error);
         }
 
         resolve(true);
@@ -408,168 +434,55 @@ export default class DicomUploadPackage {
     })
 
 
-
-
-    async verifyUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
-        let errors = [];
-        let verifiedInstances = 0;
-
-        for (let chunk of this.uploadChunks) {
-            if (!chunk.uploadVerified && chunk.transfered) {
-                let verifiedUploadResults = [];
-                for (let deIdentifiedInstance of chunk.deidentifiedInstances) {
-
-                    const args = {
-                        method: 'GET',
-                        headers: {
-                            "X-Api-Key": this.apiKey,
-                        }
-                    };
-
-                    let response = await fetch(`${this.uploadServiceUrl}/api/v1/pacs/subjects/${this.uploadSlot.pid}/studies/${chunk.deIdentifiedStudyUid}/series/${chunk.deIdentifiedSeriesUid}/instances/${deIdentifiedInstance.sopInstanceUid}`, args);
-
-
-
-                    if (response.status === 200) {
-                        verifiedUploadResults.push(await response.json());
-                    } else {
-                        // errors.push(
-                        //     this.createErrorMessageObject(
-                        //         'Upload Error - With response code: ',
-                        //         'Upload Error - With response code: ' + response.status.toString(),
-                        //         chunk.originalSeriesUid,
-                        //         chunk.getFileNames(),
-                        //         chunk.getSoapInstanceUids(),
-                        //         null
-                        //     ));
-
-                        return { errors: errors };
-                    }
-                }
-
-                try {
-                    const uploadResults = await Promise.all(verifiedUploadResults);
-                    let verified = false;
-                    if (uploadResults.length > 0) {
-                        verified = uploadResults.
-                            map(res => res.exists).
-                            reduce((prev, curr) => { return prev && curr });
-                    }
-
-                    chunk.uploadVerified = verified;
-
-                    if (!chunk.uploadVerified) {
-                        errors.push(
-                            this.createErrorMessageObject(
-                                'Verification failed.',
-                                'Verification failed - The uploaded file is not available on the system yet. Please try again.',
-                                chunk.originalSeriesUid,
-                                chunk.getFileNames(),
-                                chunk.getSoapInstanceUids(),
-                                null
-                            ));
-                        return {
-                            errors: errors
-                        };
-                    }
-                } catch (e) {
-                    errors.push(
-                        this.createErrorMessageObject(
-                            'Verification failed.',
-                            'Verification failed - There was a problem with the request.' - e.toString(),
-                            chunk.originalSeriesUid,
-                            chunk.getFileNames(),
-                            chunk.getSoapInstanceUids(),
-                            null
-                        ));
-                    return {
-                        errors: errors
-                    };
-                }
-
-
-            }
-
-            // counter for UI
-            verifiedInstances += chunk.deidentifiedInstances.length;
-            setVerifiedUploadedFilesCountValue(verifiedInstances);
-        }
-
-        return {
-            errors: errors
-        };
-    }
-
+    /**
+     * Link Dicom study
+     */
     async linkUploadedStudy(setStudyIsLinked, dicomUidReplacements) {
+        this.log.trace('Start linking the study.', {}, { uploadSlot: this.uploadSlot });
+
         let errors = []
 
         // const allVerified = this.uploadChunks.
         //     map(chunk => chunk.uploadVerified).
         //     reduce((prev, curr) => { return prev && curr });
 
-        const allVerified = true;
+        const jsonBody = {
+            dicomStudyInstanceItemOid: this.uploadSlot.studyInstanceItemOid,
+            dicomStudyInstanceItemValue: dicomUidReplacements.get(this.studyInstanceUID),
+            dicomPatientIdItemOid: this.uploadSlot.dicomPatientIdItemOid,
+            dicomPatientIdItemValue: this.uploadSlot.pid,
+            itemGroupOid: this.uploadSlot.itemGroup,
+            formOid: this.uploadSlot.form,
+            studyEventOid: this.uploadSlot.event,
+            studyEventRepeatKey: this.uploadSlot.eventRepeatKey,
+            subjectKey: this.uploadSlot.subjectKey,
+            subjectId: this.uploadSlot.subjectId,
+            studyOid: this.uploadSlot.studyOid,
+        }
 
-        if (!allVerified) {
-            errors.push(
-                this.createErrorMessageObject(
-                    'Verification is not finished yet.',
-                    'Verification is not finished yet. Please try again',
-                    '',
-                    '',
-                    null
-                ));
-        } else {
+        const args = {
+            method: 'POST',
+            headers: {
+                "X-Api-Key": this.apiKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonBody)
+        };
 
-            const jsonBody = {
-                dicomStudyInstanceItemOid: this.uploadSlot.studyInstanceItemOid,
-                dicomStudyInstanceItemValue: dicomUidReplacements.get(this.studyInstanceUID),
-                dicomPatientIdItemOid: this.uploadSlot.dicomPatientIdItemOid,
-                dicomPatientIdItemValue: this.uploadSlot.pid,
-                itemGroupOid: this.uploadSlot.itemGroup,
-                formOid: this.uploadSlot.form,
-                studyEventOid: this.uploadSlot.event,
-                studyEventRepeatKey: this.uploadSlot.eventRepeatKey,
-                subjectKey: this.uploadSlot.subjectKey,
-                subjectId: this.uploadSlot.subjectId,
-                studyOid: this.uploadSlot.studyOid,
-            }
+        let response = await fetch(`${this.uploadServiceUrl}/api/v1/odm/`, args);
 
-            const args = {
-                method: 'POST',
-                headers: {
-                    "X-Api-Key": this.apiKey,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonBody)
-            };
-
-            let response = await fetch(`${this.uploadServiceUrl}/api/v1/odm/`, args);
-
-            if (response.status === 200) {
-                const result = await response.json();
-                if (result.success) {
-                    setStudyIsLinked(true);
-                } else {
-                    errors.push(
-                        this.createErrorMessageObject(
-                            'Error Linking the DicomData.',
-                            'Error Linking the DicomData. - ' + result.errors.toString(),
-                            '',
-                            '',
-                            null
-                        ));
-                }
+        if (response.status === 200) {
+            const result = await response.json();
+            if (result.success) {
+                this.log.trace('Linking request succeed', {}, { response, jsonBody });
+                setStudyIsLinked(true);
             } else {
-                errors.push(
-                    this.createErrorMessageObject(
-                        'Error Linking the DicomData.',
-                        'Error Linking the DicomData. - Response code is:  ' + response.status.toString(),
-                        '',
-                        '',
-                        null
-                    ));
+                this.log.trace('Linking request failed', {}, { response, jsonBody });
+                errors.push({ message: 'Linking request failed', response, jsonBody });
             }
-
+        } else {
+            this.log.trace('Linking request failed', {}, { response, jsonBody });
+            errors.push({ message: 'Linking request failed', response, jsonBody });
         }
 
         return {
@@ -577,24 +490,4 @@ export default class DicomUploadPackage {
         };
     }
 
-
-
-
-    createErrorMessageObject(
-        title,
-        message,
-        seriesUid,
-        fileName,
-        sopInstanceUid,
-        retryFunction
-    ) {
-        return {
-            title: title,
-            message: message,
-            seriesUid: seriesUid,
-            fileName: fileName,
-            sopInstanceUid: sopInstanceUid,
-            retryFunction: retryFunction
-        };
-    }
 }
