@@ -15,13 +15,13 @@ import * as serviceWorker from './serviceWorker'
 const config = {
     // Declare default config, we are fine with one patient/ one upload slots per upload
     //availableUploadSlots : [],
-    availableUploadSlots : [
+    availableUploadSlots: [
         {
             "study": "Default Study", // for display purposes (with study site as well)
             "studySubjectID": "SSID", // for display purposes
             "subjectPseudonym": "PID", // this should be also not checked but we can use it for display,
-            "subjectSex": "M", // Only if patient gender is collected
-            "subjectDOB": "01-01-1900", // Only if the patient date of birth is collected in a study
+            "subjectSex": "F", // Only if patient gender is collected
+            "subjectDOB": "1900-01-30", // Only if the patient date of birth is collected in a study
             "studyEvent": "Baseline", // For display purposes
             "studyEventDate": "09-11-2008", // We do not really want to make restrictions based on the event date
             "slotName": "Treatment Plan", // For display purposes name (label of item from eCRF)
@@ -46,17 +46,18 @@ const config = {
             ]
         }
     ],
-    rpbEndpoint : 'http://localhost:8080/api/v1/',
-    onStudyUploaded : (slotID, successIDsUploaded, numberOfFiles) => { console.log(slotID) },
-    onStartUsing : () => { console.log('use started') },
+    rpbEndpoint: 'http://localhost:8080/api/v1/',
+    onStudyUploaded: (slotID, successIDsUploaded, numberOfFiles) => { console.log(slotID) },
+    onStartUsing: () => { console.log('use started') },
     onUploadComplete: () => { console.log('upload finished') },
-    isNewStudy : async () => { return true }
+    isNewStudy: async () => { return true }
 }
 
 // Application entry point
 // Render the application into the root div
 const rootElement = document.getElementById('root')
-ReactDOM.render(<App config={config} />, rootElement)
+// ReactDOM.render(<App config={config} />, rootElement)
+ReactDOM.render(<App />, rootElement)
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

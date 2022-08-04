@@ -1,164 +1,276 @@
 // React
 import { Card } from 'primereact/card';
 import React, { Component } from 'react';
-import { connect } from "react-redux";
+import styledComponents from 'styled-components';
 
 
 /**
  * SlotPanel component
  */
 export class SlotPanel extends Component {
+    valueIsNullString = "not defined";
 
-    /**
-     * Get study name from redux state
-     */
     getStudyName() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].study
-        }
+        return this.props.studyIdentifier != null ? this.props.studyIdentifier : this.valueIsNullString;
     }
 
-    /**
-     * Get study event from redux state
-     */
-    getStudyEvent() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].studyEvent
-        }
+    getForm() {
+        return this.props.form != null ? this.props.form : this.valueIsNullString;
     }
 
-    /**
-     * Get study event date from redux state
-     */
-    getStudyEventDate() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].studyEventDate
-        }
+    getItemGroup() {
+        return this.props.itemGroup != null ? this.props.itemGroup : this.valueIsNullString;
     }
 
-    /**
-     * Get slot name from redux state
-     */
-    getSlotName() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].slotName
-        }
+    getItemGroupRepeatKey() {
+        return this.props.itemGroupRepeatKey != null ? this.props.itemGroupRepeatKey : this.valueIsNullString;
     }
 
-    /**
-     * Get study subject ID from redux state
-     */
-    getStudySubjectID() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].studySubjectID
-        }
+    getItem() {
+        return this.props.item != null ? this.props.item : this.valueIsNullString;
     }
 
-    /**
-     * Get subject pseudonym from redux state
-     */
-    getSubjectPseudonym() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].subjectPseudonym
-        }
+    getItemLabel() {
+        return this.props.itemLabel != null ? this.props.itemLabel : this.valueIsNullString;
     }
 
-    /**
-     * Get subject sex from redux state
-     */
-    getSubjectSex() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].subjectSex
-        }
-    }
+    getSubjectYoB() {
+        return this.props.yob != null ? this.props.yob : this.valueIsNullString;
 
-    /**
-     * Get subject DOB from redux state
-     */
-    getSubjectDOB() {
-        if (Object.values(this.props.slots).length === 1) {
-            return Object.values(this.props.slots)[0].subjectDOB
-        }
     }
 
     /**
      * Render the component
      */
     render = () => {
+        const StyledDivNameComponent = styledComponents.div`{ 
+            width: 100px 
+        }`;
+        const StyledDivValueComponent = styledComponents.div`{
+             min-width: 150px 
+            }`;
+
         return (
-            <Card title="DICOM Upload Slot">
-                <div className="flex flex-wrap card-container text-sm">
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }} >
-                            Study:&nbsp;
-                        </div>
-                        <div  >
-                            {this.getStudyName()} 
-                            {/* &nbsp;
-                           {true ? <i className="pi pi-check mr-2" style={{'color': 'green'}}></i> : null}
-                           {true ? <i className="pi pi-times" style={{'color': 'red'}}></i> : null} */}
+            <div >
+                <Card title="DICOM Upload Slot">
+                    <div className="flex flex-wrap card-container text-sm">
+                        {this.props.studyIdentifier != null ?
+                            <div
+                                className="flex mr-2"
+                            >
+                                <StyledDivNameComponent className="font-bold">
+                                    Study:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent >
+                                    {this.getStudyName()}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {this.props.siteIdentifier != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Site:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.siteIdentifier}
+                                </StyledDivValueComponent>
 
+                            </div>
+                            : null
+                        }
+                        {/* <div className="flex mr-2">
+                            <StyledDivNameComponent className="font-bold">
+                                Form:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getForm()}
+                            </StyledDivValueComponent>
                         </div>
+                        <div className="flex mr-2">
+                            <StyledDivNameComponent className="font-bold">
+                                ItemGroup:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getItemGroup()}
+                            </StyledDivValueComponent>
+                        </div>
+                        <div className="flex mr-2">
+                            <StyledDivNameComponent className="font-bold">
+                                IG RepeatKey:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getItemGroupRepeatKey()}
+                            </StyledDivValueComponent>
+                        </div>
+                        <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getItem()}
+                            </StyledDivValueComponent>
+                        </div> */}
+                        {/* <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item Label:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getItemLabel()}
+                            </StyledDivValueComponent>
+                        </div> */}
+
 
                     </div>
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }}>
-                            Study Subject:&nbsp;
+                    <div className="flex flex-wrap card-container text-sm">
+                        {this.props.subjectId != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Subject ID:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.subjectId}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {/* {this.props.subjectKey != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Subject Key:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.subjectKey}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        } */}
+                        {this.props.pid != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    PID:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.pid}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {this.props.gender != null ? <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Subject Sex:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.props.gender}
+                            </StyledDivValueComponent>
                         </div>
-                        <div  >
-                            {this.getStudySubjectID()}
-                        </div>
+                            : null
+                        }
+                        {this.props.dob != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Subject DOB:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.dob}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {this.props.dob == null && this.props.yob != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Subject YOB:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.getSubjectYoB()}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
                     </div>
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }} >
-                            Study Event:&nbsp;
+                    {/* </Card>
+                <Card> */}
+                    <div className="mr-2 flex flex-wrap card-container text-sm">
+                        {this.props.eventName != null && this.props.eventRepeatKey != null ?
+                            <div className="flex mr-2" >
+                                <StyledDivNameComponent className="font-bold">
+                                    Study Event:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventName} ({this.props.eventRepeatKey})
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {/* {this.props.eventRepeatKey != null ?
+                            <div className="flex mr-2" >
+                                <StyledDivNameComponent className="font-bold">
+                                    SE Repeat :&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventRepeatKey}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        } */}
+                        {this.props.eventStartDate != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    Start Date:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventStartDate}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+                        {this.props.eventEndDate != null ?
+                            <div className="flex mr-2">
+                                <StyledDivNameComponent className="font-bold">
+                                    End Date:&nbsp;
+                                </StyledDivNameComponent>
+                                <StyledDivValueComponent>
+                                    {this.props.eventEndDate}
+                                </StyledDivValueComponent>
+                            </div>
+                            : null
+                        }
+
+                        <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item Label:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getItemLabel()}
+                            </StyledDivValueComponent>
                         </div>
-                        <div  >
-                            {this.getStudyEvent()}
-                        </div>
+                        {/* <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.props.itemDescription}
+                            </StyledDivValueComponent>
+                        </div> */}
+                        {/* <div className="flex mr-2" >
+                            <StyledDivNameComponent className="font-bold">
+                                Item:&nbsp;
+                            </StyledDivNameComponent>
+                            <StyledDivValueComponent>
+                                {this.getForm()}&#187;
+                                {this.getItemGroup()}&#187;
+                                {this.getItemGroupRepeatKey()}&#187;
+                                {this.getItem()}
+                            </StyledDivValueComponent>
+                        </div> */}
                     </div>
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }} >
-                            PID:&nbsp;
-                        </div>
-                        <div  >
-                            {this.getSubjectPseudonym()}
-                        </div>
-                    </div>
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }} >
-                            Event Date:&nbsp;
-                        </div>
-                        <div  >
-                            {this.getStudyEventDate()}
-                        </div>
-                    </div>
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }} >
-                            Subject Sex:&nbsp;
-                        </div>
-                        <div  >
-                            {this.getSubjectSex()}
-                        </div>
-                    </div>
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }} >
-                            Slot:&nbsp;
-                        </div>
-                        <div  >
-                            {this.getSlotName()}
-                        </div>
-                    </div>
-                    <div className="flex" style={{ "minWidth": "200px" }}>
-                        <div className="font-bold" style={{ "width": "100px" }} >
-                            Subject DOB:&nbsp;
-                        </div>
-                        <div  >
-                            {this.getSubjectDOB()}
-                        </div>
-                    </div>
-                </div>
-            </Card>
+                    {/* </Card>
+                <Card
+                > */}
+
+                </Card>
+            </div >
         )
     }
 }
@@ -177,4 +289,4 @@ const mapDispatchToProps = {
 }
 
 // Connects Uploader component to Redux store
-export default connect(mapStateToProps, mapDispatchToProps)(SlotPanel)
+export default SlotPanel

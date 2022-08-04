@@ -10,7 +10,7 @@ import React, { Component } from 'react'
 /**
  * FailedUploadPackageCheckPanel component
  */
-export default class FailedUploadPackageCheckPanel extends Component {
+export default class UploadPackageCheckDialogPanel extends Component {
 
     /**
      * Create rows for table display

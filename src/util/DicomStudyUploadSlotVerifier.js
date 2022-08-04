@@ -1,4 +1,5 @@
 import DicomStudyVerificationMessages, { GENDER_IS_NOT_DEFINED, GENDER_IS_NOT_VALID } from "../constants/DicomStudyVerificationMessages";
+import { parseDicomFormattedDates, parseOcFormattedDates } from "./DateParser";
 
 export default class DicomStudyUploadSlotVerifier {
 
@@ -34,6 +35,49 @@ export default class DicomStudyUploadSlotVerifier {
             }
 
         };
+
+        if ('subjectDOB' in this.dicomUploadSlot) {
+            let slotDob = null;
+            let fileDob = null;
+
+            try {
+                slotDob = parseOcFormattedDates(this.dicomUploadSlot.subjectDOB);
+            } catch (e) {
+                this.result.errors.push('Parsing DicomSlot date of birth failed: ' + e);
+            }
+
+            try {
+                fileDob = parseDicomFormattedDates(this.dicomStudy.getPatientBirthDate());
+            } catch (e) {
+                this.result.errors.push('Parsing the date of birth from Dicom file failed: ' + e);
+            }
+
+            // if (this.dicomStudy.getPatientBirthDate() === "") {
+            //     this.result.errors.push('The birth date in the Dicom study file is empty.')
+            // } else {
+            //     const parsedFileDob = new Date(this.dicomStudy.getPatientBirthDate());
+            //     if (parsedFileDob == 'Invalid Date') {
+            //         this.result.errors.push(`The birth date in the dicom file is not valid. Patient birth date is: ${this.dicomStudy.getPatientBirthDate()}`);
+            //     } else { fileDob = parsedFileDob; }
+
+            // }
+
+
+
+            //TODO: verify dob
+            // How to deal with "ONLY_YEAR configuration ?" 
+        }
+
+        if ('slotName' in this.dicomUploadSlot) {
+            // Verify slotname with study.getStudyType ?
+        }
+
+        // this.result.errors.push('Dummy error 1');
+        // this.result.errors.push('Dummy error 2');
+
+        // this.result.warnings.push('Dummy warning 1');
+        // this.result.warnings.push('Dummy warning 2');
+
 
         return this.result;
 

@@ -21,6 +21,8 @@ workspace.code*
 **/data/*
 !**/data/Readme.md
 
+**/dicomFiles/*
+
 # misc
 .DS_Store
 .env.local
