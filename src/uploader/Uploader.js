@@ -389,24 +389,25 @@ class Uploader extends Component {
             }
 
             // preparing de-identification
-            this.log.trace('Download uids', {}, { serviceUrl: this.state.uploadServiceUrl })
+            this.log.trace('Requesting generated uids for dei-identification', {}, { serviceUrl: this.state.uploadServiceUrl })
             const dicomUidService = new DicomUidService(uids, this.state.uploadServiceUrl, null, this.state.uploadApiKey);
             const dicomUidRequestPromise = toast.promise(
                 dicomUidService.getUidMap(),
                 {
-                    pending: 'Requesting DICOM UIDs.',
+                    pending: 'Requesting DICOM UIDs for De-Identification.',
                     // success: 'Connection to ' + url + ' succeed.',
                     error: (err) => `Requesting DICOM UIDs failed ${err.toString()}.`,
                 }
             )
             const dicomUidRequestPromiseResult = await dicomUidRequestPromise;
 
-            this.log.trace('Download uids request answered', {}, { dicomUidRequestPromiseResult });
+            this.log.trace('Requesting DICOM UIDs request answered', {}, { dicomUidRequestPromiseResult });
 
             const dicomUidReplacements = dicomUidRequestPromiseResult.dicomUidReplacements;
             errors = dicomUidRequestPromiseResult.errors;
 
             if (errors.length > 0) {
+                this.log.debug('Requesting DICOM UIDs failed', {}, { errors });
                 this.setState({
                     evaluationUploadCheckResults: errors,
                     fileUploadInProgress: false,

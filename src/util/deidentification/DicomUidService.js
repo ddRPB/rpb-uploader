@@ -1,3 +1,6 @@
+/**
+ * Provides new generated DICOM UIDs
+ */
 export default class DicomUidService {
 
     constructor(uids, uidServiceUrl, prefix, apiKey) {
@@ -10,6 +13,9 @@ export default class DicomUidService {
         this.originalUidToPseudomizedUidMap = new Map();
     }
 
+    /**
+     * Fetches UIDs from the service.
+     */
     async requestUidsFromWebService() {
         const args = {
             headers: {
@@ -33,13 +39,18 @@ export default class DicomUidService {
         }
     }
 
+    /**
+     * Generates a map originalDicomUID -> deIdentifiedDicomUID
+     */
     async getUidMap() {
         const errors = [];
+
+        // first run
         if (this.originalUidToPseudomizedUidMap.size === 0) {
             try {
                 await this.requestUidsFromWebService();
             } catch (e) {
-                errors.push(e);
+                errors.push({ message: 'There was a problem with the UID request', data: { error: e } });
             }
             if (this.uids.length <= this.generatedUids.length) {
                 for (let i = 0; i < this.uids.length; i++) {
@@ -47,22 +58,14 @@ export default class DicomUidService {
                 }
             }
 
-
         }
 
-        if (this.originalUidToPseudomizedUidMap.size > 0) {
-            return {
-                dicomUidReplacements: this.originalUidToPseudomizedUidMap,
-                errors: []
-            };
-        } else {
-            errors.push("There was a problem assigning Dicom Uids.");
-            return {
-                dicomUidReplacements: null,
-                errors: errors
-            };
 
-        }
+        return {
+            dicomUidReplacements: this.originalUidToPseudomizedUidMap,
+            errors
+        };
+
 
     }
 }

@@ -405,7 +405,13 @@ export default class DicomUploadPackage {
                 reject(`There is a problem with the service ${this.uploadServiceUrl}. The response is: ${response.status}. Please try again.`);
             }
 
-            const jsonResponse = await response.json();
+            let jsonResponse;
+            try {
+                jsonResponse = await response.json();
+            } catch (error) {
+                reject(`The service response is not valid JSON, there is a problem with the remote service ${this.uploadServiceUrl}.`);
+            }
+
 
             if (jsonResponse.Series.length === 0) {
                 this.log.trace(
