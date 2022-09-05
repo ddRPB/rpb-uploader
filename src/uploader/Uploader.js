@@ -101,6 +101,7 @@ class Uploader extends Component {
         this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
         this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
         this.setStudyIsLinked = this.setStudyIsLinked.bind(this);
+        this.generateLogFile = this.generateLogFile.bind(this);
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
         this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
         this.redirectToPortal = this.redirectToPortal.bind(this);
@@ -344,6 +345,71 @@ class Uploader extends Component {
             blockedPanel: false,
             fileUploadDialogPanel: false
         });
+    }
+
+    generateLogFile() {
+        let logs = this.log.getLogStore();
+        let currentDateTime = new Date();
+
+        let fileNameComponents = [
+            currentDateTime.getFullYear(),
+            currentDateTime.getMonth(),
+            currentDateTime.getDay(),
+            currentDateTime.getHours(),
+            currentDateTime.getMinutes()
+        ];
+
+        let fileName = fileNameComponents.join('-') + '-uploader-logs.json'
+
+        let content = JSON.stringify({
+            date: currentDateTime.toISOString(),
+            uploadSlot: {
+                siteIdentifier: this.props.siteIdentifier,
+                studyInstanceItemOid: this.props.studyInstanceItemOid,
+                studyOid: this.props.studyOid,
+                studyEdcCode: this.props.studyEdcCode,
+                event: this.props.event,
+                eventRepeatKey: this.props.eventRepeatKey,
+                eventStartDate: this.props.eventStartDate,
+                eventEndDate: this.props.eventEndDate,
+                eventName: this.props.eventName,
+                eventDescription: this.props.eventDescription,
+                form: this.props.form,
+                itemGroup: this.props.itemGroup,
+                itemGroupRepeatKey: this.props.itemGroupRepeatKey,
+                item: this.props.item,
+                itemLabel: this.props.itemLabel,
+                itemDescription: this.props.itemDescription,
+                subjectId: this.props.subjectId,
+                subjectKey: this.props.subjectKey,
+                pid: this.props.pid,
+                dicomPatientIdItemOid: this.props.dicomPatientIdItemOid,
+                dob: this.props.dob,
+                yob: this.props.yob,
+                gender: this.props.gender
+            },
+            logs: logs
+
+        });
+
+        // var blob1 = new Blob([content], { type: "text/plain;charset=utf-8" });
+        var blob1 = new Blob([content], { type: "application/json;charset=utf-8" });
+
+        //Check the Browser.
+        let isIE = false || !!document.documentMode;
+        if (isIE) {
+            window.navigator.msSaveBlob(blob1, fileName);
+        } else {
+            let url = window.URL || window.webkitURL;
+            let link = url.createObjectURL(blob1);
+            let a = document.createElement("a");
+            a.download = fileName;
+            a.href = link;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
     }
 
     async retrySubmitUploadPackage() {
@@ -808,6 +874,7 @@ class Uploader extends Component {
 
                     evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
                     dicomUidReplacements={this.state.dicomUidReplacements}
+                    generateLogFile={this.generateLogFile}
                     retrySubmitUploadPackage={this.retrySubmitUploadPackage}
                 >
                 </FileUploadDialogPanel>

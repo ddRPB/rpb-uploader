@@ -99,6 +99,11 @@ export default class FileUploadDialogPanel extends Component {
                                     hidden={
                                         this.props.evaluationUploadCheckResults.length == 0 && this.props.dicomUidReplacements != null
                                     }
+                                    className={"text-sm  pr-3"} label="Log file" icon="pi pi-file" iconPos="right" onClick={this.props.generateLogFile} />
+                                <StyledCommandButton
+                                    hidden={
+                                        this.props.evaluationUploadCheckResults.length == 0 && this.props.dicomUidReplacements != null
+                                    }
                                     className={"text-sm p-button-danger pr-3"} label="Retry" icon="pi pi-sync" iconPos="right" onClick={this.props.retrySubmitUploadPackage} />
                             </React.Fragment>
                         }

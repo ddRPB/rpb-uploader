@@ -459,6 +459,10 @@ export default class DicomUploadPackage {
             dicomPatientIdItemValue: this.uploadSlot.pid,
             itemGroupOid: this.uploadSlot.itemGroup,
             formOid: this.uploadSlot.form,
+            pid: this.uploadSlot.pid,
+            patientId: this.uploadSlot.pid,
+            studyIdentifier: this.uploadSlot.studyIdentifier,
+            siteIdentifier: this.uploadSlot.siteIdentifier,
             studyEventOid: this.uploadSlot.event,
             studyEventRepeatKey: this.uploadSlot.eventRepeatKey,
             subjectKey: this.uploadSlot.subjectKey,
@@ -479,16 +483,26 @@ export default class DicomUploadPackage {
 
         if (response.status === 200) {
             const result = await response.json();
-            if (result.success) {
-                this.log.trace('Linking request succeed', {}, { response, jsonBody });
-                setStudyIsLinked(true);
-            } else {
-                this.log.trace('Linking request failed', {}, { response, jsonBody });
-                errors.push({ message: 'Linking request failed', response, jsonBody });
-            }
+
+            this.log.trace('Linking request succeed', {}, { response, jsonBody });
+            setStudyIsLinked(true);
+
         } else {
-            this.log.trace('Linking request failed', {}, { response, jsonBody });
-            errors.push({ message: 'Linking request failed', response, jsonBody });
+            let result = null;
+            try {
+                result = await response.json();
+            } catch (e) {
+                // ignore - JSON response is not mandatory
+            }
+
+            if (result != null) {
+                const message = 'Linking request failed with response status: ' + response.status + ' . The error message is: ' + result.errors;
+                this.log.trace(message, {}, { response, jsonBody, result });
+                errors.push({ message, response, jsonBody, result });
+            } else {
+                this.log.trace('Linking request failed with response status: ' + response.status + '.', {}, { response, jsonBody });
+                errors.push({ message: 'Linking request failed with response status: ' + response.status + '.', response, jsonBody });
+            }
         }
 
         return {

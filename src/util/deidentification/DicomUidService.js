@@ -23,7 +23,7 @@ export default class DicomUidService {
             }
         };
 
-        let response = await fetch(`${this.uidServiceUrl}/api/v1/pacs/uids?count=${this.uids.length}`, args);
+        let response = await fetch(`${this.uidServiceUrl}/api/v1/pacs/generateuids?count=${this.uids.length}`, args);
 
         switch (response.status) {
             case 200:
