@@ -16,8 +16,8 @@ export default class FileUploadDialogPanel extends Component {
     render = () => {
         const states = [
             { label: 'Evaluate' },
-            { label: 'Link Study' },
-            { label: 'DeIdentify and Upload' },
+            { label: 'Link Dicom Study' },
+            { label: 'De-Identify and Upload' },
             { label: 'Verify' }
         ];
 

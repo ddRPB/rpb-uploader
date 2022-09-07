@@ -122,14 +122,13 @@ class Uploader extends Component {
             studyInstanceItemOid: this.props.studyInstanceItemOid,
             studyOid: this.props.studyOid,
             studyEdcCode: this.props.studyEdcCode,
-            event: this.props.event,
+            eventOid: this.props.eventOid,
             eventRepeatKey: this.props.eventRepeatKey,
             eventStartDate: this.props.eventStartDate,
             eventEndDate: this.props.eventEndDate,
-            form: this.props.form,
-            itemGroup: this.props.itemGroup,
+            formOid: this.props.formOid,
+            itemGroupOid: this.props.itemGroupOid,
             itemGroupRepeatKey: this.props.itemGroupRepeatKey,
-            item: this.props.item,
             itemLabel: this.props.itemLabel,
             subjectId: this.props.subjectId,
             subjectKey: this.props.subjectKey,
@@ -262,7 +261,7 @@ class Uploader extends Component {
      * Redirects the browser window to the landing page of the portal
      */
     redirectToPortal() {
-        window.location = `${this.state.rpbPortalUrl}/pacs/dicomPatientStudies.faces?pid=${this.props.pid}&eventid=${this.props.event}&eventrepeatkey=${this.props.eventRepeatKey}`;
+        window.location = `${this.state.rpbPortalUrl}/pacs/dicomPatientStudies.faces?pid=${this.props.pid}&eventid=${this.props.eventOid}&eventrepeatkey=${this.props.eventRepeatKey}`;
     }
 
     /**
@@ -368,16 +367,15 @@ class Uploader extends Component {
                 studyInstanceItemOid: this.props.studyInstanceItemOid,
                 studyOid: this.props.studyOid,
                 studyEdcCode: this.props.studyEdcCode,
-                event: this.props.event,
+                eventOid: this.props.eventOid,
                 eventRepeatKey: this.props.eventRepeatKey,
                 eventStartDate: this.props.eventStartDate,
                 eventEndDate: this.props.eventEndDate,
                 eventName: this.props.eventName,
                 eventDescription: this.props.eventDescription,
-                form: this.props.form,
-                itemGroup: this.props.itemGroup,
+                formOid: this.props.formOid,
+                itemGroupOid: this.props.itemGroupOid,
                 itemGroupRepeatKey: this.props.itemGroupRepeatKey,
-                item: this.props.item,
                 itemLabel: this.props.itemLabel,
                 itemDescription: this.props.itemDescription,
                 subjectId: this.props.subjectId,
@@ -455,7 +453,7 @@ class Uploader extends Component {
             }
 
             // preparing de-identification
-            this.log.trace('Requesting generated uids for dei-identification', {}, { serviceUrl: this.state.uploadServiceUrl })
+            this.log.trace('Requesting generated uids for de-identification', {}, { serviceUrl: this.state.uploadServiceUrl })
             const dicomUidService = new DicomUidService(uids, this.state.uploadServiceUrl, null, this.state.uploadApiKey);
             const dicomUidRequestPromise = toast.promise(
                 dicomUidService.getUidMap(),
@@ -713,17 +711,16 @@ class Uploader extends Component {
                         siteIdentifier={this.props.siteIdentifier}
                         studyInstanceItemOid={this.props.studyInstanceItemOid}
 
-                        event={this.props.event}
+                        eventOid={this.props.eventOid}
                         eventRepeatKey={this.props.eventRepeatKey}
                         eventStartDate={this.props.eventStartDate}
                         eventEndDate={this.props.eventEndDate}
                         eventName={this.props.eventName}
                         eventDescription={this.props.eventDescription}
 
-                        form={this.props.form}
-                        itemGroup={this.props.itemGroup}
+                        formOid={this.props.formOid}
+                        itemGroupOid={this.props.itemGroupOid}
                         itemGroupRepeatKey={this.props.itemGroupRepeatKey}
-                        item={this.props.item}
                         itemLabel={this.props.itemLabel}
                         itemDescription={this.props.itemDescription}
 
