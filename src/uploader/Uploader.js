@@ -575,31 +575,6 @@ class Uploader extends Component {
     }
 
     /**
-     * Init that fires once after HTML render
-     */
-    componentDidMount = () => {
-        // this.loadAvailableUploadSlots()
-    }
-
-    /**
-     * Will fire when uploader component is removed from DOM
-     */
-    componentWillUnmount = () => {
-        // this.props.resetRedux()
-    }
-
-    /**
-     * Load all available upload slots in slot reducer
-     */
-    loadAvailableUploadSlots = () => {
-        // let uploadSlots = this.props.config.availableUploadSlots
-
-        // uploadSlots.forEach(uploadSlot => {
-        //     this.props.addSlot(uploadSlot)
-        // })
-    }
-
-    /**
      * Read dropped files (listen to DropZone event)
      * @param {Array} files
      */
@@ -654,8 +629,8 @@ class Uploader extends Component {
      * @param {File} file
      */
     read = async (file) => {
+        let dicomFile = new DicomFile(file)
         try {
-            let dicomFile = new DicomFile(file)
             await dicomFile.readDicomFile()
 
             // DicomDir do no register file
@@ -690,12 +665,13 @@ class Uploader extends Component {
 
         } catch (error) {
             // In case of exception register file in ignored file list
-
             // Save only message of error
             let errorMessage = error
             if (typeof error === 'object') {
                 errorMessage = error.message
             }
+            this.log.trace('Parsing of a file failed. ', {}, { dicomFile, errorMessage });
+
             this.setState(state => {
                 return {
                     ignoredFiles: {
@@ -707,33 +683,22 @@ class Uploader extends Component {
         }
     }
 
+    /**
+     * Compares the patientId of the selected study with the patientId of the DICOM file to ensure that data from
+     * different patients will not mixed.
+     */
     verifyPatientIdIsConsistent(dicomFile, study) {
         const patientIdFromFile = dicomFile.getPatientID();
         const patientIdFromStudy = study.getPatientID();
 
         if (patientIdFromFile != "" && patientIdFromStudy != "") {
             if (study.getPatientID().toUpperCase() != dicomFile.getPatientID().toUpperCase()) {
-                throw Error(`PatientId is different from other files that belong to the study. Study: \'${study.getPatientID()}\' File: \'${dicomFile.getPatientID()}\'`);
+                let errorMessage = `PatientId is different from other files that belong to the study. Study: \'${study.getPatientID()}\' File: \'${dicomFile.getPatientID()}\'`;
+                this.log.trace(errorMessage, {}, { dicomFile, study });
+                throw Error(errorMessage);
             }
         }
     }
-
-    // /**
-    //  * Generate warnings for a given study
-    //  * @param {*} studyRedux
-    //  */
-    // getStudyWarning = async (studyRedux) => {
-    //     let warnings = []
-
-    //     // If Slot ID is not set add Null Slot ID (slotID Needs to be assigned)
-    //     if (studyRedux.slotID == null) warnings.push(NULL_SLOT_ID)
-
-    //     // Check if study is already known by server
-    //     let newStudy = await this.props.config.isNewStudy(studyRedux.studyInstanceUID)
-    //     if (!newStudy) warnings.push(ALREADY_KNOWN_STUDY)
-
-    //     return warnings
-    // }
 
     /**
      * Render the component
