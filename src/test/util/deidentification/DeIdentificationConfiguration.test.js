@@ -526,7 +526,7 @@ describe('DeIdentificationConfiguration Tests', () => {
 
             action(dataSetDictionary, tag, parameter);
 
-            expect(dataSetDictionary[tag].Value).toBe(parameter + '-' + originalValue);
+            expect(dataSetDictionary[tag].Value).toBe('(' + parameter + ')-' + originalValue);
         })
 
         test("Adds a prefix to the the original String value in an Array.", () => {
@@ -546,7 +546,7 @@ describe('DeIdentificationConfiguration Tests', () => {
 
             action(dataSetDictionary, tag, parameter);
 
-            expect(dataSetDictionary[tag].Value).toStrictEqual([parameter + '-' + originalValue]);
+            expect(dataSetDictionary[tag].Value).toStrictEqual(['(' + parameter + ')-' + originalValue]);
         })
 
         // keep

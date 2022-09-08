@@ -168,7 +168,7 @@ export default class DeIdentificationConfiguration {
             const newElementValue = [];
             if (originalElementValue.length > 0) {
                 for (let el of originalElementValue) {
-                    newElementValue.push(prefix + '-' + el);
+                    newElementValue.push('(' + prefix + ')-' + el);
 
                 }
                 // console.log(`replace ${propertyName} with dummy value ${replacement}`);
@@ -178,7 +178,7 @@ export default class DeIdentificationConfiguration {
             dictionary[propertyName].Value = newElementValue;
 
         } else {
-            dictionary[propertyName].Value = prefix + '-' + originalElementValue;
+            dictionary[propertyName].Value = '(' + prefix + ')-' + originalElementValue;
 
         }
 

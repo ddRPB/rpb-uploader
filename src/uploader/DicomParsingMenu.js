@@ -93,7 +93,7 @@ export default class DicomParsingMenu extends Component {
                                 hidden={this.props.uploadApiKey != null}
                             />
                             <StyledButton
-                                label="Submit"
+                                label="Upload"
                                 disabled={Object.keys(this.props.selectedNodeKeys).length === 0}
                                 onClick={this.props.submitUploadPackage}
                                 icon="pi pi-cloud-upload"

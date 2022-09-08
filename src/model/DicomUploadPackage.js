@@ -457,13 +457,13 @@ export default class DicomUploadPackage {
             dicomStudyInstanceItemValue: dicomUidReplacements.get(this.studyInstanceUID),
             dicomPatientIdItemOid: this.uploadSlot.dicomPatientIdItemOid,
             dicomPatientIdItemValue: this.uploadSlot.pid,
-            itemGroupOid: this.uploadSlot.itemGroup,
-            formOid: this.uploadSlot.form,
+            itemGroupOid: this.uploadSlot.itemGroupOid,
+            formOid: this.uploadSlot.formOid,
             pid: this.uploadSlot.pid,
             patientId: this.uploadSlot.pid,
             studyIdentifier: this.uploadSlot.studyIdentifier,
             siteIdentifier: this.uploadSlot.siteIdentifier,
-            studyEventOid: this.uploadSlot.event,
+            studyEventOid: this.uploadSlot.eventOid,
             studyEventRepeatKey: this.uploadSlot.eventRepeatKey,
             subjectKey: this.uploadSlot.subjectKey,
             subjectId: this.uploadSlot.subjectId,
@@ -479,7 +479,7 @@ export default class DicomUploadPackage {
             body: JSON.stringify(jsonBody)
         };
 
-        let response = await fetch(`${this.uploadServiceUrl}/api/v1/odm/`, args);
+        let response = await fetch(`${this.uploadServiceUrl}/api/v1/edc/linkdicomstudy`, args);
 
         if (response.status === 200) {
             const result = await response.json();
