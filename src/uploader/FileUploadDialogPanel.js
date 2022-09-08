@@ -4,10 +4,10 @@ import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
+import { ProgressBar } from 'primereact/progressbar'
 import { ScrollTop } from 'primereact/scrolltop'
 import { Steps } from 'primereact/steps'
 import { Toolbar } from 'primereact/toolbar'
-import { ProgressBar } from 'primereact/progressbar'
 import React, { Component } from 'react'
 import styledComponents from 'styled-components'
 
@@ -56,34 +56,35 @@ export default class FileUploadDialogPanel extends Component {
                                 <StyledDisabbledButton
                                     type="button"
                                     label="Analysed:"
-                                    className="text-sm p-button-outlined p-button-info"
+                                    className="text-sm p-button-outlined p-button-secondary"
                                     disabled={true}
                                 >
-                                    <Badge value={this.props.analysedFilesCount} />
+                                    <Badge
+                                        className="text-900"
+                                        value={this.props.analysedFilesCount}
+                                    />
                                 </StyledDisabbledButton>
-                                {/* <StyledDisabbledButton
-                                    type="button"
-                                    label="DeIdentified:"
-                                    className="text-sm p-button-outlined p-button-info"
-                                    disabled={true}
-                                >
-                                    <Badge value={this.props.deIdentifiedFilesCount} />
-                                </StyledDisabbledButton> */}
                                 <StyledDisabbledButton
                                     type="button"
                                     label="Uploaded:"
-                                    className="text-sm p-button-outlined p-button-info"
+                                    className="text-sm p-button-outlined p-button-secondary"
                                     disabled={true}
                                 >
-                                    <Badge value={this.props.uploadedFilesCount} />
+                                    <Badge
+                                        className="text-900"
+                                        value={this.props.uploadedFilesCount}
+                                    />
                                 </StyledDisabbledButton>
                                 <StyledDisabbledButton
                                     type="button"
                                     label="Verified:"
-                                    className="text-sm p-button-outlined p-button-info"
+                                    className="text-sm p-button-outlined p-button-secondary"
                                     disabled={true}
                                 >
-                                    <Badge value={this.props.verifiedUploadedFilesCount} />
+                                    <Badge
+                                        className="text-900"
+                                        value={this.props.verifiedUploadedFilesCount}
+                                    />
                                 </StyledDisabbledButton>
 
                             </React.Fragment>
@@ -94,17 +95,17 @@ export default class FileUploadDialogPanel extends Component {
                                     hidden={
                                         !(this.props.studyIsLinked && this.props.verifiedUploadedFilesCount === this.props.uploadedFilesCount && this.props.uploadedFilesCount > 0)
                                     }
-                                    className={"text-sm pr-3"} label="Finish" icon="pi pi-check" iconPos="right" onClick={this.props.redirectToPortal} />
+                                    className={"text-sm p-button-success pr-3"} label="Finish" icon="pi pi-check" iconPos="right" onClick={this.props.redirectToPortal} />
                                 <StyledCommandButton
                                     hidden={
                                         this.props.evaluationUploadCheckResults.length == 0 && this.props.dicomUidReplacements != null
                                     }
-                                    className={"text-sm  pr-3"} label="Log file" icon="pi pi-file" iconPos="right" onClick={this.props.generateLogFile} />
+                                    className={"text-sm p-button-warning  pr-3"} label="Log file" icon="pi pi-file" iconPos="right" onClick={this.props.generateLogFile} />
                                 <StyledCommandButton
                                     hidden={
                                         this.props.evaluationUploadCheckResults.length == 0 && this.props.dicomUidReplacements != null
                                     }
-                                    className={"text-sm p-button-danger pr-3"} label="Retry" icon="pi pi-sync" iconPos="right" onClick={this.props.retrySubmitUploadPackage} />
+                                    className={"text-sm p-button-success pr-3"} label="Retry" icon="pi pi-sync" iconPos="right" onClick={this.props.retrySubmitUploadPackage} />
                             </React.Fragment>
                         }
 

@@ -16,6 +16,7 @@ import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
 import FileUploadDialogPanel from './FileUploadDialogPanel';
+import RedirectDialog from './RedirectDialog';
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -54,6 +55,7 @@ class Uploader extends Component {
         blockedPanel: false,
         uploadPackageCheckFailedPanel: false,
         fileUploadDialogPanel: false,
+        redirectDialogPanel: false,
         fileUploadInProgress: false,
         evaluationUploadCheckResults: [],
         dicomUidReplacements: [],
@@ -261,6 +263,11 @@ class Uploader extends Component {
      * Redirects the browser window to the landing page of the portal
      */
     redirectToPortal() {
+        this.setState({
+            fileUploadDialogPanel: false,
+            redirectDialogPanel: true
+        })
+
         window.location = `${this.state.rpbPortalUrl}/pacs/dicomPatientStudies.faces?pid=${this.props.pid}&eventid=${this.props.eventOid}&eventrepeatkey=${this.props.eventRepeatKey}`;
     }
 
@@ -840,6 +847,11 @@ class Uploader extends Component {
                     retrySubmitUploadPackage={this.retrySubmitUploadPackage}
                 >
                 </FileUploadDialogPanel>
+
+                <RedirectDialog
+                    redirectDialogPanel={this.state.redirectDialogPanel}
+                >
+                </RedirectDialog>
 
             </Fragment >
 

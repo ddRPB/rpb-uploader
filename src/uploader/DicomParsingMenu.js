@@ -36,14 +36,18 @@ export default class DicomParsingMenu extends Component {
                     model={[{}]}
                     left={
                         <React.Fragment>
-                            <StyledButton className={"pr-3"} label="Reset" icon="pi pi-refresh" iconPos="right" onClick={this.props.resetAll} />
+                            <StyledButton className={"pr-3 p-button-secondary"} label="Reset" icon="pi pi-refresh" iconPos="right" onClick={this.props.resetAll} />
                             <StyledButton
                                 type="button"
                                 label="Loaded:"
-                                className="p-button-outlined p-button-info"
+                                className="p-button-outlined p-button-secondary"
                                 disabled={true}
                             >
-                                <Badge value={this.props.fileLoaded} />
+                                <Badge
+                                    className="text-900"
+                                    value={this.props.fileLoaded}
+
+                                />
                             </StyledButton>
                             <StyledButton
                                 type="button"
@@ -51,7 +55,10 @@ export default class DicomParsingMenu extends Component {
                                 className="p-button-outlined p-button-success"
                                 disabled={true}
                             >
-                                <Badge value={this.props.fileParsed} />
+                                <Badge
+                                    className="text-900"
+                                    value={this.props.fileParsed}
+                                />
                             </StyledButton>
                             <StyledButton
                                 type="button"
@@ -59,17 +66,20 @@ export default class DicomParsingMenu extends Component {
                                 onClick={this.toggleShowIgnoredFile}
                             >
                                 <Badge
-                                    severity="danger"
+                                    severity="warning"
                                     value={Object.keys(this.props.dataIgnoredFiles).length}
                                 />
                             </StyledButton>
                             <StyledButton
                                 type="button"
                                 label="Selected:"
-                                className={"p-button-outlined p-button-info"}
+                                className={"p-button-outlined p-button-secondary"}
                                 disabled={true}
                             >
-                                <Badge value={this.props.selectedDicomFiles.length} />
+                                <Badge
+                                    className="text-900"
+                                    value={this.props.selectedDicomFiles.length}
+                                />
                             </StyledButton>
                         </React.Fragment>}
                     right={
@@ -79,15 +89,16 @@ export default class DicomParsingMenu extends Component {
                                 onClick={this.props.getServerUploadParameter}
                                 icon="pi pi-download"
                                 iconPos="right"
-                                className="p-button-danger"
+                                className='p-button-success'
                                 hidden={this.props.uploadApiKey != null}
                             />
                             <StyledButton
                                 label="Submit"
                                 disabled={Object.keys(this.props.selectedNodeKeys).length === 0}
                                 onClick={this.props.submitUploadPackage}
-                                icon="pi pi-angle-double-right"
+                                icon="pi pi-cloud-upload"
                                 iconPos="right"
+                                className='p-button-success'
                                 hidden={this.props.uploadApiKey === null}
                             />
                         </React.Fragment>
