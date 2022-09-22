@@ -63,8 +63,8 @@ class Uploader extends Component {
         uploadedFiles: [],
         verifiedFiles: [],
         uploadApiKey: null,
-        rpbPortalUrl: "http://10.44.89.55",
-        uploadServiceUrl: "http://10.44.89.55"
+        rpbPortalUrl: "http://10.44.89.9",
+        uploadServiceUrl: "http://10.44.89.9"
     }
 
     seriesSelectionMenuItems = [
@@ -85,7 +85,7 @@ class Uploader extends Component {
 
         this.log.trace('Start Uploader', {}, this.props);
 
-        this.dicomUploadDictionary = new DicomUploadDictionary()
+        this.dicomUploadDictionary = new DicomUploadDictionary();
 
         /**
          * these functions can run within other components (via props) - binding specifies the context (this)
@@ -110,13 +110,130 @@ class Uploader extends Component {
 
         this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log);
 
-        /**
-         * some parameters can`t be transfered within the URL - 
-         * they will be requested from the RPB portal if the session is alive.
-         */
-        this.getServerUploadParameter();
+        this.verifyPropsAndDownloadServerUploadParameter();
     }
 
+    /**
+     * First sanity check if all parameter are available and the connection to the server is alive
+     */
+    verifyPropsAndDownloadServerUploadParameter() {
+        // verify props - connecting the server without the correct parameters doesn't make sense
+        let propsComplete = this.verifyProps();
+
+        if (propsComplete) {
+            this.getServerUploadParameter();
+        }
+    }
+
+    /**
+     * Some of the necessary parameters are transfered via URL and props.
+     * Here we check if they are there and inform the user via toast if not.
+     */
+    verifyProps() {
+        let propsComplete = true;
+
+        if (this.props.studyIdentifier == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyIdentifier');
+        }
+
+        if (this.props.siteIdentifier == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('SiteIdentifier');
+        }
+
+        if (this.props.studyInstanceItemOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyInstanceItemOid');
+        }
+
+        if (this.props.studyOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyOid');
+        }
+
+        if (this.props.studyEdcCode == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyEdcCode');
+        }
+
+        if (this.props.eventOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('EventOid');
+        }
+
+        if (this.props.eventRepeatKey == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('EventRepeatKey');
+        }
+
+        if (this.props.formOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('FormOid');
+        }
+
+        if (this.props.itemGroupOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('ItemGroupOid');
+        }
+
+        if (this.props.itemGroupRepeatKey == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('ItemGroupRepeatKey');
+        }
+
+        if (this.props.itemLabel == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('ItemLabel');
+        }
+
+        if (this.props.subjectId == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('SubjectId');
+        }
+
+        if (this.props.subjectKey == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('SubjectKey');
+        }
+
+        if (this.props.pid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('Pid');
+        }
+
+        if (this.props.dicomPatientIdItemOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('DicomPatientIdItemOid');
+        }
+
+        return propsComplete;
+
+    }
+
+    toastAndLogMissingProp(propName) {
+        this.log.trace('Property ' + propName + ' is null.');
+
+        toast.error(
+            <div>
+                <div>
+                    {propName + ' is null.'}
+                </div>
+                <div>
+                    {'Please verify that the URL has all parameters.'}
+                </div>
+            </div>
+            ,
+            {
+                autoClose: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+            });
+    }
+
+    /**
+     * The uploadSlotParameter object is equal to the DicomUploadSlot of the portal
+     */
     createUploadSlotParameterObject() {
         return {
             studyIdentifier: this.props.studyIdentifier,
@@ -143,6 +260,10 @@ class Uploader extends Component {
         }
     }
 
+    /**
+     * some parameters can`t be transfered within the URL - 
+     * they will be requested from the RPB portal if the session is alive.
+     */
     async getServerUploadParameter() {
         this.log.trace('Requesting upload parameters.');
         if (this.state.uploadApiKey === null && this.state.rpbPortalUrl != null) {
