@@ -63,8 +63,6 @@ class Uploader extends Component {
         uploadedFiles: [],
         verifiedFiles: [],
         uploadApiKey: null,
-        rpbPortalUrl: "http://10.44.89.9",
-        uploadServiceUrl: "http://10.44.89.9"
     }
 
     seriesSelectionMenuItems = [
@@ -256,7 +254,6 @@ class Uploader extends Component {
             dob: this.props.dob,
             yob: this.props.yob,
             gender: this.props.gender,
-            uploadServiceUrl: this.state.uploadServiceUrl,
         }
     }
 
@@ -266,8 +263,8 @@ class Uploader extends Component {
      */
     async getServerUploadParameter() {
         this.log.trace('Requesting upload parameters.');
-        if (this.state.uploadApiKey === null && this.state.rpbPortalUrl != null) {
-            this.fetchUploadParametersFromPortal(this.state.rpbPortalUrl);
+        if (this.state.uploadApiKey === null && this.config.rpbPortalUrl != null) {
+            this.fetchUploadParametersFromPortal(this.config.rpbPortalUrl);
         }
     }
 
@@ -280,7 +277,7 @@ class Uploader extends Component {
         this.log.trace('Requesting upload parameters.', {}, { url });
         toast.dismiss();
         const fetchPromise = toast.promise(
-            fetch(url + '/pacs/rpbUploader.faces'),
+            fetch(url + this.config.portalUploaderParameterLandingPageRelativeUrl),
 
             {
                 pending: 'Connecting to ' + url + '.',
@@ -345,7 +342,7 @@ class Uploader extends Component {
         if (responseJson.apiKey != null) {
             this.setState({ uploadApiKey: responseJson.apiKey });
             this.dicomUploadPackage.setApiKey(this.state.uploadApiKey);
-            this.dicomUploadPackage.setUploadServiceUrl(this.state.uploadServiceUrl);
+            this.dicomUploadPackage.setUploadServiceUrl(this.config.rpbUploadServiceUrl);
 
             this.log.trace('Requesting upload parameters succeed.', {}, {});
 
@@ -389,7 +386,7 @@ class Uploader extends Component {
             redirectDialogPanel: true
         })
 
-        window.location = `${this.state.rpbPortalUrl}/pacs/dicomPatientStudies.faces?pid=${this.props.pid}&eventid=${this.props.eventOid}&eventrepeatkey=${this.props.eventRepeatKey}`;
+        window.location = `${this.config.rpbPortalUrl}${this.config.portalLandingPageRelativeUrl}?pid=${this.props.pid}&eventid=${this.props.eventOid}&eventrepeatkey=${this.props.eventRepeatKey}`;
     }
 
     /**
@@ -581,8 +578,8 @@ class Uploader extends Component {
             }
 
             // preparing de-identification
-            this.log.trace('Requesting generated uids for de-identification', {}, { serviceUrl: this.state.uploadServiceUrl })
-            const dicomUidService = new DicomUidService(uids, this.state.uploadServiceUrl, null, this.state.uploadApiKey);
+            this.log.trace('Requesting generated uids for de-identification', {}, { serviceUrl: this.config.rpbUploadServiceUrl })
+            const dicomUidService = new DicomUidService(uids, this.config.rpbUploadServiceUrl, null, this.state.uploadApiKey);
             const dicomUidRequestPromise = toast.promise(
                 dicomUidService.getUidMap(),
                 {

@@ -3,6 +3,10 @@ import DicomValueRepresentations from "../../constants/DicomValueRepresentations
 import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
 
+/**
+ * The De-Identification configuration specifies the specific actions that will be applied 
+ * to the values of a specific tag element of the DICOM file within the de-identification process.
+ */
 export default class DeIdentificationConfiguration {
 
     constructor(
@@ -12,9 +16,13 @@ export default class DeIdentificationConfiguration {
         additionalTagValuesMap,
         uploadSlot
     ) {
+        // tag -> action code
         this.actionConfigurationMap = actionConfigurationMap;
+        // vr (of the tag) -> replacement value
         this.defaultReplacementsValuesMap = defaultReplacementsValuesMap;
+        // tag -> replacement value
         this.tagSpecificReplacementsValuesMap = tagSpecificReplacementsValuesMap;
+        // additional tags and values that will be added
         this.additionalTagValuesMap = additionalTagValuesMap;
         this.uploadSlot = uploadSlot;
     }
@@ -25,6 +33,9 @@ export default class DeIdentificationConfiguration {
         return this.actionConfigurationMap;
     }
 
+    /**
+     * Returns the function that will be executed for the specific tag and vr
+     */
     getTask(tag, vr) {
         // Mask specific number contingents
         tag = replaceContingentsWithMaskedNumberTag(tag);
@@ -113,6 +124,7 @@ export default class DeIdentificationConfiguration {
         // console.log(`do nothing ${propertyName}`);
     }
 
+    // Implementation of the function for action code D
     replaceWithDummyValue(dictionary, propertyName, replacement) {
         const originalElementValue = dictionary[propertyName].Value;
         if (Array.isArray(originalElementValue)) {
@@ -131,6 +143,7 @@ export default class DeIdentificationConfiguration {
         }
     }
 
+    // Implementation of the function for action code Z
     replaceWithZeroLengthOrDummyValue(dictionary, propertyName, replacement) {
         const originalElementValue = dictionary[propertyName].Value;
         if (Array.isArray(originalElementValue)) {
@@ -162,6 +175,7 @@ export default class DeIdentificationConfiguration {
         }
     }
 
+    // Implementation of the function for action code KP
     keepAndAddPrefix(dictionary, propertyName, prefix) {
         const originalElementValue = dictionary[propertyName].Value;
         if (Array.isArray(originalElementValue)) {
@@ -184,6 +198,7 @@ export default class DeIdentificationConfiguration {
 
     }
 
+    // Implementation of the function for action code U
     replaceUID(dictionary, propertyName, dicomUidReplacements) {
         const originalElementValue = dictionary[propertyName].Value;
         let newElementValue;
@@ -199,10 +214,14 @@ export default class DeIdentificationConfiguration {
 
     }
 
+    // Implementation of the function for action code X
     removeItem(dictionary, propertyName, dicomUidReplacements) {
         delete dictionary[propertyName];
     }
 
+    /**
+     * Adds additional to the data set that describes the applied de-identification process
+     */
     addReplacementTags(dictionary) {
         //Patient Identity Removed Attribute
         if (this.additionalTagValuesMap.get('00120062') != undefined) {
