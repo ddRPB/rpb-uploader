@@ -78,17 +78,27 @@ class Uploader extends Component {
             ...this.defaultState
         };
 
+        // configuration from the index.js
         this.config = this.props.config;
+        // logger for the application
         this.log = this.props.log;
 
         this.log.trace('Start Uploader', {}, this.props);
 
         this.dicomUploadDictionary = new DicomUploadDictionary();
 
-        /**
-         * these functions can run within other components (via props) - binding specifies the context (this)
-         * independent were the fuction is called
-         */
+        this.bindFunctionsToContext();
+
+        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log, this.config);
+
+        this.verifyPropsAndDownloadServerUploadParameter();
+    }
+
+    /**
+    * These functions can run within other components (via props) without loosing the context binding to the Uploader. 
+    * Binding specifies the context (this) independent were the fuction is called.
+    */
+    bindFunctionsToContext() {
         this.selectNodes = this.selectNodes.bind(this);
         this.selectStudy = this.selectStudy.bind(this);
         this.getSelectedFiles = this.updateDicomUploadPackage.bind(this);
@@ -105,10 +115,6 @@ class Uploader extends Component {
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
         this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
         this.redirectToPortal = this.redirectToPortal.bind(this);
-
-        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log);
-
-        this.verifyPropsAndDownloadServerUploadParameter();
     }
 
     /**
@@ -230,7 +236,7 @@ class Uploader extends Component {
     }
 
     /**
-     * The uploadSlotParameter object is equal to the DicomUploadSlot of the portal
+     * The uploadSlotParameter object is equal to the DicomUploadSlot of the portal.
      */
     createUploadSlotParameterObject() {
         return {
@@ -471,6 +477,9 @@ class Uploader extends Component {
         });
     }
 
+    /**
+     * Generates a log file and triggers a UIn dialog via browser that the user can save the file.
+     */
     generateLogFile() {
         let logs = this.log.getLogStore();
         let currentDateTime = new Date();
@@ -515,7 +524,6 @@ class Uploader extends Component {
 
         });
 
-        // var blob1 = new Blob([content], { type: "text/plain;charset=utf-8" });
         var blob1 = new Blob([content], { type: "application/json;charset=utf-8" });
 
         //Check the Browser.
@@ -535,10 +543,18 @@ class Uploader extends Component {
 
     }
 
+    /**
+     * Re-invokes the function to retry the upload.
+     */
     async retrySubmitUploadPackage() {
         this.submitUploadPackage();
     }
 
+    /**
+     * This function coordinates the upload of the data that is handled via the UploadPackage.
+     *  If a step failes it will return immediately with an approriate error message. It checks
+     *  if the step already has been proceed sucessfully and will just retry the missing steps.
+     */
     async submitUploadPackage() {
         let uids, identities, errors = [];
 
