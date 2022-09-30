@@ -3,6 +3,8 @@
 
 const { useBabelRc, addWebpackResolve, addWebpackPlugin, override } = require('customize-cra');
 const webpack = require('webpack');
+const path = require("path");
+const rewireHtmlWebpackPlugin = require('react-app-rewire-html-webpack-plugin')
 
 module.exports = override(
     useBabelRc(),
@@ -15,5 +17,17 @@ module.exports = override(
             buffer: require.resolve('buffer'),
         }
 
-    })
+    }),
+    function override(config, env) {
+        const overrideConfig = {
+            template: path.resolve(__dirname, "public/index.html"),
+            inject: true,
+            favicon: "./public/favicon.ico"
+        }
+        config = rewireHtmlWebpackPlugin(config, env, overrideConfig)
+        return config
+    }
+
+
+
 );
