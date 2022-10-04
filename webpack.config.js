@@ -65,6 +65,9 @@ module.exports = function (_env, argv) {
         },
         resolve: {
             extensions: [".js", ".jsx"],
+            fallback: {
+                buffer: require.resolve('buffer'),
+            },
         },
         plugins: [
             isProduction &&
@@ -79,7 +82,11 @@ module.exports = function (_env, argv) {
             }),
             new HtmlWebpackPlugin({
                 template: path.resolve(__dirname, "public/index.html"),
-                inject: true
+                inject: true,
+                favicon: "./public/favicon.ico"
+            }),
+            new webpack.ProvidePlugin({
+                Buffer: ['buffer', 'Buffer'],
             }),
         ].filter(Boolean)
     };

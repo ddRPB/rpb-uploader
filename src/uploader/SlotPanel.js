@@ -15,19 +15,19 @@ export class SlotPanel extends Component {
     }
 
     getForm() {
-        return this.props.form != null ? this.props.form : this.valueIsNullString;
+        return this.props.formOid != null ? this.props.formOid : this.valueIsNullString;
     }
 
-    getItemGroup() {
-        return this.props.itemGroup != null ? this.props.itemGroup : this.valueIsNullString;
+    getItemGroupOid() {
+        return this.props.itemGroupOid != null ? this.props.itemGroupOid : this.valueIsNullString;
     }
 
     getItemGroupRepeatKey() {
         return this.props.itemGroupRepeatKey != null ? this.props.itemGroupRepeatKey : this.valueIsNullString;
     }
 
-    getItem() {
-        return this.props.item != null ? this.props.item : this.valueIsNullString;
+    getStudyInstanceItemOid() {
+        return this.props.studyInstanceItemOid != null ? this.props.studyInstanceItemOid : this.valueIsNullString;
     }
 
     getItemLabel() {
@@ -54,6 +54,7 @@ export class SlotPanel extends Component {
             <div >
                 <Card title="DICOM Upload Slot">
                     <div className="flex flex-wrap card-container text-sm">
+
                         {this.props.studyIdentifier != null ?
                             <div
                                 className="flex mr-2"
@@ -67,6 +68,7 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
+
                         {this.props.siteIdentifier != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -79,54 +81,14 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
-                        {/* <div className="flex mr-2">
-                            <StyledDivNameComponent className="font-bold">
-                                Form:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getForm()}
-                            </StyledDivValueComponent>
-                        </div>
-                        <div className="flex mr-2">
-                            <StyledDivNameComponent className="font-bold">
-                                ItemGroup:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getItemGroup()}
-                            </StyledDivValueComponent>
-                        </div>
-                        <div className="flex mr-2">
-                            <StyledDivNameComponent className="font-bold">
-                                IG RepeatKey:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getItemGroupRepeatKey()}
-                            </StyledDivValueComponent>
-                        </div>
-                        <div className="flex mr-2" >
-                            <StyledDivNameComponent className="font-bold">
-                                Item:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getItem()}
-                            </StyledDivValueComponent>
-                        </div> */}
-                        {/* <div className="flex mr-2" >
-                            <StyledDivNameComponent className="font-bold">
-                                Item Label:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getItemLabel()}
-                            </StyledDivValueComponent>
-                        </div> */}
-
 
                     </div>
                     <div className="flex flex-wrap card-container text-sm">
+
                         {this.props.subjectId != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
-                                    Subject ID:&nbsp;
+                                    SSID:&nbsp;
                                 </StyledDivNameComponent>
                                 <StyledDivValueComponent>
                                     {this.props.subjectId}
@@ -134,17 +96,7 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
-                        {/* {this.props.subjectKey != null ?
-                            <div className="flex mr-2">
-                                <StyledDivNameComponent className="font-bold">
-                                    Subject Key:&nbsp;
-                                </StyledDivNameComponent>
-                                <StyledDivValueComponent>
-                                    {this.props.subjectKey}
-                                </StyledDivValueComponent>
-                            </div>
-                            : null
-                        } */}
+
                         {this.props.pid != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -156,6 +108,7 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
+
                         {this.props.gender != null ? <div className="flex mr-2" >
                             <StyledDivNameComponent className="font-bold">
                                 Subject Sex:&nbsp;
@@ -166,6 +119,7 @@ export class SlotPanel extends Component {
                         </div>
                             : null
                         }
+
                         {this.props.dob != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -177,6 +131,7 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
+
                         {this.props.dob == null && this.props.yob != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -188,9 +143,9 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
+
                     </div>
-                    {/* </Card>
-                <Card> */}
+
                     <div className="mr-2 flex flex-wrap card-container text-sm">
                         {this.props.eventName != null && this.props.eventRepeatKey != null ?
                             <div className="flex mr-2" >
@@ -203,17 +158,7 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
-                        {/* {this.props.eventRepeatKey != null ?
-                            <div className="flex mr-2" >
-                                <StyledDivNameComponent className="font-bold">
-                                    SE Repeat :&nbsp;
-                                </StyledDivNameComponent>
-                                <StyledDivValueComponent>
-                                    {this.props.eventRepeatKey}
-                                </StyledDivValueComponent>
-                            </div>
-                            : null
-                        } */}
+
                         {this.props.eventStartDate != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -225,6 +170,7 @@ export class SlotPanel extends Component {
                             </div>
                             : null
                         }
+
                         {this.props.eventEndDate != null ?
                             <div className="flex mr-2">
                                 <StyledDivNameComponent className="font-bold">
@@ -245,29 +191,8 @@ export class SlotPanel extends Component {
                                 {this.getItemLabel()}
                             </StyledDivValueComponent>
                         </div>
-                        {/* <div className="flex mr-2" >
-                            <StyledDivNameComponent className="font-bold">
-                                Item:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.props.itemDescription}
-                            </StyledDivValueComponent>
-                        </div> */}
-                        {/* <div className="flex mr-2" >
-                            <StyledDivNameComponent className="font-bold">
-                                Item:&nbsp;
-                            </StyledDivNameComponent>
-                            <StyledDivValueComponent>
-                                {this.getForm()}&#187;
-                                {this.getItemGroup()}&#187;
-                                {this.getItemGroupRepeatKey()}&#187;
-                                {this.getItem()}
-                            </StyledDivValueComponent>
-                        </div> */}
+
                     </div>
-                    {/* </Card>
-                <Card
-                > */}
 
                 </Card>
             </div >
@@ -275,18 +200,4 @@ export class SlotPanel extends Component {
     }
 }
 
-// Defines which state from the Redux store should be pulled to the SlotPanel component
-// it populates this.props.slots from state.Slots.slots reducer
-const mapStateToProps = state => {
-    return {
-        slots: state.Slots.slots,
-    }
-}
-
-// Access to Redux store dispatch methods
-const mapDispatchToProps = {
-
-}
-
-// Connects Uploader component to Redux store
 export default SlotPanel

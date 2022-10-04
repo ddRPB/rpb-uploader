@@ -1,5 +1,6 @@
 /**
  * Provides new generated DICOM UIDs
+ * generate by a web service of the Portal
  */
 export default class DicomUidService {
 
@@ -23,16 +24,13 @@ export default class DicomUidService {
             }
         };
 
-        let response = await fetch(`${this.uidServiceUrl}/api/v1/pacs/uids?count=${this.uids.length}`, args);
+        let response = await fetch(`${this.uidServiceUrl}/api/v1/pacs/generateuids?count=${this.uids.length}`, args);
 
         switch (response.status) {
             case 200:
                 const jsonResponse = await response.json();
                 this.generatedUids = jsonResponse.uidList;
-
                 break;
-
-
             default:
                 throw Error(`Request failed. URL: ${response.url} status: ${response.status} statustext: ${response.statusText}`);
 
@@ -45,7 +43,7 @@ export default class DicomUidService {
     async getUidMap() {
         const errors = [];
 
-        // first run
+        // check if it is the first run or the request has been made already
         if (this.originalUidToPseudomizedUidMap.size === 0) {
             try {
                 await this.requestUidsFromWebService();
@@ -56,10 +54,11 @@ export default class DicomUidService {
                 for (let i = 0; i < this.uids.length; i++) {
                     this.originalUidToPseudomizedUidMap.set(this.uids[i], this.generatedUids[i]);
                 }
+            } else {
+                error.push({ message: `The service did not provide a sufficient count of UIDs (needed: ${this.uids.length} - provided: ${this.generatedUids.length})` });
             }
 
         }
-
 
         return {
             dicomUidReplacements: this.originalUidToPseudomizedUidMap,

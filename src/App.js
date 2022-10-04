@@ -39,21 +39,20 @@ function App(props) {
             studyOid={searchParams.get('studyoid')}
             studyEdcCode={searchParams.get('studyedccode')}
 
-            event={searchParams.get('event')}
+            eventOid={searchParams.get('eventoid')}
             eventRepeatKey={searchParams.get('eventrepeatkey')}
             eventStartDate={searchParams.get('eventstartdate')}
             eventEndDate={searchParams.get('eventenddate')}
             eventName={searchParams.get('eventname')}
             eventDescription={searchParams.get('eventdescription')}
 
-            form={searchParams.get('form')}
-            itemGroup={searchParams.get('itemgroup')}
+            formOid={searchParams.get('formoid')}
+            itemGroupOid={searchParams.get('itemgroupoid')}
             itemGroupRepeatKey={searchParams.get('itemgrouprepeatkey')}
-            item={searchParams.get('item')}
             itemLabel={searchParams.get('itemlabel')}
             itemDescription={searchParams.get('itemdescription')}
 
-            subjectId={searchParams.get('subjectid')}
+            subjectId={searchParams.get('studysubjectid')}
             subjectKey={searchParams.get('subjectkey')}
             pid={searchParams.get('pid')}
             dicomPatientIdItemOid={searchParams.get('dicompatientiditemoid')}
@@ -74,12 +73,12 @@ function App(props) {
             {...props}
             studyIdentifier="Default Study"
             siteIdentifier="DD-Default Study"
-            event="eventId"
+            eventOid="eventId"
             eventRepeatKey="2"
             eventStartDate="2000-01-01"
             eventEndDate="2001-01-01"
-            form="formId"
-            itemGroup="itemGroupId"
+            formOid="formId"
+            itemGroupOid="itemGroupId"
             itemGroupRepeatKey="4"
             item="itemId"
             itemLabel="label"
@@ -92,10 +91,8 @@ function App(props) {
         />;
     }
 
-    // Provider with allowed Redux DevTools
+
     return (
-        // <Provider store={createStoreWithMiddleware(reducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())}>
-        // <Provider store={createStoreWithMiddleware(reducers)}>
         <Fragment>
             <ToastContainer
                 position='top-right'

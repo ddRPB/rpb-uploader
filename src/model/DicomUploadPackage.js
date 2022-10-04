@@ -1,5 +1,4 @@
 import promisePoller from 'promise-poller';
-import DeIdentificationProfiles from "../constants/DeIdentificationProfiles";
 import LogLevels from '../constants/LogLevels';
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
@@ -16,23 +15,17 @@ export default class DicomUploadPackage {
     /**
      * Facade to handle the upload data and the different steps during the upload process.
      */
-    constructor(uploadSlot, logger) {
+    constructor(uploadSlot, logger, config) {
 
         this.setUploadSlotProperty(uploadSlot);
 
-        if (logger != null) {
-            this.log = logger;
-        } else {
-            this.log = new Logger(LogLevels.FATAL);
-        }
+        this.initializeLogger(logger);
 
         this.selectedSeriesObjects = {};
         this.selectedFiles = [];
         this.uids = [];
 
         this.uploadChunks = [];
-        this.chunkSize = 5;
-        this.processedChunksCount = 0;
 
         this.pseudomizedFiles = [];
         this.uploadedFiles = [];
@@ -41,17 +34,56 @@ export default class DicomUploadPackage {
         this.studyInstanceUID = '';
         this.replacedStudyInstanceUID = '';
 
-        const configFactory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, this.uploadSlot);
-        this.deIdentificationConfiguration = configFactory.getConfiguration();
-
-        this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);
+        this.processedChunksCount = 0;
 
         this.apiKey = null;
         this.uploadServiceUrl = null;
 
+        this.setChunkSize(config.chunkSize);
+
+        const configFactory = new DeIdentificationConfigurationFactory(config.deIdentificationProfile, this.uploadSlot);
+        this.deIdentificationConfiguration = configFactory.getConfiguration();
+
+        this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);
+
+
+
+        this.bindFunctionsToContext();
+
+    }
+
+    /**
+    * These functions can run within other components (via props) without loosing the context binding to the DicomUploadPackage. 
+    * Binding specifies the context (this) independent were the fuction is called.
+    */
+    bindFunctionsToContext() {
         // this.evaluateUploadOfSeries = this.evaluateUploadOfSeries.bind(this);
         this.verifySeriesUpload = this.verifySeriesUpload.bind(this);
+    }
 
+    /**
+     * The chunk size defines how many Dicom files will be handeled/uploaded in one chunk.
+     * The limit results mainly from the infrastructure, especialy proxies (e.g.: client_max_body_size in case of nginx).
+     * If the chunk size is too big, the request will be rejected. With a small chunk size, 
+     * the count of requests is bigger and it will take longer to transfer the data.
+     * 
+     */
+    setChunkSize(chunkSize) {
+        if (chunkSize != null) {
+            this.log.trace(`DicomUploadPackage - set chunksize to ${chunkSize}.`);
+            this.chunkSize = chunkSize;
+        } else {
+            this.log.trace(`DicomUploadPackage - set chunksize to default (5).`);
+            this.chunkSize = 5;
+        }
+    }
+
+    initializeLogger(logger) {
+        if (logger != null) {
+            this.log = logger;
+        } else {
+            this.log = new Logger(LogLevels.FATAL);
+        }
     }
 
     setUploadSlotProperty(uploadSlot) {
@@ -119,7 +151,9 @@ export default class DicomUploadPackage {
     }
 
     /**
-     * Prepares the data set for the upload
+     * Prepares the data set for the upload. Splits the data into chunks.
+     * Extract the UID that needs to be replaced and tags that consist of potential identity information.
+     * Errors will be propagated back.
      */
     async prepareUpload(setAnalysedFilesCountValue) {
         let uids = [];
@@ -200,7 +234,7 @@ export default class DicomUploadPackage {
     }
 
     /**
-     * De-identifies the data, based on the provided configuration and uploads the de-identified data to the RPB backend
+     * De-identifies the data, based on the provided configuration and uploads the de-identified data to the RPB backend.
      */
     async deidentifyAndUpload(dicomUidReplacements, setDeIdentifiedFilesCountValue, setUploadedFilesCountValue) {
         let errors = []
@@ -249,12 +283,9 @@ export default class DicomUploadPackage {
                             .addDicomContent(Buffer.from(arrayBuffer.buffer), arrayBuffer.name, sopInstanceUidReplacement, contentDescription);
                     }
 
-                    // await Promise.all(chunk.deidentifiedInstances);
-
                     this.log.trace("chunk de-identified", {}, {
                         studyUid: chunk.originalStudyUid, seriesUid: chunk.originalSeriesUid, files: chunk.originalFileNames,
-                    }
-                    );
+                    });
 
                     chunk.deIdentified = true;
                     this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
@@ -305,8 +336,10 @@ export default class DicomUploadPackage {
 
                             this.log.trace('Upload of chunk was successful', {}, data);
                             break;
-
-                        // todo - 413 - chunk size probably too big
+                        case 413:
+                            this.log.debug('Chunk upload failed. The payload is too large. Consider reducing the chunk size.', {}, data)
+                            errors.push({ message: 'Chunk upload failed. The payload is too large. Consider reducing the chunk size.', data });
+                            return { errors: errors };
                         default:
                             this.log.debug('Chunk upload failed', {}, data)
                             errors.push({ message: 'Chunk upload failed', data });
@@ -326,7 +359,8 @@ export default class DicomUploadPackage {
     }
 
     /**
-     * Verifies that the uploaded DICOM data passed the backend and are available there
+     * Verifies that the uploaded DICOM data passed the backend and are available there.
+     * A polling mechanism allows to wait until the process has been finished.
      */
     async verifySeriesUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
         this.log.trace('Start verification of series', {}, { dicomUidReplacements });
@@ -345,6 +379,7 @@ export default class DicomUploadPackage {
             if (selectedSeries.getInstancesSize() != null) {
                 this.log.trace('Query specific series', {}, data);
 
+                //https://www.npmjs.com/package/promise-poller
                 const interval = 5000;
                 const timeout = 5000;
                 const retries = 25
@@ -429,7 +464,6 @@ export default class DicomUploadPackage {
                 reject('Not all series instances found yet.');
             }
 
-
         } catch (error) {
             this.log.debug('Query for series promise failed with error.', {}, { pid, studyUid, seriesUid, expectedSize, error });
             reject(error);
@@ -441,25 +475,26 @@ export default class DicomUploadPackage {
 
 
     /**
-     * Link Dicom study
+     * The EDC system will refer to the Dicom Study via the Dicom Study UID.
+     * This function will send the web service the information that will trigger that.
      */
     async linkUploadedStudy(setStudyIsLinked, dicomUidReplacements) {
-        this.log.trace('Start linking the study.', {}, { uploadSlot: this.uploadSlot });
+        this.log.trace('Start linking the Dicom study with the EDC system.', {}, { uploadSlot: this.uploadSlot });
 
         let errors = []
-
-        // const allVerified = this.uploadChunks.
-        //     map(chunk => chunk.uploadVerified).
-        //     reduce((prev, curr) => { return prev && curr });
 
         const jsonBody = {
             dicomStudyInstanceItemOid: this.uploadSlot.studyInstanceItemOid,
             dicomStudyInstanceItemValue: dicomUidReplacements.get(this.studyInstanceUID),
             dicomPatientIdItemOid: this.uploadSlot.dicomPatientIdItemOid,
             dicomPatientIdItemValue: this.uploadSlot.pid,
-            itemGroupOid: this.uploadSlot.itemGroup,
-            formOid: this.uploadSlot.form,
-            studyEventOid: this.uploadSlot.event,
+            itemGroupOid: this.uploadSlot.itemGroupOid,
+            formOid: this.uploadSlot.formOid,
+            pid: this.uploadSlot.pid,
+            patientId: this.uploadSlot.pid,
+            studyIdentifier: this.uploadSlot.studyIdentifier,
+            siteIdentifier: this.uploadSlot.siteIdentifier,
+            studyEventOid: this.uploadSlot.eventOid,
             studyEventRepeatKey: this.uploadSlot.eventRepeatKey,
             subjectKey: this.uploadSlot.subjectKey,
             subjectId: this.uploadSlot.subjectId,
@@ -475,20 +510,30 @@ export default class DicomUploadPackage {
             body: JSON.stringify(jsonBody)
         };
 
-        let response = await fetch(`${this.uploadServiceUrl}/api/v1/odm/`, args);
+        let response = await fetch(`${this.uploadServiceUrl}/api/v1/edc/linkdicomstudy`, args);
 
         if (response.status === 200) {
             const result = await response.json();
-            if (result.success) {
-                this.log.trace('Linking request succeed', {}, { response, jsonBody });
-                setStudyIsLinked(true);
-            } else {
-                this.log.trace('Linking request failed', {}, { response, jsonBody });
-                errors.push({ message: 'Linking request failed', response, jsonBody });
-            }
+
+            this.log.trace('Linking request succeed', {}, { response, jsonBody });
+            setStudyIsLinked(true);
+
         } else {
-            this.log.trace('Linking request failed', {}, { response, jsonBody });
-            errors.push({ message: 'Linking request failed', response, jsonBody });
+            let result = null;
+            try {
+                result = await response.json();
+            } catch (e) {
+                // ignore - JSON response is not mandatory if the request failed
+            }
+
+            if (result != null) {
+                const message = 'Linking request failed with response status: ' + response.status + ' . The error message is: ' + result.errors;
+                this.log.trace(message, {}, { response, jsonBody, result });
+                errors.push({ message, response, jsonBody, result });
+            } else {
+                this.log.trace('Linking request failed with response status: ' + response.status + '.', {}, { response, jsonBody });
+                errors.push({ message: 'Linking request failed with response status: ' + response.status + '.', response, jsonBody });
+            }
         }
 
         return {

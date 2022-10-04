@@ -5,7 +5,10 @@ export default class Logger {
     constructor(level) {
         this.level = this.getIntLevelByString(level);
         this.logstore = [];
+        this.logstoreTwo = [];
     }
+
+    getLogStore() { return this.logstoreTwo };
 
     trace(message, context, data) {
         if (context === undefined) {
@@ -75,6 +78,27 @@ export default class Logger {
                 message,
                 context,
                 data
+            });
+
+            let jsonContext = "";
+            try {
+                jsonContext = JSON.stringify(context);
+            } catch (error) {
+                //do nothing
+            }
+
+            let jsonData = "";
+            try {
+                jsonData = JSON.stringify(data);
+            } catch (error) {
+                //do nothing
+            }
+
+            this.logstoreTwo.push({
+                date: new Date(),
+                message,
+                context: jsonContext,
+                data: jsonData
             });
             console.log({
                 date: new Date(),

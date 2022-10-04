@@ -16,6 +16,7 @@ import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
 import FileUploadDialogPanel from './FileUploadDialogPanel';
+import RedirectDialog from './RedirectDialog';
 // Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
@@ -54,6 +55,7 @@ class Uploader extends Component {
         blockedPanel: false,
         uploadPackageCheckFailedPanel: false,
         fileUploadDialogPanel: false,
+        redirectDialogPanel: false,
         fileUploadInProgress: false,
         evaluationUploadCheckResults: [],
         dicomUidReplacements: [],
@@ -61,8 +63,6 @@ class Uploader extends Component {
         uploadedFiles: [],
         verifiedFiles: [],
         uploadApiKey: null,
-        rpbPortalUrl: "http://10.44.89.55",
-        uploadServiceUrl: "http://10.44.89.55"
     }
 
     seriesSelectionMenuItems = [
@@ -78,17 +78,27 @@ class Uploader extends Component {
             ...this.defaultState
         };
 
+        // configuration from the index.js
         this.config = this.props.config;
+        // logger for the application
         this.log = this.props.log;
 
         this.log.trace('Start Uploader', {}, this.props);
 
-        this.dicomUploadDictionary = new DicomUploadDictionary()
+        this.dicomUploadDictionary = new DicomUploadDictionary();
 
-        /**
-         * these functions can run within other components (via props) - binding specifies the context (this)
-         * independent were the fuction is called
-         */
+        this.bindFunctionsToContext();
+
+        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log, this.config);
+
+        this.verifyPropsAndDownloadServerUploadParameter();
+    }
+
+    /**
+    * These functions can run within other components (via props) without loosing the context binding to the Uploader. 
+    * Binding specifies the context (this) independent were the fuction is called.
+    */
+    bindFunctionsToContext() {
         this.selectNodes = this.selectNodes.bind(this);
         this.selectStudy = this.selectStudy.bind(this);
         this.getSelectedFiles = this.updateDicomUploadPackage.bind(this);
@@ -101,19 +111,133 @@ class Uploader extends Component {
         this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
         this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
         this.setStudyIsLinked = this.setStudyIsLinked.bind(this);
+        this.generateLogFile = this.generateLogFile.bind(this);
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
         this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
         this.redirectToPortal = this.redirectToPortal.bind(this);
-
-        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log);
-
-        /**
-         * some parameters can`t be transfered within the URL - 
-         * they will be requested from the RPB portal if the session is alive.
-         */
-        this.getServerUploadParameter();
     }
 
+    /**
+     * First sanity check if all parameter are available and the connection to the server is alive
+     */
+    verifyPropsAndDownloadServerUploadParameter() {
+        // verify props - connecting the server without the correct parameters doesn't make sense
+        let propsComplete = this.verifyProps();
+
+        if (propsComplete) {
+            this.getServerUploadParameter();
+        }
+    }
+
+    /**
+     * Some of the necessary parameters are transfered via URL and props.
+     * Here we check if they are there and inform the user via toast if not.
+     */
+    verifyProps() {
+        let propsComplete = true;
+
+        if (this.props.studyIdentifier == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyIdentifier');
+        }
+
+        if (this.props.siteIdentifier == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('SiteIdentifier');
+        }
+
+        if (this.props.studyInstanceItemOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyInstanceItemOid');
+        }
+
+        if (this.props.studyOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyOid');
+        }
+
+        if (this.props.studyEdcCode == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('StudyEdcCode');
+        }
+
+        if (this.props.eventOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('EventOid');
+        }
+
+        if (this.props.eventRepeatKey == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('EventRepeatKey');
+        }
+
+        if (this.props.formOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('FormOid');
+        }
+
+        if (this.props.itemGroupOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('ItemGroupOid');
+        }
+
+        if (this.props.itemGroupRepeatKey == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('ItemGroupRepeatKey');
+        }
+
+        if (this.props.itemLabel == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('ItemLabel');
+        }
+
+        if (this.props.subjectId == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('SubjectId');
+        }
+
+        if (this.props.subjectKey == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('SubjectKey');
+        }
+
+        if (this.props.pid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('Pid');
+        }
+
+        if (this.props.dicomPatientIdItemOid == null) {
+            propsComplete = false;
+            this.toastAndLogMissingProp('DicomPatientIdItemOid');
+        }
+
+        return propsComplete;
+
+    }
+
+    toastAndLogMissingProp(propName) {
+        this.log.trace('Property ' + propName + ' is null.');
+
+        toast.error(
+            <div>
+                <div>
+                    {propName + ' is null.'}
+                </div>
+                <div>
+                    {'Please verify that the URL has all parameters.'}
+                </div>
+            </div>
+            ,
+            {
+                autoClose: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+            });
+    }
+
+    /**
+     * The uploadSlotParameter object is equal to the DicomUploadSlot of the portal.
+     */
     createUploadSlotParameterObject() {
         return {
             studyIdentifier: this.props.studyIdentifier,
@@ -121,14 +245,13 @@ class Uploader extends Component {
             studyInstanceItemOid: this.props.studyInstanceItemOid,
             studyOid: this.props.studyOid,
             studyEdcCode: this.props.studyEdcCode,
-            event: this.props.event,
+            eventOid: this.props.eventOid,
             eventRepeatKey: this.props.eventRepeatKey,
             eventStartDate: this.props.eventStartDate,
             eventEndDate: this.props.eventEndDate,
-            form: this.props.form,
-            itemGroup: this.props.itemGroup,
+            formOid: this.props.formOid,
+            itemGroupOid: this.props.itemGroupOid,
             itemGroupRepeatKey: this.props.itemGroupRepeatKey,
-            item: this.props.item,
             itemLabel: this.props.itemLabel,
             subjectId: this.props.subjectId,
             subjectKey: this.props.subjectKey,
@@ -137,14 +260,17 @@ class Uploader extends Component {
             dob: this.props.dob,
             yob: this.props.yob,
             gender: this.props.gender,
-            uploadServiceUrl: this.state.uploadServiceUrl,
         }
     }
 
+    /**
+     * some parameters can`t be transfered within the URL - 
+     * they will be requested from the RPB portal if the session is alive.
+     */
     async getServerUploadParameter() {
         this.log.trace('Requesting upload parameters.');
-        if (this.state.uploadApiKey === null && this.state.rpbPortalUrl != null) {
-            this.fetchUploadParametersFromPortal(this.state.rpbPortalUrl);
+        if (this.state.uploadApiKey === null && this.config.rpbPortalUrl != null) {
+            this.fetchUploadParametersFromPortal(this.config.rpbPortalUrl);
         }
     }
 
@@ -157,7 +283,7 @@ class Uploader extends Component {
         this.log.trace('Requesting upload parameters.', {}, { url });
         toast.dismiss();
         const fetchPromise = toast.promise(
-            fetch(url + '/pacs/rpbUploader.faces'),
+            fetch(url + this.config.portalUploaderParameterLandingPageRelativeUrl),
 
             {
                 pending: 'Connecting to ' + url + '.',
@@ -222,7 +348,7 @@ class Uploader extends Component {
         if (responseJson.apiKey != null) {
             this.setState({ uploadApiKey: responseJson.apiKey });
             this.dicomUploadPackage.setApiKey(this.state.uploadApiKey);
-            this.dicomUploadPackage.setUploadServiceUrl(this.state.uploadServiceUrl);
+            this.dicomUploadPackage.setUploadServiceUrl(this.config.rpbUploadServiceUrl);
 
             this.log.trace('Requesting upload parameters succeed.', {}, {});
 
@@ -261,7 +387,12 @@ class Uploader extends Component {
      * Redirects the browser window to the landing page of the portal
      */
     redirectToPortal() {
-        window.location = `${this.state.rpbPortalUrl}/pacs/dicomPatientStudies.faces?pid=${this.props.pid}&eventid=${this.props.event}&eventrepeatkey=${this.props.eventRepeatKey}`;
+        this.setState({
+            fileUploadDialogPanel: false,
+            redirectDialogPanel: true
+        })
+
+        window.location = `${this.config.rpbPortalUrl}${this.config.portalLandingPageRelativeUrl}?pid=${this.props.pid}&eventid=${this.props.eventOid}&eventrepeatkey=${this.props.eventRepeatKey}`;
     }
 
     /**
@@ -346,10 +477,84 @@ class Uploader extends Component {
         });
     }
 
+    /**
+     * Generates a log file and triggers a UIn dialog via browser that the user can save the file.
+     */
+    generateLogFile() {
+        let logs = this.log.getLogStore();
+        let currentDateTime = new Date();
+
+        let fileNameComponents = [
+            currentDateTime.getFullYear(),
+            currentDateTime.getMonth(),
+            currentDateTime.getDay(),
+            currentDateTime.getHours(),
+            currentDateTime.getMinutes()
+        ];
+
+        let fileName = fileNameComponents.join('-') + '-uploader-logs.json'
+
+        let content = JSON.stringify({
+            date: currentDateTime.toISOString(),
+            uploadSlot: {
+                siteIdentifier: this.props.siteIdentifier,
+                studyInstanceItemOid: this.props.studyInstanceItemOid,
+                studyOid: this.props.studyOid,
+                studyEdcCode: this.props.studyEdcCode,
+                eventOid: this.props.eventOid,
+                eventRepeatKey: this.props.eventRepeatKey,
+                eventStartDate: this.props.eventStartDate,
+                eventEndDate: this.props.eventEndDate,
+                eventName: this.props.eventName,
+                eventDescription: this.props.eventDescription,
+                formOid: this.props.formOid,
+                itemGroupOid: this.props.itemGroupOid,
+                itemGroupRepeatKey: this.props.itemGroupRepeatKey,
+                itemLabel: this.props.itemLabel,
+                itemDescription: this.props.itemDescription,
+                subjectId: this.props.subjectId,
+                subjectKey: this.props.subjectKey,
+                pid: this.props.pid,
+                dicomPatientIdItemOid: this.props.dicomPatientIdItemOid,
+                dob: this.props.dob,
+                yob: this.props.yob,
+                gender: this.props.gender
+            },
+            logs: logs
+
+        });
+
+        var blob1 = new Blob([content], { type: "application/json;charset=utf-8" });
+
+        //Check the Browser.
+        let isIE = false || !!document.documentMode;
+        if (isIE) {
+            window.navigator.msSaveBlob(blob1, fileName);
+        } else {
+            let url = window.URL || window.webkitURL;
+            let link = url.createObjectURL(blob1);
+            let a = document.createElement("a");
+            a.download = fileName;
+            a.href = link;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+    }
+
+    /**
+     * Re-invokes the function to retry the upload.
+     */
     async retrySubmitUploadPackage() {
         this.submitUploadPackage();
     }
 
+    /**
+     * This function coordinates the upload of the data that is handled via the UploadPackage.
+     *  If a step failes it will return immediately with an approriate error message. It checks
+     *  if the step already has been proceed sucessfully and will just retry the missing steps.
+     */
     async submitUploadPackage() {
         let uids, identities, errors = [];
 
@@ -389,8 +594,8 @@ class Uploader extends Component {
             }
 
             // preparing de-identification
-            this.log.trace('Requesting generated uids for dei-identification', {}, { serviceUrl: this.state.uploadServiceUrl })
-            const dicomUidService = new DicomUidService(uids, this.state.uploadServiceUrl, null, this.state.uploadApiKey);
+            this.log.trace('Requesting generated uids for de-identification', {}, { serviceUrl: this.config.rpbUploadServiceUrl })
+            const dicomUidService = new DicomUidService(uids, this.config.rpbUploadServiceUrl, null, this.state.uploadApiKey);
             const dicomUidRequestPromise = toast.promise(
                 dicomUidService.getUidMap(),
                 {
@@ -509,31 +714,6 @@ class Uploader extends Component {
     }
 
     /**
-     * Init that fires once after HTML render
-     */
-    componentDidMount = () => {
-        // this.loadAvailableUploadSlots()
-    }
-
-    /**
-     * Will fire when uploader component is removed from DOM
-     */
-    componentWillUnmount = () => {
-        // this.props.resetRedux()
-    }
-
-    /**
-     * Load all available upload slots in slot reducer
-     */
-    loadAvailableUploadSlots = () => {
-        // let uploadSlots = this.props.config.availableUploadSlots
-
-        // uploadSlots.forEach(uploadSlot => {
-        //     this.props.addSlot(uploadSlot)
-        // })
-    }
-
-    /**
      * Read dropped files (listen to DropZone event)
      * @param {Array} files
      */
@@ -588,8 +768,8 @@ class Uploader extends Component {
      * @param {File} file
      */
     read = async (file) => {
+        let dicomFile = new DicomFile(file)
         try {
-            let dicomFile = new DicomFile(file)
             await dicomFile.readDicomFile()
 
             // DicomDir do no register file
@@ -624,12 +804,13 @@ class Uploader extends Component {
 
         } catch (error) {
             // In case of exception register file in ignored file list
-
             // Save only message of error
             let errorMessage = error
             if (typeof error === 'object') {
                 errorMessage = error.message
             }
+            this.log.trace('Parsing of a file failed. ', {}, { dicomFile, errorMessage });
+
             this.setState(state => {
                 return {
                     ignoredFiles: {
@@ -641,33 +822,22 @@ class Uploader extends Component {
         }
     }
 
+    /**
+     * Compares the patientId of the selected study with the patientId of the DICOM file to ensure that data from
+     * different patients will not mixed.
+     */
     verifyPatientIdIsConsistent(dicomFile, study) {
         const patientIdFromFile = dicomFile.getPatientID();
         const patientIdFromStudy = study.getPatientID();
 
         if (patientIdFromFile != "" && patientIdFromStudy != "") {
             if (study.getPatientID().toUpperCase() != dicomFile.getPatientID().toUpperCase()) {
-                throw Error(`PatientId is different from other files that belong to the study. Study: \'${study.getPatientID()}\' File: \'${dicomFile.getPatientID()}\'`);
+                let errorMessage = `PatientId is different from other files that belong to the study. Study: \'${study.getPatientID()}\' File: \'${dicomFile.getPatientID()}\'`;
+                this.log.trace(errorMessage, {}, { dicomFile, study });
+                throw Error(errorMessage);
             }
         }
     }
-
-    // /**
-    //  * Generate warnings for a given study
-    //  * @param {*} studyRedux
-    //  */
-    // getStudyWarning = async (studyRedux) => {
-    //     let warnings = []
-
-    //     // If Slot ID is not set add Null Slot ID (slotID Needs to be assigned)
-    //     if (studyRedux.slotID == null) warnings.push(NULL_SLOT_ID)
-
-    //     // Check if study is already known by server
-    //     let newStudy = await this.props.config.isNewStudy(studyRedux.studyInstanceUID)
-    //     if (!newStudy) warnings.push(ALREADY_KNOWN_STUDY)
-
-    //     return warnings
-    // }
 
     /**
      * Render the component
@@ -682,17 +852,16 @@ class Uploader extends Component {
                         siteIdentifier={this.props.siteIdentifier}
                         studyInstanceItemOid={this.props.studyInstanceItemOid}
 
-                        event={this.props.event}
+                        eventOid={this.props.eventOid}
                         eventRepeatKey={this.props.eventRepeatKey}
                         eventStartDate={this.props.eventStartDate}
                         eventEndDate={this.props.eventEndDate}
                         eventName={this.props.eventName}
                         eventDescription={this.props.eventDescription}
 
-                        form={this.props.form}
-                        itemGroup={this.props.itemGroup}
+                        formOid={this.props.formOid}
+                        itemGroupOid={this.props.itemGroupOid}
                         itemGroupRepeatKey={this.props.itemGroupRepeatKey}
-                        item={this.props.item}
                         itemLabel={this.props.itemLabel}
                         itemDescription={this.props.itemDescription}
 
@@ -808,9 +977,15 @@ class Uploader extends Component {
 
                     evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
                     dicomUidReplacements={this.state.dicomUidReplacements}
+                    generateLogFile={this.generateLogFile}
                     retrySubmitUploadPackage={this.retrySubmitUploadPackage}
                 >
                 </FileUploadDialogPanel>
+
+                <RedirectDialog
+                    redirectDialogPanel={this.state.redirectDialogPanel}
+                >
+                </RedirectDialog>
 
             </Fragment >
 

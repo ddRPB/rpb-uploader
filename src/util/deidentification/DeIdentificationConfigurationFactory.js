@@ -6,8 +6,16 @@ import DicomValueRepresentations from "../../constants/DicomValueRepresentations
 import DeIdentificationConfiguration from "./DeidentificationConfiguration";
 
 // https://www.dicomstandard.org/News-dir/ftsup/docs/sups/sup142.pdf
-// https://dicom.nema.org/medical/dicom/current/output/html/part15.html#table_E.1-1 
+// https://dicom.nema.org/medical/dicom/current/output/html/part15.html#table_E.1-1
 
+/**
+ * De-Identification helps to make use of patient data without exposing details that are not related to the research, 
+ * for instance: the real patient name. The DICOM standard describes different possible profiles, based on that profiles 
+ * actions are applied to a specific tag. This class allows to create a DeIdentificationConfiguration for a profile, 
+ * specified in the constructor.
+ * 
+ * It is based on Supplement 142 from the DICOM standard with some RPB specific modifications and implementation details.
+ */
 export default class DeIdentificationConfigurationFactory {
 
     constructor(profile, uploadSlot) {
@@ -18,8 +26,8 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap = new Map();
 
         this.patientIdentitityRemoved = 'true'; // true - current default setting
-        this.rpbSpecificActions = true, // some modifications that are RPB specific 
-            this.appliedDeIdentificationSteps = [];
+        this.rpbSpecificActions = true; // some modifications that are RPB specific 
+        this.appliedDeIdentificationSteps = [];
 
         this.createBasicProfile();
         this.createDefaultReplacementsValuesMap();
@@ -549,12 +557,13 @@ export default class DeIdentificationConfigurationFactory {
 
     }
 
+    // In RPB projects, some tags will be prefixed
     createRpbAction() {
         this.actionConfigurationMap.set('00081030', { action: DeIdentificationActionCodes.KP });
         this.actionConfigurationMap.set('0008103E', { action: DeIdentificationActionCodes.KP });
-        this.actionConfigurationMap.set('00080090', { action: DeIdentificationActionCodes.D });
     }
 
+    // Default replacements, based on the data type of the tag
     createDefaultReplacementsValuesMap() {
         this.defaultReplacementsValuesMap.set('default', '');
         // Date
@@ -568,12 +577,14 @@ export default class DeIdentificationConfigurationFactory {
     }
 
     createTagSpecificReplacementsValuesMap() {
+
+        // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
         if (this.uploadSlot.pid != undefined) {
             this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid)
             this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid)
-
         }
 
+        // In RPB projects, the referring Physician name will be replaced
         if (this.rpbSpecificActions) {
             if (this.uploadSlot.studyEdcCode != null && this.uploadSlot.subjectId != null) {
                 this.tagSpecificReplacementsValuesMap.set(
@@ -603,6 +614,9 @@ export default class DeIdentificationConfigurationFactory {
         this.actionConfigurationMap.set('00181007', this.actionConfigurationMap.get('00181007').action = DeIdentificationActionCodes.K);
     }
 
+    /**
+     * The data set needs to be annotated that de-identification was applied
+     */
     addAdditionalDeIdentificationRelatedTags() {
         this.additionalTagValuesMap.set('00120062', this.patientIdentitityRemoved);
         this.additionalTagValuesMap.set(

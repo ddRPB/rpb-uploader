@@ -1,5 +1,5 @@
 /**
- * DicomUploadDictionary model aggregating studies selected for upload
+ * The DicomUploadDictionary model aggregates studies, based on the provided files.
  */
 export default class DicomUploadDictionary {
 
