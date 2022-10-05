@@ -88,6 +88,12 @@ module.exports = function (_env, argv) {
             new webpack.ProvidePlugin({
                 Buffer: ['buffer', 'Buffer'],
             }),
+            // adding copyright and license information to the webpack output *.js.LICENSE.txt
+            new webpack.BannerPlugin(
+                "RPB-uploader " +
+                "Copyright (C) 2013-2022 RPB Team. " +
+                "@license AGPL-3.0-or-later"
+            ),
         ].filter(Boolean)
     };
 };

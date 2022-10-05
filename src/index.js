@@ -20,8 +20,8 @@ import DeIdentificationProfiles from './constants/DeIdentificationProfiles'
  * deIdentificationProfile: default de-identification profile
  */
 const config = {
-    rpbPortalUrl: 'http://10.44.89.9',
-    rpbUploadServiceUrl: 'http://10.44.89.9',
+    rpbPortalUrl: 'http://localhost:8080',
+    rpbUploadServiceUrl: 'http://localhost:8080',
     portalUploaderParameterLandingPageRelativeUrl: '/pacs/rpbUploader.faces',
     portalLandingPageRelativeUrl: '/pacs/dicomPatientStudies.faces',
     chunkSize: 5,
