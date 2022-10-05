@@ -1,12 +1,28 @@
-// React and Redux
-// Primereact
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
 import { BlockUI } from 'primereact/blockui';
 import { Divider } from 'primereact/divider';
 import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
 import { Component, Fragment } from 'react';
 import { toast } from 'react-toastify';
-// DICOM processing
 import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
@@ -17,11 +33,9 @@ import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
 import FileUploadDialogPanel from './FileUploadDialogPanel';
 import RedirectDialog from './RedirectDialog';
-// Custom GUI components
 import SlotPanel from './SlotPanel';
 import { TreeSelection } from "./TreeSelection";
 import UploadPackageCheckDialogPanel from './UploadPackageCheckDialogPanel';
-
 
 
 /**
@@ -141,10 +155,10 @@ class Uploader extends Component {
             this.toastAndLogMissingProp('StudyIdentifier');
         }
 
-        if (this.props.siteIdentifier == null) {
-            propsComplete = false;
-            this.toastAndLogMissingProp('SiteIdentifier');
-        }
+        // if (this.props.siteIdentifier == null) {
+        //     propsComplete = false;
+        //     this.toastAndLogMissingProp('SiteIdentifier');
+        // }
 
         if (this.props.studyInstanceItemOid == null) {
             propsComplete = false;
@@ -353,11 +367,11 @@ class Uploader extends Component {
             this.log.trace('Requesting upload parameters succeed.', {}, {});
 
             toast.dismiss();
-            toast.success(
-                <div>
-                    {'Connection succeed.'}
-                </div>
-            );
+            // toast.success(
+            //     <div>
+            //         {'Connection succeed.'}
+            //     </div>
+            // );
         }
 
         return;

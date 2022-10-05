@@ -1,22 +1,42 @@
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
 import dcmjs from 'dcmjs';
+import Logger from '../logging/Logger';
 
-const { DicomMetaDictionary, DicomDict, DicomMessage } = dcmjs.data;
-const { cleanTags } = dcmjs.anonymizer;
-
+const { DicomMessage } = dcmjs.data;
 
 export default class DicomFileDeIdentificationComponentDcmjs {
-
 
     constructor(dicomUidReplacements, configuration, fileObject, logger) {
         this.dicomUidReplacements = dicomUidReplacements;
         this.configuration = configuration;
         this.fileObject = fileObject;
+        this.initializeLogger(logger);
+    }
+
+    initializeLogger(logger) {
         if (logger != null) {
             this.log = logger;
         } else {
             this.log = new Logger(LogLevels.FATAL);
         }
-
     }
 
     async getBufferForTest() {
@@ -37,8 +57,6 @@ export default class DicomFileDeIdentificationComponentDcmjs {
             buffer: this.deIdentDicomFile(arrayBuffer)
         };
     }
-
-
 
     __pFileReader(file) {
         return new Promise((resolve, reject) => {
