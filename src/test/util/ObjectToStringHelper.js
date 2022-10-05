@@ -11,7 +11,12 @@ export function replacer(key, value) {
                 dataType: 'Map',
                 value: Array.from(value.entries()), // or with spread: value: [...value]
             };
-            console.log(value);
+            break;
+        case "parameters":
+            return {
+                dataType: 'Map',
+                value: Array.from(value.entries()), // or with spread: value: [...value]
+            };
             break;
         default:
             return value;

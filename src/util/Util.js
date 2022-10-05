@@ -1,3 +1,22 @@
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
 export default class Util {
     /**
      * Format date for display
@@ -50,7 +69,7 @@ export default class Util {
      * @return {Boolean}
      */
     static formatRawDate(rawDate) {
-        if(rawDate === '') return rawDate
+        if (rawDate === '') return rawDate
         else return (rawDate.substring(4, 6) + '-' + rawDate.substring(6, 8) + '-' + rawDate.substring(0, 4))
     }
 

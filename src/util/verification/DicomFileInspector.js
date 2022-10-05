@@ -1,19 +1,48 @@
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
 import dcmjs from 'dcmjs';
 import DicomValueRepresentations from '../../constants/DicomValueRepresentations';
+import Logger from '../logging/Logger';
 
-
-const { DicomMetaDictionary, DicomDict, DicomMessage } = dcmjs.data;
-const { cleanTags } = dcmjs.anonymizer;
-
+const { DicomMessage } = dcmjs.data;
 
 export default class DicomFileInspector {
 
-
-    constructor(fileObject, deIdentificationConfiguration) {
+    /**
+     * Parses a Dicom file. Extracts the UIDs that are supposed to be replaced in the de-identification step.
+     * Additionally, it extracts all identifiers (vr is PN) if the data set is not already marked with patient identity removed.
+     */
+    constructor(fileObject, deIdentificationConfiguration, logger) {
         this.fileObject = fileObject;
         this.deIdentificationConfiguration = deIdentificationConfiguration;
+        this.initializeLogger(logger);
         this.uids = [];
 
+    }
+
+    initializeLogger(logger) {
+        if (logger != null) {
+            this.log = logger;
+        } else {
+            this.log = new Logger(LogLevels.FATAL);
+        }
     }
 
     async getBufferForTest() {
@@ -28,7 +57,7 @@ export default class DicomFileInspector {
             const parsingResult = this.readDicomFile(arrayBuffer);
             return parsingResult;
         } catch (e) {
-            console.log("DicomFileInspector.analyzeFile : " + e.toString());
+            this.log.trace("DicomFileInspector.analyzeFile failed : " + e.toString());
         }
 
     }
@@ -45,7 +74,7 @@ export default class DicomFileInspector {
                 resolve(fileReader);
             }
             fileReader.onerror = (error) => {
-                console.log("DicomFileInspector.__pFileReader: " + error);
+                this.log.trace("DicomFileInspector.__pFileReader  failed: " + error);
                 reject(error);
             }
         });
@@ -60,7 +89,7 @@ export default class DicomFileInspector {
         try {
             dataSet = DicomMessage.readFile(arrayBuffer);
         } catch (e) {
-            console.log("DicomFileInspector.readDicomFile.readFile: " + e.toString());
+            this.log.trace("DicomFileInspector.readDicomFile.readFile failed: " + e.toString());
         }
         try {
             let parsingResultMeta = this.parseDicomData(dataSet.meta);
@@ -68,7 +97,7 @@ export default class DicomFileInspector {
                 uidArray = uidArray.concat(parsingResultMeta.uidArray);
             }
         } catch (e) {
-            console.log("DicomFileInspector.readDicomFile.this.dataSet.meta: " + e.toString());
+            this.log.trace("DicomFileInspector.readDicomFile.this.dataSet.meta failed: " + e.toString());
         } try {
             let parsingResult = this.parseDicomData(dataSet.dict);
             if (parsingResult.uidArray) {
@@ -78,7 +107,7 @@ export default class DicomFileInspector {
                 identities = identities.concat(parsingResult.identities);
             }
         } catch (e) {
-            console.log("DicomFileInspector.readDicomFile  this.dataSet.dict: " + e.toString());
+            this.log.trace("DicomFileInspector.readDicomFile failed: " + e.toString());
         }
 
         return {
@@ -123,13 +152,15 @@ export default class DicomFileInspector {
                         break;
 
                     case DicomValueRepresentations.PN:
-                        const identityData = {};
-                        let value = element.Value;
-                        // unwrap array value if there is just one item
-                        if (Array.isArray(value)) {
-                            identities = identities.concat(value);
-                        } else {
-                            identities.push(value);
+
+                        if (!identityRemoved) {
+                            let value = element.Value;
+                            // unwrap array value if there is just one item
+                            if (Array.isArray(value)) {
+                                identities = identities.concat(value);
+                            } else {
+                                identities.push(value);
+                            }
                         }
 
                         break;
