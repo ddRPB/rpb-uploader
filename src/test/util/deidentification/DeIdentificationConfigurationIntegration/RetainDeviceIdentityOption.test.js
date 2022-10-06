@@ -1,0 +1,98 @@
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
+import { applyConfigAction } from './../DeIdentificationConfigurationFactory.test'
+import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations'
+import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles'
+import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
+
+describe('Retain Device Identity Option Integration Test', () => {
+    const dummyPid = 'dummyPid';
+    const dummySubjectId = 'dummy-subject-id';
+    const dummyStudyEdcCode = 'dummy-edc-code';
+
+    const uploadSlot = {
+        studyEdcCode: dummyStudyEdcCode,
+        subjectId: dummySubjectId,
+        pid: dummyPid
+    };
+
+    const profile = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
+    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    const deIdentConfig = factory.getConfiguration();
+    const dummyItemValue = 'dummyValue';
+
+    let dict = {
+        '300C0127': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0014407E': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181203': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0014407C': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181007': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181200': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0018700C': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181202': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0018700A': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00500020': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '3010002D': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181000': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181002': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181008': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181005': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0016004F': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00160050': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00160051': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0016004E': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0018100B': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '30100043': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00203401': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '04000563': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00400241': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00404030': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00400242': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00404028': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181004': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00400011': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00400001': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00404027': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00400010': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00404025': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00321020': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00321021': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '300A0216': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '30080105': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00081010': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181201': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0018700E': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00185011': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '300A00B2': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '0018100A': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00181009': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00189371': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00189373': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+        '00189367': { Value: dummyItemValue, vr: DicomValueRepresentations.DT },
+    };
+
+    test("Option ensures that the specific values will be keeped.", () => {
+        for (let key of Object.keys(dict)) {
+            applyConfigAction(deIdentConfig, dict, key, DicomValueRepresentations.DT);
+            expect(dict[key].Value).toBe(dummyItemValue);
+        }
+    })
+
+})
