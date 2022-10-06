@@ -19,8 +19,8 @@
 
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
-import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodes";
-import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodesMeaning";
+import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes";
+import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
 import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
 
@@ -748,6 +748,7 @@ export default class DeIdentificationConfigurationFactory {
 
         // https://dicom.innolitics.com/ciods/enhanced-sr/patient/00120064/00080100
         // https://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_8.html#chapter_8
+        // https://dicom.nema.org/dicom/2013/output/chtml/part16/sect_CID_7050.html
 
         const deIdentificationStepsObject = [];
         for (let stepDescription of this.appliedDeIdentificationSteps) {

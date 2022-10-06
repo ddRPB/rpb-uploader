@@ -17,10 +17,12 @@
  * 
  */
 
-import { applyConfigAction } from './../DeIdentificationConfigurationFactory.test'
-import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations'
-import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles'
+import DeidentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
+import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
+import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
+import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations';
+import { applyConfigAction } from './../DeIdentificationConfigurationFactory.test';
 
 describe('Retain Device Identity Option Integration Test', () => {
     const dummyPid = 'dummyPid';
@@ -35,6 +37,7 @@ describe('Retain Device Identity Option Integration Test', () => {
 
     const profile = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
     const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
     const dummyItemValue = 'dummyValue';
 
@@ -93,6 +96,21 @@ describe('Retain Device Identity Option Integration Test', () => {
             applyConfigAction(deIdentConfig, dict, key, DicomValueRepresentations.DT);
             expect(dict[key].Value).toBe(dummyItemValue);
         }
+    })
+
+    test("Additional tags will indicate that the option is used on the data set", () => {
+        // Patient Identity Removed Attribute
+        expect(deIdentConfig.additionalTagValuesMap.get('00120062')).toBe('true');
+        // De-identification Method Attribute
+        expect(deIdentConfig.additionalTagValuesMap.get('00120063')).toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
+        // De-identification Method Code Sequence Attribute
+        const usedMethods = deIdentConfig.additionalTagValuesMap.get('00120064')
+        expect(usedMethods.length).toBe(2);
+        const lastMethod = usedMethods[1];
+        // Coding Scheme Designator Attribute
+        expect(lastMethod['00080100'].Value).toEqual([DeidentificationProfileCodes.RETAIN_DEVICE_IDENTITY]);
+        expect(lastMethod['00080102'].Value).toEqual(['DCM']);
+        expect(lastMethod['00080104'].Value).toEqual([DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY]);
     })
 
 })

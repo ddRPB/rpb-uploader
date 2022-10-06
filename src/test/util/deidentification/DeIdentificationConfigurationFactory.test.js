@@ -1,4 +1,7 @@
+import DeIdentificationActionCodes from "../../../constants/DeIdentificationActionCodes";
 import DeIdentificationProfiles from "../../../constants/DeIdentificationProfiles";
+import DeidentificationProfileCodes from "../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes";
+import DeIdentificationProfileCodesMeaning from "../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
 import DicomValueRepresentations from "../../../constants/DicomValueRepresentations";
 import DeIdentificationConfigurationFactory from "../../../util/deidentification/DeIdentificationConfigurationFactory";
 
@@ -134,8 +137,30 @@ describe('Test DeIdentificationConfigurationFactory', () => {
             expect(tagDict['00120062'].Value).toStrictEqual(['true']);
             expect(tagDict['00120063'].Value).toStrictEqual(['Per DICOM PS 3.15 AnnexE. Details in 0012,0064']);
 
+        })
+
+        test("Additional tags will indicate that the basic profile was applied on the data set", () => {
+
+            const profile = DeIdentificationProfiles.BASIC;
+            const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+            factory.addAdditionalDeIdentificationRelatedTags();
+            const deIdentConfig = factory.getConfiguration();
+
+            // Patient Identity Removed Attribute
+            expect(deIdentConfig.additionalTagValuesMap.get('00120062')).toBe('true');
+            // De-identification Method Attribute
+            expect(deIdentConfig.additionalTagValuesMap.get('00120063')).toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
+            // De-identification Method Code Sequence Attribute
+            const usedMethods = deIdentConfig.additionalTagValuesMap.get('00120064')
+            expect(usedMethods.length).toBe(1);
+            const lastMethod = usedMethods[0];
+            // Coding Scheme Designator Attribute
+            expect(lastMethod['00080100'].Value).toEqual([DeidentificationProfileCodes.BASIC]);
+            expect(lastMethod['00080102'].Value).toEqual(['DCM']);
+            expect(lastMethod['00080104'].Value).toEqual([DeIdentificationProfileCodesMeaning.BASIC]);
 
         })
+
 
     })
 })
