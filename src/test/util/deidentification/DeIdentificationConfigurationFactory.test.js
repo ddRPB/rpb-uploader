@@ -70,6 +70,7 @@ describe('Test DeIdentificationConfigurationFactory', () => {
         })
 
         test("extra RPB profile action codes", () => {
+            const dummyItemValue = 'dummyValue';
             const profile = DeIdentificationProfiles.BASIC;
             const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
             const deIdentConfig = factory.getConfiguration();
@@ -78,9 +79,21 @@ describe('Test DeIdentificationConfigurationFactory', () => {
 
             expect(configurationMap.get('00081030')).toStrictEqual({ action: 'KP' });
             expect(configurationMap.get('0008103E')).toStrictEqual({ action: 'KP' });
-            expect(configurationMap.get('00080090')).toStrictEqual({ action: 'D' });
-        })
 
+            let dict = {
+                '00080090': { Value: dummyItemValue, vr: DicomValueRepresentations.PN },
+                '00081030': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+                '0008103E': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+            };
+
+            applyConfigAction(deIdentConfig, dict, '00080090', 'PN');
+            applyConfigAction(deIdentConfig, dict, '00081030', 'LO');
+            applyConfigAction(deIdentConfig, dict, '0008103E', 'LO');
+
+            expect(dict['00080090'].Value).toBe('(' + dummyStudyEdcCode + ')-' + dummySubjectId);
+            expect(dict['00081030'].Value).toBe('(' + dummyStudyEdcCode + ')-' + dummyItemValue);
+            expect(dict['0008103E'].Value).toBe('(' + dummyStudyEdcCode + ')-' + dummyItemValue);
+        })
 
     })
 
@@ -126,3 +139,8 @@ describe('Test DeIdentificationConfigurationFactory', () => {
 
     })
 })
+
+export function applyConfigAction(deIdentConfig, dict, propertyName, vr) {
+    let { action, parameter } = deIdentConfig.getTask(propertyName, vr);
+    action(dict, propertyName, parameter);
+}

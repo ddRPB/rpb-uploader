@@ -22,7 +22,7 @@ import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
 import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodes";
 import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodesMeaning";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
-import DeIdentificationConfiguration from "./DeidentificationConfiguration";
+import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
 
 // https://www.dicomstandard.org/News-dir/ftsup/docs/sups/sup142.pdf
 // https://dicom.nema.org/medical/dicom/current/output/html/part15.html#table_E.1-1
