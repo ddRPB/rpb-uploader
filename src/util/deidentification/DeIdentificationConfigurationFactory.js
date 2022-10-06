@@ -1,3 +1,22 @@
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
 import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodes";
@@ -18,7 +37,7 @@ import DeIdentificationConfiguration from "./DeidentificationConfiguration";
  */
 export default class DeIdentificationConfigurationFactory {
 
-    constructor(profile, uploadSlot) {
+    constructor(profileOptions, uploadSlot) {
         this.uploadSlot = uploadSlot;
         this.actionConfigurationMap = new Map();
         this.defaultReplacementsValuesMap = new Map();
@@ -33,7 +52,27 @@ export default class DeIdentificationConfigurationFactory {
         this.createDefaultReplacementsValuesMap();
         this.createTagSpecificReplacementsValuesMap();
 
-        switch (profile) {
+        this.applyProfileOptions(profileOptions);
+
+        if (this.rpbSpecificActions) {
+            this.createRpbAction();
+        }
+
+        this.addAdditionalDeIdentificationRelatedTags();
+    }
+
+    applyProfileOptions(profileOptions) {
+        if (Array.isArray(profileOptions)) {
+            for (let option of profileOptions) {
+                this.applyOption(option);
+            }
+        } else {
+            this.applyOption(profileOptions);
+        }
+    }
+
+    applyOption(profileOptions) {
+        switch (profileOptions) {
             case DeIdentificationProfiles.BASIC:
                 //do nothing
                 break;
@@ -41,15 +80,8 @@ export default class DeIdentificationConfigurationFactory {
                 this.createRetainDeviceIdentityProfile();
                 break;
             default:
-                throw new Error(`Profile "${profile}" does not exist.`);
-
+                throw new Error(`Profile option "${profileOptions}" does not exist.`);
         }
-
-        if (this.rpbSpecificActions) {
-            this.createRpbAction();
-        }
-
-        this.addAdditionalDeIdentificationRelatedTags();
     }
 
     createBasicProfile() {
@@ -601,17 +633,107 @@ export default class DeIdentificationConfigurationFactory {
 
         this.appliedDeIdentificationSteps.push({
 
-            codeValue: DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS,
-            codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS,
+            codeValue: DeIdentificationProfileCodes.RETAIN_DEVICE_IDENTITY,
+            codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY,
 
         }
         );
 
+        // Beam Hold Transition DateTime
+        this.actionConfigurationMap.set('300C0127', { action: DeIdentificationActionCodes.K });
+        // Calibration Date
+        this.actionConfigurationMap.set('0014407E', { action: DeIdentificationActionCodes.K });
+        // Calibration DateTime
+        this.actionConfigurationMap.set('00181203', { action: DeIdentificationActionCodes.K });
+        // Calibration Time
+        this.actionConfigurationMap.set('0014407C', { action: DeIdentificationActionCodes.K });
+        // Cassette ID
+        this.actionConfigurationMap.set('00181007', { action: DeIdentificationActionCodes.K });
+        // Date of Last Calibration
+        this.actionConfigurationMap.set('00181200', { action: DeIdentificationActionCodes.K });
+        // Date of Last Detector Calibration
+        this.actionConfigurationMap.set('0018700C', { action: DeIdentificationActionCodes.K });
+        // DateTime of Last Calibration
+        this.actionConfigurationMap.set('00181202', { action: DeIdentificationActionCodes.K });
+        // Detector ID
+        this.actionConfigurationMap.set('0018700A', { action: DeIdentificationActionCodes.K });
+        // Device Description
+        this.actionConfigurationMap.set('00500020', { action: DeIdentificationActionCodes.K });
+        // Device Label
+        this.actionConfigurationMap.set('3010002D', { action: DeIdentificationActionCodes.K });
+        // Device Serial Number
+        this.actionConfigurationMap.set('00181000', { action: DeIdentificationActionCodes.K });
+        // Device UID
+        this.actionConfigurationMap.set('00181002', { action: DeIdentificationActionCodes.K });
+        // Gantry ID
+        this.actionConfigurationMap.set('00181008', { action: DeIdentificationActionCodes.K });
+        // Generator ID
+        this.actionConfigurationMap.set('00181005', { action: DeIdentificationActionCodes.K });
+        // Lens Make
+        this.actionConfigurationMap.set('0016004F', { action: DeIdentificationActionCodes.K });
+        // Lens Model
+        this.actionConfigurationMap.set('00160050', { action: DeIdentificationActionCodes.K });
+        // Lens Serial Number
+        this.actionConfigurationMap.set('00160051', { action: DeIdentificationActionCodes.K });
+        // Lens Specification
+        this.actionConfigurationMap.set('0016004E', { action: DeIdentificationActionCodes.K });
+        // Manufacturer's Device Class UID
+        this.actionConfigurationMap.set('0018100B', { action: DeIdentificationActionCodes.K });
+        // Manufacturer's Device Identifier
+        this.actionConfigurationMap.set('30100043', { action: DeIdentificationActionCodes.K });
+        // Modifying Device ID
+        this.actionConfigurationMap.set('00203401', { action: DeIdentificationActionCodes.K });
+        // Modifying System
+        this.actionConfigurationMap.set('04000563', { action: DeIdentificationActionCodes.K });
+        // Performed Station AE Title
+        this.actionConfigurationMap.set('00400241', { action: DeIdentificationActionCodes.K });
+        // Performed Station Geographic Location Code Sequence
+        this.actionConfigurationMap.set('00404030', { action: DeIdentificationActionCodes.K });
+        // Performed Station Name
+        this.actionConfigurationMap.set('00400242', { action: DeIdentificationActionCodes.K });
+        // Performed Station Name Code Sequence
+        this.actionConfigurationMap.set('00404028', { action: DeIdentificationActionCodes.K });
+        // Plate ID
+        this.actionConfigurationMap.set('00181004', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step Location
+        this.actionConfigurationMap.set('00400011', { action: DeIdentificationActionCodes.K });
+        // Scheduled Station AE Title
+        this.actionConfigurationMap.set('00400001', { action: DeIdentificationActionCodes.K });
+        // Scheduled Station Geographic Location Code Sequence
+        this.actionConfigurationMap.set('00404027', { action: DeIdentificationActionCodes.K });
+        // Scheduled Station Name
+        this.actionConfigurationMap.set('00400010', { action: DeIdentificationActionCodes.K });
+        // Scheduled Station Name Code Sequence
+        this.actionConfigurationMap.set('00404025', { action: DeIdentificationActionCodes.K });
+        // Scheduled Study Location
+        this.actionConfigurationMap.set('00321020', { action: DeIdentificationActionCodes.K });
+        // Scheduled Study Location AE Title
+        this.actionConfigurationMap.set('00321021', { action: DeIdentificationActionCodes.K });
+        // Source Manufacturer
+        this.actionConfigurationMap.set('300A0216', { action: DeIdentificationActionCodes.K });
+        // Source Serial Number
+        this.actionConfigurationMap.set('30080105', { action: DeIdentificationActionCodes.K });
+        // Station Name
+        this.actionConfigurationMap.set('00081010', { action: DeIdentificationActionCodes.K });
+        // Time of Last Calibration
+        this.actionConfigurationMap.set('00181201', { action: DeIdentificationActionCodes.K });
+        // Time of Last Detector Calibration
+        this.actionConfigurationMap.set('0018700E', { action: DeIdentificationActionCodes.K });
+        // Transducer Identification Sequence
+        this.actionConfigurationMap.set('00185011', { action: DeIdentificationActionCodes.K });
+        // Treatment Machine Name
+        this.actionConfigurationMap.set('300A00B2', { action: DeIdentificationActionCodes.K });
+        // UDI Sequence
+        this.actionConfigurationMap.set('0018100A', { action: DeIdentificationActionCodes.K });
+        // Unique Device Identifier
+        this.actionConfigurationMap.set('00181009', { action: DeIdentificationActionCodes.K });
+        // X-Ray Detector ID
+        this.actionConfigurationMap.set('00189371', { action: DeIdentificationActionCodes.K });
+        // X-Ray Detector Label
+        this.actionConfigurationMap.set('00189373', { action: DeIdentificationActionCodes.K });
+        // X-Ray Source ID
+        this.actionConfigurationMap.set('00189367', { action: DeIdentificationActionCodes.K });
 
-        // this.patientIdentitityRemoved = 'false' ?
-
-        // incomplete
-        this.actionConfigurationMap.set('00181007', this.actionConfigurationMap.get('00181007').action = DeIdentificationActionCodes.K);
     }
 
     /**

@@ -1,15 +1,27 @@
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
 // React and Redux
-import React, { Component } from 'react'
-import { connect } from 'react-redux'
-
+import React, { Component } from 'react';
 // Primereact
-import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-
-// Actions
-import { selectStudy, addStudyReady, removeStudyReady } from '../actions/DisplayTables'
-import { addSeriesReady, removeSeriesReady, selectSeries } from '../actions/DisplayTables'
-import { unsetSlotID } from '../actions/Studies'
+import { DataTable } from 'primereact/datatable';
 
 /**
  * Dicom Browser component
@@ -17,7 +29,7 @@ import { unsetSlotID } from '../actions/Studies'
 class DicomBrowser extends Component {
 
     /**
-     * Format studies from Redux State to display in study table
+     * Format studies from props to display in study table
      * @return {array}
      */
     buildStudiesRows() {
@@ -63,7 +75,7 @@ class DicomBrowser extends Component {
     }
 
     /**
-     * Get Series in Redux related to a StudyInstanceUID
+     * Get DicomSeries from props, based on StudyInstanceUID
      * @param {string} studyInstanceUID
      */
     getSeriesFromStudy = (studyInstanceUID) => {
@@ -78,7 +90,7 @@ class DicomBrowser extends Component {
     }
 
     /**
-     * Fetch studies from Redux State to display in Series table
+     * Fetch studies from props to display in Series table
      * @return {Object}
      */
     buildSeriesRows() {
@@ -165,6 +177,4 @@ class DicomBrowser extends Component {
     }
 }
 
-
-//export default connect(mapStateToProps, mapDispatchToProps)(DicomBrowser)
 export default DicomBrowser

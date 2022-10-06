@@ -1,3 +1,22 @@
+/*
+ * This file is part of RadPlanBio
+ * 
+ * Copyright (C) 2013 - 2022 RPB Team
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
 import promisePoller from 'promise-poller';
 import LogLevels from '../constants/LogLevels';
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
@@ -41,7 +60,7 @@ export default class DicomUploadPackage {
 
         this.setChunkSize(config.chunkSize);
 
-        const configFactory = new DeIdentificationConfigurationFactory(config.deIdentificationProfile, this.uploadSlot);
+        const configFactory = new DeIdentificationConfigurationFactory(config.deIdentificationProfileOption, this.uploadSlot);
         this.deIdentificationConfiguration = configFactory.getConfiguration();
 
         this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);
@@ -179,7 +198,7 @@ export default class DicomUploadPackage {
                         let identities = [];
 
                         try {
-                            const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration);
+                            const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration, this.log);
                             ({ uidArray, identities } = await inspector.analyzeFile());
                         } catch (e) {
                             const message = 'There was a problem during analysis of the DICOM file.';
@@ -295,7 +314,12 @@ export default class DicomUploadPackage {
 
                 } catch (error) {
                     const message = 'There was a problem within the de-identification';
-                    const data = { sopInstanceUid: instance.sopInstanceUid, error };
+                    const data = {
+                        studyUid: chunk.originalStudyUid,
+                        seriesUid: chunk.originalSeriesUid,
+                        files: chunk.originalFileNames,
+                        error
+                    };
                     this.log.debug(message, {}, data);
                     errors.push(
                         { message, data },
