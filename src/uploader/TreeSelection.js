@@ -149,10 +149,10 @@ export class TreeSelection extends Component {
                         onToggle={e => this.setState({ expandedKeys: e.value })}
                     >
                         <Column className="text-sm" field="modality" header="Series Modality" expander></Column>
-                        <Column className="text-sm" columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} />
+                        <Column className="text-sm" columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} />
                         <Column className="text-sm" field="seriesDescription" header="Series Description"></Column>
                         <Column className="text-sm" field="instancesSize" header="Files"></Column>
-                        <Column className="text-sm" columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} />
+                        <Column className="text-sm" columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} />
                     </TreeTable>
                 </StyledTreeDiv>
             </div>

@@ -124,7 +124,10 @@ export default class DeIdentificationConfiguration {
                     throw new Error(`Action code: ${action} is not implemented`);
 
             }
-            return task;
+            return {
+                action: this.noop,
+                parameter: undefined
+            };
         }
 
     }

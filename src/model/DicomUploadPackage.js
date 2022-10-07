@@ -43,6 +43,7 @@ export default class DicomUploadPackage {
         this.selectedSeriesObjects = {};
         this.selectedFiles = [];
         this.uids = [];
+        this.identityData = [];
 
         this.uploadChunks = [];
 
@@ -243,6 +244,8 @@ export default class DicomUploadPackage {
                 };
             }
         }
+
+        this.identityData = Array.from(new Set(identityData));
 
         return {
             uids: Array.from(new Set(uids)),

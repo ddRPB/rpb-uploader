@@ -77,7 +77,10 @@ export default class DeIdentificationConfigurationFactory {
                 //do nothing
                 break;
             case DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY:
-                this.createRetainDeviceIdentityProfile();
+                this.createRetainDeviceIdentityOption();
+                break;
+            case DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS:
+                this.createRetainPatientCharacteristicsOption();
                 break;
             default:
                 throw new Error(`Profile option "${profileOptions}" does not exist.`);
@@ -628,7 +631,7 @@ export default class DeIdentificationConfigurationFactory {
 
     }
 
-    createRetainDeviceIdentityProfile() {
+    createRetainDeviceIdentityOption() {
         // annotation that the method is used and identitity is not removed
 
         this.appliedDeIdentificationSteps.push({
@@ -734,6 +737,46 @@ export default class DeIdentificationConfigurationFactory {
         // X-Ray Source ID
         this.actionConfigurationMap.set('00189367', { action: DeIdentificationActionCodes.K });
 
+    }
+
+    createRetainPatientCharacteristicsOption() {
+        // annotation that the method is used and identitity is not removed
+
+        this.patientIdentitityRemoved = false;
+
+        this.appliedDeIdentificationSteps.push({
+
+            codeValue: DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS,
+            codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS,
+
+        });
+
+        // Allergies
+        this.actionConfigurationMap.set('00102110', { action: DeIdentificationActionCodes.C });
+        // Ethnic Group
+        this.actionConfigurationMap.set('00102160', { action: DeIdentificationActionCodes.K });
+        // Patient's Age
+        this.actionConfigurationMap.set('00101010', { action: DeIdentificationActionCodes.K });
+        // Patient's Sex
+        this.actionConfigurationMap.set('00100040', { action: DeIdentificationActionCodes.K });
+        // Patient's Sex Neutered
+        this.actionConfigurationMap.set('00102203', { action: DeIdentificationActionCodes.K });
+        // Patient's Size
+        this.actionConfigurationMap.set('00101020', { action: DeIdentificationActionCodes.K });
+        // Patient's Weight
+        this.actionConfigurationMap.set('00101030', { action: DeIdentificationActionCodes.K });
+        // Patient State
+        this.actionConfigurationMap.set('00380500', { action: DeIdentificationActionCodes.C });
+        // Pregnancy Status
+        this.actionConfigurationMap.set('001021C0', { action: DeIdentificationActionCodes.K });
+        // Pre-Medication
+        this.actionConfigurationMap.set('00400012', { action: DeIdentificationActionCodes.C });
+        // Selector AS Value
+        this.actionConfigurationMap.set('0072005F', { action: DeIdentificationActionCodes.K });
+        // Smoking Status
+        this.actionConfigurationMap.set('001021A0', { action: DeIdentificationActionCodes.K });
+        // Special Needs
+        this.actionConfigurationMap.set('00380050)', { action: DeIdentificationActionCodes.C });
     }
 
     /**
