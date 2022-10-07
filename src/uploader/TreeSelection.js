@@ -72,7 +72,7 @@ export class TreeSelection extends Component {
         return item;
     }
 
-    roiActionTemplate(node, column) {
+    commandsActionTemplate(node, column) {
         let key = column.rowIndex;
         if (node.data.StructureSetROISequence === undefined || node.data.rOIOberservationSequenceArray === undefined) return <div key={key}></div>;
 
@@ -107,7 +107,7 @@ export class TreeSelection extends Component {
         </div>
     }
 
-    commandActionTemplate(node, column) {
+    detailsActionTemplate(node, column) {
         let key = column.rowIndex;
         if (node.data.detailsArray === undefined) return <div key={key}></div>;
 
@@ -149,10 +149,10 @@ export class TreeSelection extends Component {
                         onToggle={e => this.setState({ expandedKeys: e.value })}
                     >
                         <Column className="text-sm" field="modality" header="Series Modality" expander></Column>
-                        <Column className="text-sm" columnKey="ROIs" header="ROIs" body={this.roiActionTemplate.bind(this)} />
+                        <Column className="text-sm" columnKey="Details" header="Details" body={this.detailsActionTemplate.bind(this)} />
                         <Column className="text-sm" field="seriesDescription" header="Series Description"></Column>
                         <Column className="text-sm" field="instancesSize" header="Files"></Column>
-                        <Column className="text-sm" columnKey="Commands" header="Commands" body={this.commandActionTemplate.bind(this)} />
+                        <Column className="text-sm" columnKey="Commands" header="Commands" body={this.commandsActionTemplate.bind(this)} />
                     </TreeTable>
                 </StyledTreeDiv>
             </div>
