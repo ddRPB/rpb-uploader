@@ -72,7 +72,7 @@ export class TreeSelection extends Component {
         return item;
     }
 
-    detailsActionTemplate(node, column) {
+    commandsActionTemplate(node, column) {
         let key = column.rowIndex;
         if (node.data.StructureSetROISequence === undefined || node.data.rOIOberservationSequenceArray === undefined) return <div key={key}></div>;
 
@@ -107,7 +107,7 @@ export class TreeSelection extends Component {
         </div>
     }
 
-    commandsActionTemplate(node, column) {
+    detailsActionTemplate(node, column) {
         let key = column.rowIndex;
         if (node.data.detailsArray === undefined) return <div key={key}></div>;
 
