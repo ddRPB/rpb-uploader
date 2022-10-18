@@ -318,7 +318,7 @@ class Uploader extends Component {
                     <div>
                         {'The Server: '}
                     </div>
-                    <a href={url} target="_blank">{url}</a>
+                    <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
                     <div>
                         {' respond with status code: ' + response.status + '.'}
                     </div>
@@ -341,7 +341,7 @@ class Uploader extends Component {
                     <div>
                         {'There is a problem. Please open: '}
                     </div>
-                    <a href={response.url} target="_blank">{response.url}</a>
+                    <a href={response.url} target="_blank" rel="noopener noreferrer">{response.url}</a>
                     <div>
                         {' and try again.'}
                     </div>
