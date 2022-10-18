@@ -34,6 +34,12 @@
     "test": "jest --config=./jest.config.js",
     "eject": "react-scripts eject"
   },
+  "resolutions": {
+    "autoprefixer": "10.4.5"
+  },
+  "overrides": {
+    "autoprefixer": "10.4.5"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
