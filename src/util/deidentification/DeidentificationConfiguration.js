@@ -73,6 +73,8 @@ export default class DeIdentificationConfiguration {
             switch (action) {
                 case DeIdentificationActionCodes.C:
                     // similar values; TODO
+                    //                    cleanIdentifyingInformation
+
                     break;
                 case DeIdentificationActionCodes.D:
                     const replacementValue = this.getReplacementValue(tag, vr);
@@ -144,6 +146,31 @@ export default class DeIdentificationConfiguration {
 
     noop(dictionary, propertyName, uidGenerator) {
         // console.log(`do nothing ${propertyName}`);
+    }
+
+    cleanIdentifyingInformation(dictionary, propertyName, replacement) {
+        if (Array.isArray(replacement)) {
+            for (let replValue of replacement) {
+                let regex = new RegExp(replValue, 'gi');
+                const originalElementValue = dictionary[propertyName].Value;
+                if (Array.isArray(originalElementValue)) {
+                    const newElementValue = [];
+
+                    for (let el of originalElementValue) {
+                        newElementValue.push(el.replace(regex, ''));
+                        // console.log(`replace ${propertyName} with dummy value ${replacement}`);
+                    }
+
+                    dictionary[propertyName].Value = newElementValue;
+
+                } else {
+
+                    dictionary[propertyName].Value = dictionary[propertyName].Value.replace(regex, '');
+                }
+            }
+        } else {
+            // TODO - we could throw an exception
+        }
     }
 
     // Implementation of the function for action code D
