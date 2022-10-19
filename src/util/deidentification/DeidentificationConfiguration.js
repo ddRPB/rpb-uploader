@@ -66,14 +66,20 @@ export default class DeIdentificationConfiguration {
         if (elementActionConfiguration === undefined) {
             return {
                 action: this.noop,
-                parameter: undefined
+                parameter: undefined,
+                actionCode: 'not defined'
             };
         } else {
             const action = elementActionConfiguration.action;
             switch (action) {
                 case DeIdentificationActionCodes.C:
                     // similar values; TODO
-                    //                    cleanIdentifyingInformation
+                    // 
+                    return {
+                        action: this.cleanIdentifyingInformation,
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.C,
+                    };
 
                     break;
                 case DeIdentificationActionCodes.D:
@@ -81,35 +87,39 @@ export default class DeIdentificationConfiguration {
 
                     return {
                         action: this.replaceWithDummyValue.bind(this),
-                        parameter: replacementValue
+                        parameter: replacementValue,
+                        actionCode: DeIdentificationActionCodes.D,
                     };
                     // return this.replaceWithDummyValue.bind(this);
                     break;
                 case DeIdentificationActionCodes.K:
                     return {
                         action: this.noop,
-                        parameter: undefined
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.K,
                     };
-                    // return this.noop;
                     break;
                 case DeIdentificationActionCodes.KP:
                     return {
                         action: this.keepAndAddPrefix.bind(this),
-                        parameter: this.uploadSlot.studyEdcCode
+                        parameter: this.uploadSlot.studyEdcCode,
+                        actionCode: DeIdentificationActionCodes.KP,
                     };
                     // return this.noop;
                     break;
                 case DeIdentificationActionCodes.U:
                     return {
                         action: this.replaceUID,
-                        parameter: undefined
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.U,
                     };
                     // return this.replaceUID;
                     break;
                 case DeIdentificationActionCodes.X:
                     return {
                         action: this.removeItem,
-                        parameter: undefined
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.X,
                     };
                     // return this.removeItem;
                     break;
@@ -118,18 +128,15 @@ export default class DeIdentificationConfiguration {
 
                     return {
                         action: this.replaceWithZeroLengthOrDummyValue.bind(this),
-                        parameter: parameter
+                        parameter: parameter,
+                        actionCode: DeIdentificationActionCodes.Z,
                     };
-                    // return this.replaceWithZeroLengthOrDummyValue.bind(this);
                     break;
                 default:
                     throw new Error(`Action code: ${action} is not implemented`);
 
             }
-            return {
-                action: this.noop,
-                parameter: undefined
-            };
+
         }
 
     }

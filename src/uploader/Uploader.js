@@ -73,6 +73,7 @@ class Uploader extends Component {
         fileUploadInProgress: false,
         evaluationUploadCheckResults: [],
         dicomUidReplacements: [],
+        patientIdentityData: [],
         pseudomizedFiles: [],
         uploadedFiles: [],
         verifiedFiles: [],
@@ -423,6 +424,7 @@ class Uploader extends Component {
             uploadedFilesCount: 0,
             verifiedUploadedFilesCount: 0,
             dicomUidReplacements: [],
+            patientIdentityData: [],
         });
         this.dicomUploadPackage.resetUploadProcess();
 
@@ -570,7 +572,7 @@ class Uploader extends Component {
      *  if the step already has been proceed sucessfully and will just retry the missing steps.
      */
     async submitUploadPackage() {
-        let uids, identities, errors = [];
+        let uids, identities, patientIdentityData, errors = [];
 
         this.log.trace('Submit upload package.', {}, {})
 
@@ -592,20 +594,26 @@ class Uploader extends Component {
                 uploadedFilesCount: 0,
                 verifiedUploadedFilesCount: 0,
                 dicomUidReplacements: [],
+                patientIdentityData: [],
             });
 
-            ({ uids, identities, errors } = await this.dicomUploadPackage.prepareUpload(this.setAnalysedFilesCountValue));
+            ({ uids, identities, patientIdentityData, errors } = await this.dicomUploadPackage.prepareUpload(this.setAnalysedFilesCountValue));
 
-            this.log.trace('Upload package prepared.', {}, { uids, identities, errors })
+            this.log.trace('Upload package prepared.', {}, { uids, identities, patientIdentityData, errors })
 
             if (errors.length > 0) {
                 this.setState({
                     evaluationUploadCheckResults: errors,
                     fileUploadInProgress: false,
+                    patientIdentityData: patientIdentityData,
                 });
 
                 return;
             }
+
+            this.setState({
+                patientIdentityData: patientIdentityData,
+            });
 
             // preparing de-identification
             this.log.trace('Requesting generated uids for de-identification', {}, { serviceUrl: this.config.rpbUploadServiceUrl })
@@ -671,7 +679,7 @@ class Uploader extends Component {
 
         this.log.trace('De-identify and upload Dicom data.', {}, {});
 
-        ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.setDeIdentifiedFilesCountValue, this.setUploadedFilesCountValue));
+        ({ errors } = await this.dicomUploadPackage.deidentifyAndUpload(this.state.dicomUidReplacements, this.state.patientIdentityData, this.setDeIdentifiedFilesCountValue, this.setUploadedFilesCountValue));
 
         if (errors.length > 0) {
             this.log.debug("There was a problem during the upload", {}, { errors });
