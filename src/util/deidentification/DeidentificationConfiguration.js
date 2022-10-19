@@ -66,48 +66,60 @@ export default class DeIdentificationConfiguration {
         if (elementActionConfiguration === undefined) {
             return {
                 action: this.noop,
-                parameter: undefined
+                parameter: undefined,
+                actionCode: 'not defined'
             };
         } else {
             const action = elementActionConfiguration.action;
             switch (action) {
                 case DeIdentificationActionCodes.C:
                     // similar values; TODO
+                    // 
+                    return {
+                        action: this.cleanIdentifyingInformation,
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.C,
+                    };
+
                     break;
                 case DeIdentificationActionCodes.D:
                     const replacementValue = this.getReplacementValue(tag, vr);
 
                     return {
                         action: this.replaceWithDummyValue.bind(this),
-                        parameter: replacementValue
+                        parameter: replacementValue,
+                        actionCode: DeIdentificationActionCodes.D,
                     };
                     // return this.replaceWithDummyValue.bind(this);
                     break;
                 case DeIdentificationActionCodes.K:
                     return {
                         action: this.noop,
-                        parameter: undefined
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.K,
                     };
-                    // return this.noop;
                     break;
                 case DeIdentificationActionCodes.KP:
                     return {
                         action: this.keepAndAddPrefix.bind(this),
-                        parameter: this.uploadSlot.studyEdcCode
+                        parameter: this.uploadSlot.studyEdcCode,
+                        actionCode: DeIdentificationActionCodes.KP,
                     };
                     // return this.noop;
                     break;
                 case DeIdentificationActionCodes.U:
                     return {
                         action: this.replaceUID,
-                        parameter: undefined
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.U,
                     };
                     // return this.replaceUID;
                     break;
                 case DeIdentificationActionCodes.X:
                     return {
                         action: this.removeItem,
-                        parameter: undefined
+                        parameter: undefined,
+                        actionCode: DeIdentificationActionCodes.X,
                     };
                     // return this.removeItem;
                     break;
@@ -116,18 +128,15 @@ export default class DeIdentificationConfiguration {
 
                     return {
                         action: this.replaceWithZeroLengthOrDummyValue.bind(this),
-                        parameter: parameter
+                        parameter: parameter,
+                        actionCode: DeIdentificationActionCodes.Z,
                     };
-                    // return this.replaceWithZeroLengthOrDummyValue.bind(this);
                     break;
                 default:
                     throw new Error(`Action code: ${action} is not implemented`);
 
             }
-            return {
-                action: this.noop,
-                parameter: undefined
-            };
+
         }
 
     }
@@ -144,6 +153,31 @@ export default class DeIdentificationConfiguration {
 
     noop(dictionary, propertyName, uidGenerator) {
         // console.log(`do nothing ${propertyName}`);
+    }
+
+    cleanIdentifyingInformation(dictionary, propertyName, replacement) {
+        if (Array.isArray(replacement)) {
+            for (let replValue of replacement) {
+                let regex = new RegExp(replValue, 'gi');
+                const originalElementValue = dictionary[propertyName].Value;
+                if (Array.isArray(originalElementValue)) {
+                    const newElementValue = [];
+
+                    for (let el of originalElementValue) {
+                        newElementValue.push(el.replace(regex, ''));
+                        // console.log(`replace ${propertyName} with dummy value ${replacement}`);
+                    }
+
+                    dictionary[propertyName].Value = newElementValue;
+
+                } else {
+
+                    dictionary[propertyName].Value = dictionary[propertyName].Value.replace(regex, '');
+                }
+            }
+        } else {
+            // TODO - we could throw an exception
+        }
     }
 
     // Implementation of the function for action code D
