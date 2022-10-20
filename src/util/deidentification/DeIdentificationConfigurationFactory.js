@@ -19,10 +19,10 @@
 
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
-import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodes";
-import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeidentificationProfileCodesMeaning";
+import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes";
+import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
-import DeIdentificationConfiguration from "./DeidentificationConfiguration";
+import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
 
 // https://www.dicomstandard.org/News-dir/ftsup/docs/sups/sup142.pdf
 // https://dicom.nema.org/medical/dicom/current/output/html/part15.html#table_E.1-1
@@ -77,7 +77,10 @@ export default class DeIdentificationConfigurationFactory {
                 //do nothing
                 break;
             case DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY:
-                this.createRetainDeviceIdentityProfile();
+                this.createRetainDeviceIdentityOption();
+                break;
+            case DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS:
+                this.createRetainPatientCharacteristicsOption();
                 break;
             default:
                 throw new Error(`Profile option "${profileOptions}" does not exist.`);
@@ -534,7 +537,7 @@ export default class DeIdentificationConfigurationFactory {
         // Special Needs
         this.actionConfigurationMap.set('00380050', { action: DeIdentificationActionCodes.X });
         // Station Name
-        this.actionConfigurationMap.set('00380050', { action: DeIdentificationActionCodes.D });
+        this.actionConfigurationMap.set('00081010', { action: DeIdentificationActionCodes.D });
         // Storage Media Fileset UID
         this.actionConfigurationMap.set('00880140', { action: DeIdentificationActionCodes.U });
         // Study Comments
@@ -628,7 +631,7 @@ export default class DeIdentificationConfigurationFactory {
 
     }
 
-    createRetainDeviceIdentityProfile() {
+    createRetainDeviceIdentityOption() {
         // annotation that the method is used and identitity is not removed
 
         this.appliedDeIdentificationSteps.push({
@@ -736,6 +739,46 @@ export default class DeIdentificationConfigurationFactory {
 
     }
 
+    createRetainPatientCharacteristicsOption() {
+        // annotation that the method is used and identitity is not removed
+
+        this.patientIdentitityRemoved = false;
+
+        this.appliedDeIdentificationSteps.push({
+
+            codeValue: DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS,
+            codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS,
+
+        });
+
+        // Allergies
+        this.actionConfigurationMap.set('00102110', { action: DeIdentificationActionCodes.C });
+        // Ethnic Group
+        this.actionConfigurationMap.set('00102160', { action: DeIdentificationActionCodes.K });
+        // Patient's Age
+        this.actionConfigurationMap.set('00101010', { action: DeIdentificationActionCodes.K });
+        // Patient's Sex
+        this.actionConfigurationMap.set('00100040', { action: DeIdentificationActionCodes.K });
+        // Patient's Sex Neutered
+        this.actionConfigurationMap.set('00102203', { action: DeIdentificationActionCodes.K });
+        // Patient's Size
+        this.actionConfigurationMap.set('00101020', { action: DeIdentificationActionCodes.K });
+        // Patient's Weight
+        this.actionConfigurationMap.set('00101030', { action: DeIdentificationActionCodes.K });
+        // Patient State
+        this.actionConfigurationMap.set('00380500', { action: DeIdentificationActionCodes.C });
+        // Pregnancy Status
+        this.actionConfigurationMap.set('001021C0', { action: DeIdentificationActionCodes.K });
+        // Pre-Medication
+        this.actionConfigurationMap.set('00400012', { action: DeIdentificationActionCodes.C });
+        // Selector AS Value
+        this.actionConfigurationMap.set('0072005F', { action: DeIdentificationActionCodes.K });
+        // Smoking Status
+        this.actionConfigurationMap.set('001021A0', { action: DeIdentificationActionCodes.K });
+        // Special Needs
+        this.actionConfigurationMap.set('00380050)', { action: DeIdentificationActionCodes.C });
+    }
+
     /**
      * The data set needs to be annotated that de-identification was applied
      */
@@ -748,6 +791,7 @@ export default class DeIdentificationConfigurationFactory {
 
         // https://dicom.innolitics.com/ciods/enhanced-sr/patient/00120064/00080100
         // https://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_8.html#chapter_8
+        // https://dicom.nema.org/dicom/2013/output/chtml/part16/sect_CID_7050.html
 
         const deIdentificationStepsObject = [];
         for (let stepDescription of this.appliedDeIdentificationSteps) {

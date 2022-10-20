@@ -43,6 +43,7 @@ export default class DicomUploadPackage {
         this.selectedSeriesObjects = {};
         this.selectedFiles = [];
         this.uids = [];
+        this.identityData = [];
 
         this.uploadChunks = [];
 
@@ -177,6 +178,7 @@ export default class DicomUploadPackage {
     async prepareUpload(setAnalysedFilesCountValue) {
         let uids = [];
         let identityData = [];
+        let patientIdentityData = [];
         let errors = []
         let processedFilesCount = 0;
 
@@ -196,10 +198,11 @@ export default class DicomUploadPackage {
                         const fileObject = selectedSeries.instances[sopInstanceUid];
                         let uidArray = [];
                         let identities = [];
+                        let patientIdentities = [];
 
                         try {
                             const inspector = new DicomFileInspector(fileObject, this.deIdentificationConfiguration, this.log);
-                            ({ uidArray, identities } = await inspector.analyzeFile());
+                            ({ uidArray, identities, patientIdentities } = await inspector.analyzeFile());
                         } catch (e) {
                             const message = 'There was a problem during analysis of the DICOM file.';
                             const data = { error: e, sopInstanceUid, fileObject };
@@ -209,6 +212,7 @@ export default class DicomUploadPackage {
 
                         uids = uids.concat(uidArray);
                         identityData = identityData.concat(identities);
+                        patientIdentityData = patientIdentityData.concat(patientIdentities);
 
                         // create new chunk if necessary
                         if (currentChunk.getCount() < this.chunkSize) {
@@ -244,9 +248,12 @@ export default class DicomUploadPackage {
             }
         }
 
+        this.identityData = Array.from(new Set(identityData));
+
         return {
             uids: Array.from(new Set(uids)),
             identities: Array.from(new Set(identityData)),
+            patientIdentityData: Array.from(new Set(patientIdentityData)),
             errors: errors
         };
 
@@ -255,7 +262,7 @@ export default class DicomUploadPackage {
     /**
      * De-identifies the data, based on the provided configuration and uploads the de-identified data to the RPB backend.
      */
-    async deidentifyAndUpload(dicomUidReplacements, setDeIdentifiedFilesCountValue, setUploadedFilesCountValue) {
+    async deidentifyAndUpload(dicomUidReplacements, patientIdentityData, setDeIdentifiedFilesCountValue, setUploadedFilesCountValue) {
         let errors = []
         const replacedStudyUID = dicomUidReplacements.get(this.studyInstanceUID);
         if (replacedStudyUID != null) {
@@ -286,7 +293,7 @@ export default class DicomUploadPackage {
 
                         this.log.trace("De-identify instance.", {}, { sopInstanceUid: instance.sopInstanceUid, });
 
-                        const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, this.deIdentificationConfiguration, instance.fileObject, this.log);
+                        const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, patientIdentityData, this.deIdentificationConfiguration, instance.fileObject, this.log);
                         const arrayBuffer = await dicomFileDeIdentificationComponent.getDeIdentifiedFileContentAsBuffer();
                         this.log.trace("File buffer created", {}, { sopInstanceUid: instance.sopInstanceUid, });
                         const sopInstanceUidReplacement = dicomUidReplacements.get(instance.sopInstanceUid);

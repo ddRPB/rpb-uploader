@@ -84,6 +84,7 @@ export default class DicomFileInspector {
 
         let uidArray = [];
         let identities = [];
+        let patientIdentities = [];
         let dataSet;
 
         try {
@@ -106,13 +107,17 @@ export default class DicomFileInspector {
             if (parsingResult.identities) {
                 identities = identities.concat(parsingResult.identities);
             }
+            if (parsingResult.patientIdentities) {
+                patientIdentities = patientIdentities.concat(parsingResult.patientIdentities);
+            }
         } catch (e) {
             this.log.trace("DicomFileInspector.readDicomFile failed: " + e.toString());
         }
 
         return {
             uidArray,
-            identities
+            identities,
+            patientIdentities,
         };
 
     }
@@ -121,6 +126,16 @@ export default class DicomFileInspector {
         let uidArray = [];
         const identityRemoved = this.isPatientIdentityRemoved(dataSetDict);
         let identities = [];
+        let patientIdentities = [];
+
+        // Patient ID Attribute
+        if (dataSetDict['00100010'] != undefined) {
+            patientIdentities.push(dataSetDict['00100010']);
+        }
+        // Patient Name
+        if (dataSetDict['00100020'] != undefined) {
+            patientIdentities.push(dataSetDict['00100020']);
+        }
 
         for (let propertyName in dataSetDict) {
             const element = dataSetDict[propertyName];
@@ -136,6 +151,9 @@ export default class DicomFileInspector {
                             }
                             if (parsingResult.identities) {
                                 identities = identities.concat(parsingResult.identities);
+                            }
+                            if (parsingResult.patientIdentities) {
+                                patientIdentities = patientIdentities.concat(parsingResult.patientIdentities);
                             }
                         }
                         break;
@@ -174,7 +192,8 @@ export default class DicomFileInspector {
         }
         return {
             uidArray,
-            identities: identities.filter(element => { return element !== "" })
+            identities: identities.filter(element => { return element !== "" }),
+            patientIdentities: patientIdentities.filter(element => { return element !== "" }),
         };
     }
 

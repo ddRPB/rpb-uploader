@@ -19,13 +19,16 @@
 
 import dcmjs from 'dcmjs';
 import Logger from '../logging/Logger';
+import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
+import LogLevels from '../../constants/LogLevels';
 
 const { DicomMessage } = dcmjs.data;
 
 export default class DicomFileDeIdentificationComponentDcmjs {
 
-    constructor(dicomUidReplacements, configuration, fileObject, logger) {
+    constructor(dicomUidReplacements, patientIdentityData, configuration, fileObject, logger) {
         this.dicomUidReplacements = dicomUidReplacements;
+        this.patientIdentityData = patientIdentityData;
         this.configuration = configuration;
         this.fileObject = fileObject;
         this.initializeLogger(logger);
@@ -56,6 +59,23 @@ export default class DicomFileDeIdentificationComponentDcmjs {
             size: this.fileObject.fileObject.size,
             buffer: this.deIdentDicomFile(arrayBuffer)
         };
+    }
+
+    createPatientIdentityValueArray() {
+        let identityDataArray = [];
+        if (this.patientIdentityData != undefined) {
+            for (let item of this.patientIdentityData) {
+                if (item.Value != undefined) {
+                    if (Array.isArray(item.Value)) {
+                        identityDataArray = identityDataArray.concat(item.Value);
+                    } else {
+                        identityDataArray.push(item.Value);
+
+                    }
+                }
+            }
+        }
+        return identityDataArray;
     }
 
     __pFileReader(file) {
@@ -98,9 +118,12 @@ export default class DicomFileDeIdentificationComponentDcmjs {
                         }
                         break;
                     default:
-                        let { action, parameter } = this.configuration.getTask(propertyName, vr);
+                        let { action, parameter, actionCode } = this.configuration.getTask(propertyName, vr);
+
                         if (vr === 'UI') parameter = this.dicomUidReplacements;
+                        if (actionCode === DeIdentificationActionCodes.C) parameter = this.createPatientIdentityValueArray();
                         action(dataSetDict, propertyName, parameter);
+
                         break;
                 }
             }
