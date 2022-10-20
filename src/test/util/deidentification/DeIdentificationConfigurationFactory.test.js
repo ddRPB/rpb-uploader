@@ -160,7 +160,6 @@ describe('Test DeIdentificationConfigurationFactory', () => {
 
         })
 
-
     })
 })
 
