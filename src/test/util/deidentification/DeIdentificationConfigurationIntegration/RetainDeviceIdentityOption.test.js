@@ -17,7 +17,7 @@
  * 
  */
 
-import DeidentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
+import DeIdentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
 import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
@@ -94,23 +94,25 @@ describe('Retain Device Identity Option Integration Test', () => {
     test("Option ensures that the specific values will be keeped.", () => {
         for (let key of Object.keys(dict)) {
             applyConfigAction(deIdentConfig, dict, key, DicomValueRepresentations.DT);
-            expect(dict[key].Value).toBe(dummyItemValue);
+            expect(dict[key].Value, `Value of ${key} should be keeped`).toBe(dummyItemValue);
         }
     })
 
     test("Additional tags will indicate that the option is used on the data set", () => {
         // Patient Identity Removed Attribute
-        expect(deIdentConfig.additionalTagValuesMap.get('00120062')).toBe('true');
+        expect(deIdentConfig.additionalTagValuesMap.get('00120062'), 'Patient Identity removed - should be true').toBe('true');
         // De-identification Method Attribute
-        expect(deIdentConfig.additionalTagValuesMap.get('00120063')).toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
+        expect(deIdentConfig.additionalTagValuesMap.get('00120063'), 'addtional 00120063 tag').toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
         // De-identification Method Code Sequence Attribute
         const usedMethods = deIdentConfig.additionalTagValuesMap.get('00120064')
-        expect(usedMethods.length).toBe(2);
+        expect(usedMethods.length, 'Value should be 2.').toBe(2);
         const lastMethod = usedMethods[1];
         // Coding Scheme Designator Attribute
-        expect(lastMethod['00080100'].Value).toEqual([DeidentificationProfileCodes.RETAIN_DEVICE_IDENTITY]);
-        expect(lastMethod['00080102'].Value).toEqual(['DCM']);
-        expect(lastMethod['00080104'].Value).toEqual([DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY]);
+        expect(lastMethod['00080100'].Value, `00080100 - should be ${DeIdentificationProfileCodes.RETAIN_DEVICE_IDENTITY}`)
+            .toEqual([DeIdentificationProfileCodes.RETAIN_DEVICE_IDENTITY]);
+        expect(lastMethod['00080102'].Value, `00080102 - should be DCM`).toEqual(['DCM']);
+        expect(lastMethod['00080104'].Value, `00080104 - should be ${DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY}`)
+            .toEqual([DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY]);
     })
 
 })
