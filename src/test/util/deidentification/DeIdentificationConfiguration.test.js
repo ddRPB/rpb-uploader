@@ -101,6 +101,65 @@ describe('DeIdentificationConfiguration Tests', () => {
 
     })
 
+    describe('Method cleanIdentifyingInformation tests', () => {
+        const dummyItemPartOne = 'dummy';
+        const dummyItemPartTwo = 'Value';
+        const dummyItemPartThree = ' abc';
+
+        const dummyItemValue = dummyItemPartOne + dummyItemPartTwo + dummyItemPartThree;
+        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const configuration = factory.getConfiguration();
+
+        test("Empty identity array does not change the value", () => {
+            let dictionary = {
+                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+            };
+
+            configuration.cleanIdentifyingInformation(dictionary, '00102110', []);
+            expect(dictionary['00102110'].Value).toBe(dummyItemValue);
+        });
+
+
+        test("Not matching identity item does not change the value", () => {
+            let dictionary = {
+                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+            };
+
+            configuration.cleanIdentifyingInformation(dictionary, '00102110', ['not matching']);
+            expect(dictionary['00102110'].Value).toBe(dummyItemValue);
+        });
+
+        test("Matching identity item changes the value", () => {
+            let dictionary = {
+                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+            };
+
+            configuration.cleanIdentifyingInformation(dictionary, '00102110', [dummyItemPartThree]);
+            expect(dictionary['00102110'].Value).toBe(dummyItemPartOne + dummyItemPartTwo);
+        });
+
+        // TODO - later we could change the functionality and throw an exception
+        test("Matching identity item without array does not change the value", () => {
+            let dictionary = {
+                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+            };
+
+            configuration.cleanIdentifyingInformation(dictionary, '00102110', dummyItemPartThree);
+            expect(dictionary['00102110'].Value).toBe(dummyItemPartOne + dummyItemPartTwo + dummyItemPartThree);
+        });
+
+        test("Matching identity items change the value", () => {
+            let dictionary = {
+                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+            };
+
+            configuration.cleanIdentifyingInformation(dictionary, '00102110', [dummyItemPartTwo, dummyItemPartThree]);
+            expect(dictionary['00102110'].Value).toBe(dummyItemPartOne);
+        });
+
+
+    })
+
     describe('DeIdentification D actions', () => {
         // Replace with dummy value
         const dataSetDictionary = {};
@@ -510,62 +569,9 @@ describe('DeIdentificationConfiguration Tests', () => {
     })
 
     describe('DeIdentification C actions', () => {
-        const dummyItemPartOne = 'dummy';
-        const dummyItemPartTwo = 'Value';
-        const dummyItemPartThree = ' abc';
-
-        const dummyItemValue = dummyItemPartOne + dummyItemPartTwo + dummyItemPartThree;
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
-        const configuration = factory.getConfiguration();
-
-        test("Empty identity array does not change the value", () => {
-            let dictionary = {
-                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-            };
-
-            configuration.cleanIdentifyingInformation(dictionary, '00102110', []);
-            expect(dictionary['00102110'].Value).toBe(dummyItemValue);
-        });
-
-
-        test("Not matching identity item does not change the value", () => {
-            let dictionary = {
-                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-            };
-
-            configuration.cleanIdentifyingInformation(dictionary, '00102110', ['not matching']);
-            expect(dictionary['00102110'].Value).toBe(dummyItemValue);
-        });
-
-        test("Matching identity item changes the value", () => {
-            let dictionary = {
-                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-            };
-
-            configuration.cleanIdentifyingInformation(dictionary, '00102110', [dummyItemPartThree]);
-            expect(dictionary['00102110'].Value).toBe(dummyItemPartOne + dummyItemPartTwo);
-        });
-
-        // TODO - later we could change the functionality and throw an exception
-        test("Matching identity item without array does not change the value", () => {
-            let dictionary = {
-                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-            };
-
-            configuration.cleanIdentifyingInformation(dictionary, '00102110', dummyItemPartThree);
-            expect(dictionary['00102110'].Value).toBe(dummyItemPartOne + dummyItemPartTwo);
-        });
-
-        test("Matching identity items change the value", () => {
-            let dictionary = {
-                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-            };
-
-            configuration.cleanIdentifyingInformation(dictionary, '00102110', [dummyItemPartTwo, dummyItemPartThree]);
-            expect(dictionary['00102110'].Value).toBe(dummyItemPartOne);
-        });
-
-
+        test('placeholder', () => {
+            expect(true).toBe(true);
+        })
     })
 
     describe('DeIdentification KP actions', () => {
