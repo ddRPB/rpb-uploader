@@ -54,14 +54,9 @@ describe('Retain Patient Characteristics Profile Integration Test', () => {
         '00380050': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO },
     };
 
-    // '00380500': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatienId, vr: DicomValueRepresentations.DT },
-
     test("Option ensures that the specific values will be keeped.", () => {
         for (let key of Object.keys(dictKeepCandidates)) {
             applyConfigAction(deIdentConfig, dictKeepCandidates, key, DicomValueRepresentations.DT);
-            if (dictKeepCandidates[key] === undefined) {
-                console.log(`Value of key ${key} is missing - test will fail`);
-            }
             expect(dictKeepCandidates[key].Value, `Value of ${key} should be keeped`).toBe(dummyItemValue);
         }
     })
@@ -69,32 +64,31 @@ describe('Retain Patient Characteristics Profile Integration Test', () => {
     test("Option ensures that the specific values will cleaned.", () => {
         deIdentComponent.applyDeIdentificationActions(dictCleanCandidates);
         for (let key of Object.keys(dictCleanCandidates)) {
-
-            expect(dictCleanCandidates[key]).not.toBe(undefined);
-            // applyConfigAction(deIdentConfig, dictCleanCandidates, key, DicomValueRepresentations.DT);
             expect(dictCleanCandidates[key].Value, `Value of ${key} should be cleaned`).toBe(dummyItemValue + dummyItemValueAddition);
         }
     })
 
-    test("Additional tags will indicate that the basic profile was applied on the data set", () => {
+    test("Additional tags will indicate that the RETAIN_PATIENT_CHARACTERISTICS profile was applied on the data set", () => {
 
-        const profile = DeIdentificationProfiles.BASIC;
+        const profile = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
         const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
         factory.addAdditionalDeIdentificationRelatedTags();
         const deIdentConfig = factory.getConfiguration();
 
         // Patient Identity Removed Attribute
-        expect(deIdentConfig.additionalTagValuesMap.get('00120062')).toBe('true');
+        expect(deIdentConfig.additionalTagValuesMap.get('00120062'), 'Patient Identity removed - should be false').toBe(false);
         // De-identification Method Attribute
-        expect(deIdentConfig.additionalTagValuesMap.get('00120063')).toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
+        expect(deIdentConfig.additionalTagValuesMap.get('00120063'), 'addtional 00120063 tag').toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
         // De-identification Method Code Sequence Attribute
         const usedMethods = deIdentConfig.additionalTagValuesMap.get('00120064')
-        expect(usedMethods.length).toBe(1);
-        const lastMethod = usedMethods[0];
+        expect(usedMethods.length, 'Value should be 2.').toBe(2);
+        const lastMethod = usedMethods[1];
         // Coding Scheme Designator Attribute
-        expect(lastMethod['00080100'].Value).toEqual([DeIdentificationProfileCodes.BASIC]);
-        expect(lastMethod['00080102'].Value).toEqual(['DCM']);
-        expect(lastMethod['00080104'].Value).toEqual([DeIdentificationProfileCodesMeaning.BASIC]);
+        expect(lastMethod['00080100'].Value, `00080100 - should be ${DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS}`)
+            .toEqual([DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS]);
+        expect(lastMethod['00080102'].Value, `00080102 - should be DCM`).toEqual(['DCM']);
+        expect(lastMethod['00080104'].Value, `00080104 - should be ${DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS}`)
+            .toEqual([DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS]);
 
     })
 
