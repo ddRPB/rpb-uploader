@@ -20,6 +20,7 @@
 import dcmjs from 'dcmjs';
 import Logger from '../logging/Logger';
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
+import LogLevels from '../../constants/LogLevels';
 
 const { DicomMessage } = dcmjs.data;
 

@@ -537,7 +537,7 @@ export default class DeIdentificationConfigurationFactory {
         // Special Needs
         this.actionConfigurationMap.set('00380050', { action: DeIdentificationActionCodes.X });
         // Station Name
-        this.actionConfigurationMap.set('00380050', { action: DeIdentificationActionCodes.D });
+        this.actionConfigurationMap.set('00081010', { action: DeIdentificationActionCodes.D });
         // Storage Media Fileset UID
         this.actionConfigurationMap.set('00880140', { action: DeIdentificationActionCodes.U });
         // Study Comments

@@ -172,7 +172,7 @@ export default class DeIdentificationConfiguration {
 
                 } else {
 
-                    dictionary[propertyName].Value = dictionary[propertyName].Value.replace(regex, '');
+                    dictionary[propertyName].Value = originalElementValue.replace(regex, '');
                 }
             }
         } else {
