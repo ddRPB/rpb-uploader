@@ -36,14 +36,27 @@ export default class IgnoredFilesPanel extends Component {
     /**
      * Create rows for table display
      */
+    // createRows = () => {
+    //     let ignoredFileNames = Object.keys(this.props.dataIgnoredFiles)
+    //     let rows = []
+    //     ignoredFileNames.forEach(ignoredFileName => {
+    //         rows.push({
+    //             key: Math.random(),
+    //             file: ignoredFileName,
+    //             reason: this.props.dataIgnoredFiles[ignoredFileName],
+    //         })
+    //     })
+    //     return rows
+    // }
+
     createRows = () => {
-        let ignoredFileNames = Object.keys(this.props.dataIgnoredFiles)
+        const ignoredFiles = this.props.dataIgnoredFiles;
         let rows = []
-        ignoredFileNames.forEach(ignoredFileName => {
+        ignoredFiles.forEach(ignoredFile => {
             rows.push({
                 key: Math.random(),
-                file: ignoredFileName,
-                reason: this.props.dataIgnoredFiles[ignoredFileName],
+                fileName: ignoredFile.fileName,
+                reason: ignoredFile.errorMessage,
             })
         })
         return rows
@@ -74,7 +87,7 @@ export default class IgnoredFilesPanel extends Component {
                 <DataTable
                     value={this.createRows()}
                 >
-                    <Column field="file" header="File" />
+                    <Column field="fileName" header="File" />
                     <Column field="reason" header="Reason" />
                 </DataTable>
                 <ScrollTop />
