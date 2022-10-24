@@ -17,12 +17,13 @@
  * 
  */
 
-import React, { Component } from 'react';
-import styledComponents from 'styled-components';
 import { Button } from 'primereact/button';
+import { Card } from 'primereact/card';
 import { Column } from 'primereact/column';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { TreeTable } from 'primereact/treetable';
+import React, { Component } from 'react';
+import styledComponents from 'styled-components';
 
 
 export class TreeSelection extends Component {
@@ -98,8 +99,9 @@ export class TreeSelection extends Component {
                     onClick={(e) => rOISequenceOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={rOISequenceOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
-                        <h5>ROI Sequence</h5>
-                        {rOIOberservationSequenceList}
+                        <Card title="ROI Sequence">
+                            {rOIOberservationSequenceList}
+                        </Card>
                     </OverlayPanel>
 
                 </StyledButton>}
@@ -112,7 +114,7 @@ export class TreeSelection extends Component {
         if (node.data.detailsArray === undefined) return <div key={key}></div>;
 
         let detailsOverlayPanel = React.createRef();
-        let detailList = node.data.detailsArray.map((item, index) => <div key={key + index}>{item.name + ": " + item.value}</div>);
+        let detailList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
@@ -126,8 +128,9 @@ export class TreeSelection extends Component {
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
-                        <h5>Details</h5>
-                        {detailList}
+                        <Card title="Details">
+                            {detailList}
+                        </Card>
                     </OverlayPanel>
                 </StyledButton>}
         </div>

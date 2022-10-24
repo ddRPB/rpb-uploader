@@ -114,6 +114,7 @@ export default class DicomFile {
         const modality = this.getModality();
         this.parsedParameters = new Map();
         this.parsedParameters.set('Modality', modality);
+        this.parsedParameters.set('SeriesMetaParameter', [])
 
         switch (modality) {
             case "RTSTRUCT":
@@ -291,6 +292,9 @@ export default class DicomFile {
                     }
 
                     break;
+                case "x300e0002":
+                    resultMap.set("ApprovalStatus", this._getString(element));
+                    break;
                 case "x00200052":
                     resultMap.set("FrameOfReferenceUID", this._getString(element));
                     resultMap.set("ReferencedFrameOfReferenceUID", this._getString(element));
@@ -367,6 +371,9 @@ export default class DicomFile {
                         referencedStructureSetMap.set("ReferencedSOPClassUID", this._getString(referencedStructureSetItem.dataSet.elements['x00081150']));
                         referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedStructureSetItem.dataSet.elements['x00081155']));
                     }
+                    break;
+                case "x300e0002":
+                    resultMap.set("ApprovalStatus", this._getString(element));
                     break;
                 case "x00081155":
                     resultMap.set("ReferencedSOPInstanceUID", this._getString(element));
@@ -508,6 +515,9 @@ export default class DicomFile {
                         referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedRTPlanItem.dataSet.elements['x00081155']));
                     }
 
+                    break;
+                case "x300e0002":
+                    resultMap.set("ApprovalStatus", this._getString(element));
                     break;
                 case "x00081155":
                     resultMap.set("ReferencedSOPInstanceUID", this._getString(element));
