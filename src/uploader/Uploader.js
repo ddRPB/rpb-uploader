@@ -53,8 +53,8 @@ class Uploader extends Component {
         fileParsed: 0,
         fileLoaded: 0,
         zipProgress: 0,
-        filesIgnoredCount: 0,
-        ignoredFiles: [],
+        ignoredFilesCount: 0,
+        ignoredFilesDetails: [],
         isAnalysisDone: false,
         studyArray: [],
         selectedNodeKeys: [],
@@ -776,7 +776,7 @@ class Uploader extends Component {
             this.setState({
                 isFilesLoaded: true,
                 isParsingFiles: false,
-                ignoredFiles: this.ignoredFilesArray,
+                ignoredFilesDetails: this.ignoredFilesArray,
                 isAnalysisDone: true
             })
 
@@ -840,21 +840,23 @@ class Uploader extends Component {
             if (typeof error === 'object') {
                 errorMessage = error.message
             }
-            this.log.trace('Parsing of a file failed. ', {}, { dicomFile, errorMessage });
 
             const fileName = file.name;
             this.ignoredFilesArray.push({ fileName, errorMessage });
 
+            this.log.trace('Parsing of a file failed. ', {}, { fileName, errorMessage });
+
+
             this.setState((previousState) => {
                 return {
-                    filesIgnoredCount: ++previousState.filesIgnoredCount,
+                    ignoredFilesCount: ++previousState.ignoredFilesCount,
                 }
             });
 
             if (this.ignoredFilesArray.length < 10) {
                 this.setState((previousState) => {
                     return {
-                        ignoredFiles: this.ignoredFilesArray,
+                        ignoredFilesDetails: this.ignoredFilesArray,
                     }
                 });
             }
@@ -923,17 +925,18 @@ class Uploader extends Component {
                         isParsingFiles={this.state.isParsingFiles}
                         isUploadStarted={this.state.isUploadStarted}
                         fileParsed={this.state.fileParsed}
-                        fileIgnored={this.state.filesIgnoredCount}
+                        fileIgnored={this.state.ignoredFilesCount}
                         fileLoaded={this.state.fileLoaded}
                     />
 
                     <Divider />
 
                     <DicomParsingMenu
+                        isParsingFiles={this.state.isParsingFiles}
                         fileLoaded={this.state.fileLoaded}
                         fileParsed={this.state.fileParsed}
-                        filesIgnoredCount={this.state.filesIgnoredCount}
-                        dataIgnoredFiles={this.state.ignoredFiles}
+                        ignoredFilesCount={this.state.ignoredFilesCount}
+                        ignoredFilesDetails={this.state.ignoredFilesDetails}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
                         resetAll={this.resetAll}
