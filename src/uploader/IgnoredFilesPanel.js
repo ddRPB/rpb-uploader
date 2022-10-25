@@ -24,6 +24,7 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { ScrollTop } from 'primereact/scrolltop';
+import { ProgressBar } from 'primereact/progressbar';
 
 
 /**
@@ -31,30 +32,12 @@ import { ScrollTop } from 'primereact/scrolltop';
  */
 export default class IgnoredFilesPanel extends Component {
 
-    // TODO: https://www.primefaces.org/primereact/datatable/paginator/
-
-    /**
-     * Create rows for table display
-     */
-    // createRows = () => {
-    //     let ignoredFileNames = Object.keys(this.props.dataIgnoredFiles)
-    //     let rows = []
-    //     ignoredFileNames.forEach(ignoredFileName => {
-    //         rows.push({
-    //             key: Math.random(),
-    //             file: ignoredFileName,
-    //             reason: this.props.dataIgnoredFiles[ignoredFileName],
-    //         })
-    //     })
-    //     return rows
-    // }
-
     createRows = () => {
-        const ignoredFiles = this.props.dataIgnoredFiles;
+        const ignoredFiles = this.props.ignoredFilesDetails;
         let rows = []
-        ignoredFiles.forEach(ignoredFile => {
+        ignoredFiles.forEach((ignoredFile, index) => {
             rows.push({
-                key: Math.random(),
+                key: index + 1,
                 fileName: ignoredFile.fileName,
                 reason: ignoredFile.errorMessage,
             })
@@ -68,7 +51,7 @@ export default class IgnoredFilesPanel extends Component {
     renderHeader = () => {
         return (
             <div>
-                Ignored Files: {Object.keys(this.props.dataIgnoredFiles).length}
+                Ignored Files
             </div>
         )
     }
@@ -77,19 +60,31 @@ export default class IgnoredFilesPanel extends Component {
      * Render the component
      */
     render = () => {
+
         return (
             <Dialog
                 header={this.renderHeader()}
                 visible={this.props.display}
-                style={{ width: '50vw' }}
                 onHide={this.props.closeListener}
+                style={{ width: '50vw' }}
             >
+                {this.props.isParsingFiles ?
+                    (<ProgressBar mode="indeterminate" />) :
+                    (null)
+                }
                 <DataTable
                     value={this.createRows()}
+                    paginator responsiveLayout="scroll"
+                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                    paginatorClassName="text-sm"
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" rows={10} rowsPerPageOptions={[10, 20, 50]}
+
                 >
-                    <Column field="fileName" header="File" />
-                    <Column field="reason" header="Reason" />
+                    <Column className="text-sm" field="key" header="" />
+                    <Column className="text-sm" field="fileName" header="File Name" />
+                    <Column className="text-sm" field="reason" header="Reason" />
                 </DataTable>
+
                 <ScrollTop />
             </Dialog>
         )
