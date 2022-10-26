@@ -21,6 +21,7 @@ import DeIdentificationActionCodes from "../../constants/DeIdentificationActionC
 import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
 import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes";
 import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
+import YesNoEnum from "../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
 import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
 
@@ -44,7 +45,7 @@ export default class DeIdentificationConfigurationFactory {
         this.tagSpecificReplacementsValuesMap = new Map();
         this.additionalTagValuesMap = new Map();
 
-        this.patientIdentitityRemoved = 'true'; // true - current default setting
+        this.patientIdentitityRemoved = true; // true - current default setting
         this.rpbSpecificActions = true; // some modifications that are RPB specific 
         this.appliedDeIdentificationSteps = [];
 
@@ -783,10 +784,14 @@ export default class DeIdentificationConfigurationFactory {
      * The data set needs to be annotated that de-identification was applied
      */
     addAdditionalDeIdentificationRelatedTags() {
-        this.additionalTagValuesMap.set('00120062', this.patientIdentitityRemoved);
+        this.additionalTagValuesMap.set(
+            '00120062',
+            this.patientIdentitityRemoved ? YesNoEnum.YES : YesNoEnum.NO
+        );
+
         this.additionalTagValuesMap.set(
             '00120063',
-            'Per DICOM PS 3.15 AnnexE. Details in 0012,0064'
+            'Per DICOM PS 3.15 AnnexE. RPB-Uploader v1.0'
         );
 
         // https://dicom.innolitics.com/ciods/enhanced-sr/patient/00120064/00080100

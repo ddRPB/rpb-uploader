@@ -18,6 +18,7 @@
  */
 
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
+import YesNoEnum from "../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
 import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
@@ -280,13 +281,24 @@ export default class DeIdentificationConfiguration {
      */
     addReplacementTags(dictionary) {
         //Patient Identity Removed Attribute
+        const patientDeIdentifiedItem = dictionary['00120062']
+        let patientDeIdentifiedValue;
+
+        if (patientDeIdentifiedItem != undefined) {
+            patientDeIdentifiedValue = patientDeIdentifiedItem.Value;
+        }
+
+        if (Array.isArray(patientDeIdentifiedValue)) {
+            patientDeIdentifiedValue = patientDeIdentifiedValue[0];
+        }
+
         if (this.additionalTagValuesMap.get('00120062') != undefined) {
-            if (dictionary['00120062'] === undefined) { // not deIdentified yet
+            if (patientDeIdentifiedValue === undefined) { // not deIdentified yet
                 dictionary['00120062'] = {
                     vr: DicomValueRepresentations.CS,
                     Value: [this.additionalTagValuesMap.get('00120062')]
                 };
-            } else if (dictionary['00120062'].Value === ['false']) { // patient identity is not already removed yet
+            } else if (patientDeIdentifiedValue === YesNoEnum.NO) { // patient identity is not already removed yet
                 dictionary['00120062'] = {
                     vr: DicomValueRepresentations.CS,
                     Value: [this.additionalTagValuesMap.get('00120062')]
@@ -295,10 +307,51 @@ export default class DeIdentificationConfiguration {
         }
 
         if (this.additionalTagValuesMap.get('00120063') != undefined) {
+            const maxValueLength = 64;
 
-            dictionary['00120063'] = {
-                vr: DicomValueRepresentations.LO,
-                Value: ['Per DICOM PS 3.15 AnnexE. Details in 0012,0064']
+            const currentDeIdentificationMethodItem = dictionary['00120063'];
+            let currentDeIdentificationMethodValue;
+            if (currentDeIdentificationMethodItem != undefined) {
+                currentDeIdentificationMethodValue = currentDeIdentificationMethodItem.Value;
+            }
+
+            if (currentDeIdentificationMethodValue === undefined) {
+                dictionary['00120063'] = {
+                    vr: DicomValueRepresentations.LO,
+                    Value: [this.additionalTagValuesMap.get('00120063')]
+                }
+            } else {
+                let newDeIdentificationMethodValue;
+
+                if (!Array.isArray(currentDeIdentificationMethodValue)) {
+                    newDeIdentificationMethodValue = [currentDeIdentificationMethodValue];
+                } else {
+                    newDeIdentificationMethodValue = currentDeIdentificationMethodValue;
+                }
+
+                let calculatedSize = 2 + newDeIdentificationMethodValue.toString().length + this.additionalTagValuesMap.get('00120063').length;
+
+                if (calculatedSize <= maxValueLength) {
+                    newDeIdentificationMethodValue.push(this.additionalTagValuesMap.get('00120063'));
+                    dictionary['00120063'] = {
+                        vr: DicomValueRepresentations.LO,
+                        Value: newDeIdentificationMethodValue
+                    }
+                } else {
+                    const dots = '...'
+                    calculatedSize = 2 + newDeIdentificationMethodValue.toString().length + dots.length
+                    if (calculatedSize <= maxValueLength) {
+                        newDeIdentificationMethodValue.push(dots);
+                        dictionary['00120063'] = {
+                            vr: DicomValueRepresentations.LO,
+                            Value: newDeIdentificationMethodValue
+                        }
+                    } else {
+                        // do not change the value
+                    }
+
+                }
+
             }
 
         }

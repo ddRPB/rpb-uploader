@@ -1,4 +1,5 @@
 import DeIdentificationProfiles from "../../../constants/DeIdentificationProfiles";
+import YesNoEnum from "../../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../../constants/DicomValueRepresentations";
 import DeIdentificationConfigurationFactory from "../../../util/deidentification/DeIdentificationConfigurationFactory";
 
@@ -100,6 +101,179 @@ describe('DeIdentificationConfiguration Tests', () => {
         })
 
     })
+
+    describe('PatientIdentityRemoved Tag Tests', () => {
+        const uploadSlot = {
+            studyEdcCode: 'dummyStudyEdcCode',
+            subjectId: 'dummySubjectId',
+            pid: 'dummyPid'
+        };
+
+        const patientIdentityRemoved = '00120062';
+
+        const profile = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
+        const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+        factory.addAdditionalDeIdentificationRelatedTags();
+        const deIdentConfig = factory.getConfiguration();
+
+        test("Tag from configuration is added if item does not exist.", () => {
+            let dict = {};
+            deIdentConfig.addReplacementTags(dict);
+
+            const patientDeIdentifiedItem = dict[patientIdentityRemoved];
+
+            expect(patientDeIdentifiedItem.Value.length, 'should be just one item').toBe(1);
+            expect(patientDeIdentifiedItem.Value[0], 'matches the expected value').toMatch(YesNoEnum.NO);
+
+
+        })
+
+        test("Existing item stays if it is YES.", () => {
+            let dict = {
+                '00120062': { Value: [YesNoEnum.YES], vr: DicomValueRepresentations.CS },
+            };
+
+            deIdentConfig.addReplacementTags(dict);
+            const patientDeIdentifiedItem = dict[patientIdentityRemoved];
+
+            expect(patientDeIdentifiedItem.Value.length, 'should be just one item').toBe(1);
+            expect(patientDeIdentifiedItem.Value[0], 'matches the expected value').toMatch(YesNoEnum.YES);
+
+
+        })
+
+        test("Existing 'No' item will be overwritten by config 'YES'.", () => {
+            let dict = {
+                '00120062': { Value: [YesNoEnum.NO], vr: DicomValueRepresentations.CS },
+            };
+
+            const basicProfile = DeIdentificationProfiles.BASIC;
+            const factoryTwo = new DeIdentificationConfigurationFactory(basicProfile, uploadSlot);
+            const deIdentConfigTwo = factoryTwo.getConfiguration();
+            deIdentConfigTwo.addReplacementTags(dict);
+
+            const patientDeIdentifiedItem = dict[patientIdentityRemoved];
+
+            expect(patientDeIdentifiedItem.Value.length, 'should be just one item').toBe(1);
+            expect(patientDeIdentifiedItem.Value[0], 'matches the expected value').toMatch(YesNoEnum.YES);
+
+
+        })
+    })
+
+
+    describe('DeidentificationMethod Tag Tests', () => {
+
+        const uploadSlot = {
+            studyEdcCode: 'dummyStudyEdcCode',
+            subjectId: 'dummySubjectId',
+            pid: 'dummyPid'
+        };
+
+        const deIdentificationMethodTag = '00120063';
+        const defaultValue = 'Per DICOM PS 3.15 AnnexE. RPB-Uploader v1.0';
+        const dummyValue = 'dummyItemValue';
+
+        const profile = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
+        const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+        factory.addAdditionalDeIdentificationRelatedTags();
+        const deIdentConfig = factory.getConfiguration();
+
+        test("Adding an item if the dictionary has no DeIdentificationMethod item.", () => {
+            let dict = {};
+            deIdentConfig.addReplacementTags(dict);
+
+            expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
+
+            const deidentificationMethodItem = dict[deIdentificationMethodTag];
+
+            expect(deidentificationMethodItem.Value.length, 'should be just one item').toBe(1);
+            expect(deidentificationMethodItem.Value[0], 'matches the expected value').toMatch(defaultValue);
+        })
+
+        test("Existing String item will be converted to an array item and additional value is added to the array.", () => {
+
+            let dict = {
+                '00120063': { Value: dummyValue, vr: DicomValueRepresentations.LO },
+            }
+            deIdentConfig.addReplacementTags(dict);
+
+            expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
+
+            const deidentificationMethodItem = dict[deIdentificationMethodTag];
+
+            expect(deidentificationMethodItem.Value.length, 'should be two items').toBe(2);
+            expect(deidentificationMethodItem.Value[0], 'matches the existing value').toMatch(dummyValue);
+            expect(deidentificationMethodItem.Value[1], 'matches the added value').toMatch(defaultValue);
+
+
+        })
+
+        test("Existing item is keeped and additional value is added to the array if the size is not bigger than 64 characters.", () => {
+
+            let dict = {
+                '00120063': { Value: [dummyValue], vr: DicomValueRepresentations.LO },
+            }
+            deIdentConfig.addReplacementTags(dict);
+
+            expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
+
+            const deidentificationMethodItem = dict[deIdentificationMethodTag];
+
+            expect(deidentificationMethodItem.Value.length, 'should be two items').toBe(2);
+            expect(deidentificationMethodItem.Value[0], 'matches the existing value').toMatch(dummyValue);
+            expect(deidentificationMethodItem.Value[1], 'matches the added value').toMatch(defaultValue);
+
+        })
+
+        test("Existing item is keeped and additional '...' is not added to the array if the size would become bigger than 64 characters.", () => {
+
+            const tenCharacters = '0123456789';
+            const fiftyCharacters = tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters;
+
+            let dict = {
+                '00120063': {
+                    Value: [fiftyCharacters],
+                    vr: DicomValueRepresentations.LO
+                },
+            }
+            deIdentConfig.addReplacementTags(dict);
+
+            expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
+
+            const deidentificationMethodItem = dict[deIdentificationMethodTag];
+
+            expect(deidentificationMethodItem.Value.length, 'should be two items').toBe(2);
+            expect(deidentificationMethodItem.Value[0], 'matches the existing value').toMatch(fiftyCharacters);
+            expect(deidentificationMethodItem.Value[1], 'matches the added value').toMatch('...');
+
+        })
+
+        test("Existing item is keeped and additional item is not added to the array if the size would become bigger than 64 characters.", () => {
+
+            const tenCharacters = '0123456789';
+            const sixtyCharacters = tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters;
+
+            let dict = {
+                '00120063': {
+                    Value: [sixtyCharacters],
+                    vr: DicomValueRepresentations.LO
+                },
+            }
+            deIdentConfig.addReplacementTags(dict);
+
+            expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
+
+            const deidentificationMethodItem = dict[deIdentificationMethodTag];
+
+            expect(deidentificationMethodItem.Value.length, 'should be two items').toBe(1);
+            expect(deidentificationMethodItem.Value[0], 'matches the existing value').toMatch(sixtyCharacters);
+
+
+        })
+
+    })
+
 
     describe('Method cleanIdentifyingInformation tests', () => {
         const dummyItemPartOne = 'dummy';
