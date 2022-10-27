@@ -80,12 +80,12 @@ export default class DicomParsingMenu extends Component {
                             </StyledButton>
                             <StyledButton
                                 type="button"
-                                label="Ignored:" className={Object.keys(this.props.dataIgnoredFiles).length === 0 ? "p-button-outlined p-button-warning" : "p-button-warning"} style={{ "width": "135px" }}
+                                label="Ignored:" className={this.props.ignoredFilesCount === 0 ? "p-button-outlined p-button-warning" : "p-button-warning"} style={{ "width": "135px" }}
                                 onClick={this.toggleShowIgnoredFile}
                             >
                                 <Badge
                                     severity="warning"
-                                    value={Object.keys(this.props.dataIgnoredFiles).length}
+                                    value={this.props.ignoredFilesCount}
                                 />
                             </StyledButton>
                             <StyledButton
@@ -127,7 +127,9 @@ export default class DicomParsingMenu extends Component {
                 <IgnoredFilesPanel
                     display={this.state.showIgnoredFiles}
                     closeListener={this.toggleShowIgnoredFile}
-                    dataIgnoredFiles={this.props.dataIgnoredFiles}
+                    isParsingFiles={this.props.isParsingFiles}
+                    ignoredFilesCount={this.props.ignoredFilesCount}
+                    ignoredFilesDetails={this.props.ignoredFilesDetails}
                 />
 
             </React.Fragment >

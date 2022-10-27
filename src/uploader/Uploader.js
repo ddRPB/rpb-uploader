@@ -53,7 +53,8 @@ class Uploader extends Component {
         fileParsed: 0,
         fileLoaded: 0,
         zipProgress: 0,
-        ignoredFiles: {},
+        ignoredFilesCount: 0,
+        ignoredFilesDetails: [],
         isAnalysisDone: false,
         studyArray: [],
         selectedNodeKeys: [],
@@ -107,6 +108,8 @@ class Uploader extends Component {
         this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log, this.config);
 
         this.verifyPropsAndDownloadServerUploadParameter();
+
+        this.ignoredFilesArray = [];
     }
 
     /**
@@ -475,6 +478,7 @@ class Uploader extends Component {
         this.setState({ ...this.defaultState });
         this.dicomUploadDictionary = new DicomUploadDictionary();
         this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
+        this.ignoredFilesArray = [];
         this.log.trace("Reset Uploader component", {}, {});
     }
 
@@ -769,8 +773,13 @@ class Uploader extends Component {
 
         // Once all promised resolved update state and refresh redux with parsing results
         Promise.all(readPromises).then(() => {
-            this.setState({ isFilesLoaded: true, isParsingFiles: false })
-            this.setState({ isAnalysisDone: true })
+            this.setState({
+                isFilesLoaded: true,
+                isParsingFiles: false,
+                ignoredFilesDetails: this.ignoredFilesArray,
+                isAnalysisDone: true
+            })
+
             let studyArray = this.dicomUploadDictionary.getStudies();
             for (let studyObject of studyArray) {
 
@@ -831,16 +840,27 @@ class Uploader extends Component {
             if (typeof error === 'object') {
                 errorMessage = error.message
             }
-            this.log.trace('Parsing of a file failed. ', {}, { dicomFile, errorMessage });
 
-            this.setState(state => {
+            const fileName = file.name;
+            this.ignoredFilesArray.push({ fileName, errorMessage });
+
+            this.log.trace('Parsing of a file failed. ', {}, { fileName, errorMessage });
+
+
+            this.setState((previousState) => {
                 return {
-                    ignoredFiles: {
-                        ...state.ignoredFiles,
-                        [file.name]: errorMessage
-                    }
+                    ignoredFilesCount: ++previousState.ignoredFilesCount,
                 }
-            })
+            });
+
+            if (this.ignoredFilesArray.length < 10) {
+                this.setState((previousState) => {
+                    return {
+                        ignoredFilesDetails: this.ignoredFilesArray,
+                    }
+                });
+            }
+
         }
     }
 
@@ -905,16 +925,18 @@ class Uploader extends Component {
                         isParsingFiles={this.state.isParsingFiles}
                         isUploadStarted={this.state.isUploadStarted}
                         fileParsed={this.state.fileParsed}
-                        fileIgnored={Object.keys(this.state.ignoredFiles).length}
+                        fileIgnored={this.state.ignoredFilesCount}
                         fileLoaded={this.state.fileLoaded}
                     />
 
                     <Divider />
 
                     <DicomParsingMenu
+                        isParsingFiles={this.state.isParsingFiles}
                         fileLoaded={this.state.fileLoaded}
                         fileParsed={this.state.fileParsed}
-                        dataIgnoredFiles={this.state.ignoredFiles}
+                        ignoredFilesCount={this.state.ignoredFilesCount}
+                        ignoredFilesDetails={this.state.ignoredFilesDetails}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
                         resetAll={this.resetAll}
