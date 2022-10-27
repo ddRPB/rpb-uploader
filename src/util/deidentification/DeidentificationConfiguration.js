@@ -18,6 +18,7 @@
  */
 
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
+import YesNoEnum from "../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
 import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
@@ -71,26 +72,22 @@ export default class DeIdentificationConfiguration {
             };
         } else {
             const action = elementActionConfiguration.action;
+
             switch (action) {
                 case DeIdentificationActionCodes.C:
-                    // similar values; TODO
-                    // 
                     return {
                         action: this.cleanIdentifyingInformation,
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.C,
                     };
-
                     break;
                 case DeIdentificationActionCodes.D:
                     const replacementValue = this.getReplacementValue(tag, vr);
-
                     return {
                         action: this.replaceWithDummyValue.bind(this),
                         parameter: replacementValue,
                         actionCode: DeIdentificationActionCodes.D,
                     };
-                    // return this.replaceWithDummyValue.bind(this);
                     break;
                 case DeIdentificationActionCodes.K:
                     return {
@@ -105,7 +102,6 @@ export default class DeIdentificationConfiguration {
                         parameter: this.uploadSlot.studyEdcCode,
                         actionCode: DeIdentificationActionCodes.KP,
                     };
-                    // return this.noop;
                     break;
                 case DeIdentificationActionCodes.U:
                     return {
@@ -113,7 +109,6 @@ export default class DeIdentificationConfiguration {
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.U,
                     };
-                    // return this.replaceUID;
                     break;
                 case DeIdentificationActionCodes.X:
                     return {
@@ -121,11 +116,9 @@ export default class DeIdentificationConfiguration {
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.X,
                     };
-                    // return this.removeItem;
                     break;
                 case DeIdentificationActionCodes.Z:
                     const parameter = this.getReplacementValue(tag, vr);
-
                     return {
                         action: this.replaceWithZeroLengthOrDummyValue.bind(this),
                         parameter: parameter,
@@ -151,13 +144,19 @@ export default class DeIdentificationConfiguration {
         return false;
     }
 
+    /**
+     * Function that will do nothing - keeps the tag as it is.
+     */
     noop(dictionary, propertyName, uidGenerator) {
-        // console.log(`do nothing ${propertyName}`);
+        // do nothing
     }
 
-    cleanIdentifyingInformation(dictionary, propertyName, replacement) {
-        if (Array.isArray(replacement)) {
-            for (let replValue of replacement) {
+    /**
+     * Replaces identifying Strings that will be provided in the identifyingStringsArray with an empty String.
+     */
+    cleanIdentifyingInformation(dictionary, propertyName, identifyingStringsArray) {
+        if (Array.isArray(identifyingStringsArray)) {
+            for (let replValue of identifyingStringsArray) {
                 let regex = new RegExp(replValue, 'gi');
                 const originalElementValue = dictionary[propertyName].Value;
                 if (Array.isArray(originalElementValue)) {
@@ -165,7 +164,6 @@ export default class DeIdentificationConfiguration {
 
                     for (let el of originalElementValue) {
                         newElementValue.push(el.replace(regex, ''));
-                        // console.log(`replace ${propertyName} with dummy value ${replacement}`);
                     }
 
                     dictionary[propertyName].Value = newElementValue;
@@ -180,7 +178,9 @@ export default class DeIdentificationConfiguration {
         }
     }
 
-    // Implementation of the function for action code D
+    /**
+     * Implementation of the function for action code D.
+     */
     replaceWithDummyValue(dictionary, propertyName, replacement) {
         const originalElementValue = dictionary[propertyName].Value;
         if (Array.isArray(originalElementValue)) {
@@ -199,7 +199,9 @@ export default class DeIdentificationConfiguration {
         }
     }
 
-    // Implementation of the function for action code Z
+    /**
+     * Implementation of the function for action code Z
+     */
     replaceWithZeroLengthOrDummyValue(dictionary, propertyName, replacement) {
         const originalElementValue = dictionary[propertyName].Value;
         if (Array.isArray(originalElementValue)) {
@@ -212,26 +214,25 @@ export default class DeIdentificationConfiguration {
                         newElementValue.push('');
                     }
                 }
-                // console.log(`replace ${propertyName} with dummy value ${replacement}`);
             } else {
-                // console.log(`replace ${propertyName} with zero length array`);
+                // do nothing
             }
             dictionary[propertyName].Value = newElementValue;
 
         } else {
             if (originalElementValue.length > 0) {
                 dictionary[propertyName].Value = replacement;
-                // console.log(`replace ${propertyName} with dummy value ${replacement}`);
             } else {
                 newElementValue = '';
                 dictionary[propertyName].Value = newElementValue;
-                // console.log(`replace ${propertyName} with zero length value`);
             }
 
         }
     }
 
-    // Implementation of the function for action code KP
+    /**
+     * Implementation of the function for action code KP
+     */
     keepAndAddPrefix(dictionary, propertyName, prefix) {
         const originalElementValue = dictionary[propertyName].Value;
         if (Array.isArray(originalElementValue)) {
@@ -241,9 +242,8 @@ export default class DeIdentificationConfiguration {
                     newElementValue.push('(' + prefix + ')-' + el);
 
                 }
-                // console.log(`replace ${propertyName} with dummy value ${replacement}`);
             } else {
-                // console.log(`replace ${propertyName} with zero length array`);
+                // do nothing
             }
             dictionary[propertyName].Value = newElementValue;
 
@@ -254,7 +254,9 @@ export default class DeIdentificationConfiguration {
 
     }
 
-    // Implementation of the function for action code U
+    /**
+     * Implementation of the function for action code U
+     */
     replaceUID(dictionary, propertyName, dicomUidReplacements) {
         const originalElementValue = dictionary[propertyName].Value;
         let newElementValue;
@@ -270,54 +272,26 @@ export default class DeIdentificationConfiguration {
 
     }
 
-    // Implementation of the function for action code X
+    /**
+     * Implementation of the function for action code X
+     */
     removeItem(dictionary, propertyName, dicomUidReplacements) {
         delete dictionary[propertyName];
     }
 
     /**
-     * Adds additional to the data set that describes the applied de-identification process
+     * Adds or modifies additional tags to the data set that describe the applied de-identification process.
      */
     addReplacementTags(dictionary) {
-        //Patient Identity Removed Attribute
-        if (this.additionalTagValuesMap.get('00120062') != undefined) {
-            if (dictionary['00120062'] === undefined) { // not deIdentified yet
-                dictionary['00120062'] = {
-                    vr: DicomValueRepresentations.CS,
-                    Value: [this.additionalTagValuesMap.get('00120062')]
-                };
-            } else if (dictionary['00120062'].Value === ['false']) { // patient identity is not already removed yet
-                dictionary['00120062'] = {
-                    vr: DicomValueRepresentations.CS,
-                    Value: [this.additionalTagValuesMap.get('00120062')]
-                };
-            }
-        }
 
-        if (this.additionalTagValuesMap.get('00120063') != undefined) {
+        // PatientIdentityRemoved
+        this.handlePatientIdentityRemovedTag(dictionary);
 
-            dictionary['00120063'] = {
-                vr: DicomValueRepresentations.LO,
-                Value: ['Per DICOM PS 3.15 AnnexE. Details in 0012,0064']
-            }
+        // DeidentificationMethod
+        this.handleDeidentificationMethodTag(dictionary);
 
-        }
-
-        // De-identification Method Code Sequence Attribute
-        if (this.additionalTagValuesMap.get('00120064') != undefined) {
-            if (dictionary['00120064'] === undefined) { // not deIdentified yet
-                dictionary['00120064'] = {
-                    vr: DicomValueRepresentations.SQ,
-                    Value: this.additionalTagValuesMap.get('00120064')
-                };
-            } else {
-                const originalValue = dictionary['00120064'].Value;
-                dictionary['00120064'] = {
-                    vr: DicomValueRepresentations.SQ,
-                    Value: originalValue.concat(this.additionalTagValuesMap.get('00120064'))
-                };
-            }
-        }
+        // DeidentificationMethodCodeSequence
+        this.handleDeidentificationMethodCodeSequenceTag(dictionary);
 
         // Longitudinal Temporal Information Modified Attribute
 
@@ -335,6 +309,109 @@ export default class DeIdentificationConfiguration {
         // Lossy Image Compression 0028,2110
 
 
+    }
+
+    /**
+     * Adds or modifies the DeidentificationMethodCodeSequence tag.
+     */
+    handleDeidentificationMethodCodeSequenceTag(dictionary) {
+        if (this.additionalTagValuesMap.get('00120064') != undefined) {
+            if (dictionary['00120064'] === undefined) { // not deIdentified yet
+                dictionary['00120064'] = {
+                    vr: DicomValueRepresentations.SQ,
+                    Value: this.additionalTagValuesMap.get('00120064')
+                };
+            } else {
+                const originalValue = dictionary['00120064'].Value;
+                dictionary['00120064'] = {
+                    vr: DicomValueRepresentations.SQ,
+                    Value: originalValue.concat(this.additionalTagValuesMap.get('00120064'))
+                };
+            }
+        }
+    }
+
+    /**
+     * Adds or modifies the DeIdentificationMethod tag.
+     */
+    handleDeidentificationMethodTag(dictionary) {
+        if (this.additionalTagValuesMap.get('00120063') != undefined) {
+            const maxValueLength = 64;
+
+            const currentDeIdentificationMethodItem = dictionary['00120063'];
+            let currentDeIdentificationMethodValue;
+            if (currentDeIdentificationMethodItem != undefined) {
+                currentDeIdentificationMethodValue = currentDeIdentificationMethodItem.Value;
+            }
+
+            if (currentDeIdentificationMethodValue === undefined) {
+                dictionary['00120063'] = {
+                    vr: DicomValueRepresentations.LO,
+                    Value: [this.additionalTagValuesMap.get('00120063')]
+                };
+            } else {
+                let newDeIdentificationMethodValue;
+
+                if (!Array.isArray(currentDeIdentificationMethodValue)) {
+                    newDeIdentificationMethodValue = [currentDeIdentificationMethodValue];
+                } else {
+                    newDeIdentificationMethodValue = currentDeIdentificationMethodValue;
+                }
+
+                let calculatedSize = 2 + newDeIdentificationMethodValue.toString().length + this.additionalTagValuesMap.get('00120063').length;
+
+                if (calculatedSize <= maxValueLength) {
+                    newDeIdentificationMethodValue.push(this.additionalTagValuesMap.get('00120063'));
+                    dictionary['00120063'] = {
+                        vr: DicomValueRepresentations.LO,
+                        Value: newDeIdentificationMethodValue
+                    };
+                } else {
+                    const dots = '...';
+                    calculatedSize = 2 + newDeIdentificationMethodValue.toString().length + dots.length;
+                    if (calculatedSize <= maxValueLength) {
+                        newDeIdentificationMethodValue.push(dots);
+                        dictionary['00120063'] = {
+                            vr: DicomValueRepresentations.LO,
+                            Value: newDeIdentificationMethodValue
+                        };
+                    } else {
+                        // do not change the value
+                    }
+
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds or modifies the PatientIdentityRemoved tag.
+     */
+    handlePatientIdentityRemovedTag(dictionary) {
+        const patientDeIdentifiedItem = dictionary['00120062'];
+        let patientDeIdentifiedValue;
+
+        if (patientDeIdentifiedItem != undefined) {
+            patientDeIdentifiedValue = patientDeIdentifiedItem.Value;
+        }
+
+        if (Array.isArray(patientDeIdentifiedValue)) {
+            patientDeIdentifiedValue = patientDeIdentifiedValue[0];
+        }
+
+        if (this.additionalTagValuesMap.get('00120062') != undefined) {
+            if (patientDeIdentifiedValue === undefined) { // not deIdentified yet
+                dictionary['00120062'] = {
+                    vr: DicomValueRepresentations.CS,
+                    Value: [this.additionalTagValuesMap.get('00120062')]
+                };
+            } else if (patientDeIdentifiedValue === YesNoEnum.NO) { // patient identity is not already removed yet
+                dictionary['00120062'] = {
+                    vr: DicomValueRepresentations.CS,
+                    Value: [this.additionalTagValuesMap.get('00120062')]
+                };
+            }
+        }
     }
 
     getReplacementValue(tag, vr) {

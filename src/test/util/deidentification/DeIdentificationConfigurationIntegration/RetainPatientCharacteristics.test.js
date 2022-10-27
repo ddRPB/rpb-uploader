@@ -1,5 +1,6 @@
 import DeIdentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
 import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
+import YesNoEnum from '../../../../constants/dicomValueEnums/YesNoEnum';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DicomFileDeIdentificationComponentDcmjs from '../../../../util/deidentification/DicomFileDeIdentificationComponentDcmjs';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
@@ -76,9 +77,9 @@ describe('Retain Patient Characteristics Profile Integration Test', () => {
         const deIdentConfig = factory.getConfiguration();
 
         // Patient Identity Removed Attribute
-        expect(deIdentConfig.additionalTagValuesMap.get('00120062'), 'Patient Identity removed - should be false').toBe(false);
+        expect(deIdentConfig.additionalTagValuesMap.get('00120062'), 'Patient Identity removed - should be no').toBe(YesNoEnum.NO);
         // De-identification Method Attribute
-        expect(deIdentConfig.additionalTagValuesMap.get('00120063'), 'addtional 00120063 tag').toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
+        expect(deIdentConfig.additionalTagValuesMap.get('00120063'), 'addtional 00120063 tag').toBe('Per DICOM PS 3.15 AnnexE. RPB-Uploader v1.0');
         // De-identification Method Code Sequence Attribute
         const usedMethods = deIdentConfig.additionalTagValuesMap.get('00120064')
         expect(usedMethods.length, 'Value should be 2.').toBe(2);

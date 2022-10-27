@@ -1,6 +1,7 @@
 import DeIdentificationProfiles from "../../../constants/DeIdentificationProfiles";
 import DeidentificationProfileCodes from "../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes";
 import DeIdentificationProfileCodesMeaning from "../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
+import YesNoEnum from "../../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../../constants/DicomValueRepresentations";
 import DeIdentificationConfigurationFactory from "../../../util/deidentification/DeIdentificationConfigurationFactory";
 
@@ -123,21 +124,6 @@ describe('Test DeIdentificationConfigurationFactory', () => {
 
         })
 
-        test("Test additional de-identification specific tags", () => {
-            const profile = DeIdentificationProfiles.BASIC;
-            const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
-            const deIdentConfig = factory.getConfiguration();
-
-            const tagDict = {};
-
-            deIdentConfig.addReplacementTags(tagDict);
-
-
-            expect(tagDict['00120062'].Value).toStrictEqual(['true']);
-            expect(tagDict['00120063'].Value).toStrictEqual(['Per DICOM PS 3.15 AnnexE. Details in 0012,0064']);
-
-        })
-
         test("Additional tags will indicate that the basic profile was applied on the data set", () => {
 
             const profile = DeIdentificationProfiles.BASIC;
@@ -146,9 +132,9 @@ describe('Test DeIdentificationConfigurationFactory', () => {
             const deIdentConfig = factory.getConfiguration();
 
             // Patient Identity Removed Attribute
-            expect(deIdentConfig.additionalTagValuesMap.get('00120062')).toBe('true');
+            expect(deIdentConfig.additionalTagValuesMap.get('00120062')).toBe(YesNoEnum.YES);
             // De-identification Method Attribute
-            expect(deIdentConfig.additionalTagValuesMap.get('00120063')).toBe('Per DICOM PS 3.15 AnnexE. Details in 0012,0064');
+            expect(deIdentConfig.additionalTagValuesMap.get('00120063')).toBe('Per DICOM PS 3.15 AnnexE. RPB-Uploader v1.0');
             // De-identification Method Code Sequence Attribute
             const usedMethods = deIdentConfig.additionalTagValuesMap.get('00120064')
             expect(usedMethods.length).toBe(1);
