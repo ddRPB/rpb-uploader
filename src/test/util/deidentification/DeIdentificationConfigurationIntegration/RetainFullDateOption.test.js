@@ -224,6 +224,7 @@ describe('Retain Patient Characteristics Profile Integration Test', () => {
         for (let key of Object.keys(dictKeepCandidates)) {
             applyConfigAction(deIdentConfig, dictKeepCandidates, key, DicomValueRepresentations.DT);
             expect(dictKeepCandidates[key], `Value of ${key} should be keeped`).not.toBeUndefined();
+            expect(dictKeepCandidates[key], `Value of ${key} should be keeped`).not.toBeUndefined();
             expect(dictKeepCandidates[key].Value, `Value of ${key} should be keeped`).toBe(dummyItemValue);
         }
     })
