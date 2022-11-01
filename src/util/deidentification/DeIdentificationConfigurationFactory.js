@@ -81,7 +81,10 @@ export default class DeIdentificationConfigurationFactory {
                 this.createRetainDeviceIdentityOption();
                 break;
             case DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS:
-                this.createRetainPatientCharacteristicsOption();
+                this.createRetainPatienCharacteristicsOption();
+                break;
+            case DeIdentificationProfiles.RETAIN_LONG_FULL_DATES:
+                this.createRetainFullDatesOption();
                 break;
             default:
                 throw new Error(`Profile option "${profileOptions}" does not exist.`);
@@ -740,7 +743,7 @@ export default class DeIdentificationConfigurationFactory {
 
     }
 
-    createRetainPatientCharacteristicsOption() {
+    createRetainPatienCharacteristicsOption() {
         // annotation that the method is used and identitity is not removed
 
         this.patientIdentitityRemoved = false;
@@ -778,6 +781,339 @@ export default class DeIdentificationConfigurationFactory {
         this.actionConfigurationMap.set('001021A0', { action: DeIdentificationActionCodes.K });
         // Special Needs
         this.actionConfigurationMap.set('00380050)', { action: DeIdentificationActionCodes.C });
+    }
+
+    createRetainFullDatesOption() {
+        // annotation that the method is used and identitity is not removed
+
+        this.appliedDeIdentificationSteps.push({
+
+            codeValue: DeIdentificationProfileCodes.RETAIN_LONG_FULL_DATES,
+            codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_LONG_FULL_DATES,
+        });
+
+        // Acquisition Date
+        this.actionConfigurationMap.set('00080022', { action: DeIdentificationActionCodes.K });
+        // Acquisition DateTime
+        this.actionConfigurationMap.set('0008002A', { action: DeIdentificationActionCodes.K });
+        // Acquisition DateTime
+        this.actionConfigurationMap.set('00080032', { action: DeIdentificationActionCodes.K });
+        // Admitting Date
+        this.actionConfigurationMap.set('00380020', { action: DeIdentificationActionCodes.K });
+        // Admitting Time
+        this.actionConfigurationMap.set('00380021', { action: DeIdentificationActionCodes.K });
+        // Approval Status DateTime
+        this.actionConfigurationMap.set('00440004', { action: DeIdentificationActionCodes.K });
+        // Assertion DateTime
+        this.actionConfigurationMap.set('00440104', { action: DeIdentificationActionCodes.K });
+        // Assertion Expiration DateTime
+        this.actionConfigurationMap.set('00440105', { action: DeIdentificationActionCodes.K });
+        // Attribute Modification DateTime
+        this.actionConfigurationMap.set('04000562', { action: DeIdentificationActionCodes.K });
+        // Beam Hold Transition DateTime
+        this.actionConfigurationMap.set('300C0127', { action: DeIdentificationActionCodes.K });
+        // Calibration Date
+        this.actionConfigurationMap.set('0014407E', { action: DeIdentificationActionCodes.K });
+        // Calibration DateTime
+        this.actionConfigurationMap.set('00181203', { action: DeIdentificationActionCodes.K });
+        // Calibration Time
+        this.actionConfigurationMap.set('0014407C', { action: DeIdentificationActionCodes.K });
+        // Certified Timestamp
+        this.actionConfigurationMap.set('04000310', { action: DeIdentificationActionCodes.K });
+        // Content Date
+        this.actionConfigurationMap.set('00080023', { action: DeIdentificationActionCodes.K });
+        // Content Time
+        this.actionConfigurationMap.set('00080033', { action: DeIdentificationActionCodes.K });
+        // Context Group Local Version
+        this.actionConfigurationMap.set('00080107', { action: DeIdentificationActionCodes.K });
+        // Context Group Version
+        this.actionConfigurationMap.set('00080106', { action: DeIdentificationActionCodes.K });
+        // Contrast/Bolus Start Time
+        this.actionConfigurationMap.set('00181042', { action: DeIdentificationActionCodes.K });
+        // Contrast/Bolus Stop Time
+        this.actionConfigurationMap.set('00181043', { action: DeIdentificationActionCodes.K });
+        // Contribution DateTime
+        this.actionConfigurationMap.set('0018A002', { action: DeIdentificationActionCodes.K });
+        // Creation Date
+        this.actionConfigurationMap.set('21000040', { action: DeIdentificationActionCodes.K });
+        // Creation Time
+        this.actionConfigurationMap.set('21000050', { action: DeIdentificationActionCodes.K });
+        // Curve Date
+        this.actionConfigurationMap.set('00080025', { action: DeIdentificationActionCodes.K });
+        // Curve Time
+        this.actionConfigurationMap.set('00080035', { action: DeIdentificationActionCodes.K });
+        // Date
+        this.actionConfigurationMap.set('0040A121', { action: DeIdentificationActionCodes.K });
+        // Date of Document or Verbal Transaction (Trial)
+        this.actionConfigurationMap.set('0040A110', { action: DeIdentificationActionCodes.K });
+        // Date of Last Calibration
+        this.actionConfigurationMap.set('00181200', { action: DeIdentificationActionCodes.K });
+        // Date of Last Detector Calibration
+        this.actionConfigurationMap.set('0018700C', { action: DeIdentificationActionCodes.K });
+        // Date of Secondary Capture
+        this.actionConfigurationMap.set('00181012', { action: DeIdentificationActionCodes.K });
+        // DateTime
+        this.actionConfigurationMap.set('0040A120', { action: DeIdentificationActionCodes.K });
+        // DateTime of Last Calibration
+        this.actionConfigurationMap.set('00181202', { action: DeIdentificationActionCodes.K });
+        // Decay Correction DateTime
+        this.actionConfigurationMap.set('00189701', { action: DeIdentificationActionCodes.K });
+        // Digital Signature DateTime
+        this.actionConfigurationMap.set('04000105', { action: DeIdentificationActionCodes.K });
+        // Discharge Date
+        this.actionConfigurationMap.set('00380030', { action: DeIdentificationActionCodes.K });
+        // Discharge Time
+        this.actionConfigurationMap.set('00380032', { action: DeIdentificationActionCodes.K });
+        // Effective DateTime
+        this.actionConfigurationMap.set('00686226', { action: DeIdentificationActionCodes.K });
+        // End Acquisition DateTime
+        this.actionConfigurationMap.set('00189517', { action: DeIdentificationActionCodes.K });
+        // Ethics Committee Approval Effectiveness End Date
+        this.actionConfigurationMap.set('00120087', { action: DeIdentificationActionCodes.K });
+        // Ethics Committee Approval Effectiveness Start Date
+        this.actionConfigurationMap.set('00120086', { action: DeIdentificationActionCodes.K });
+        // Exclusion Start DateTime
+        this.actionConfigurationMap.set('00189804', { action: DeIdentificationActionCodes.K });
+        // Expected Completion DateTime
+        this.actionConfigurationMap.set('00404011', { action: DeIdentificationActionCodes.K });
+        // Findings Group Recording Date (Trial)
+        this.actionConfigurationMap.set('0040A023', { action: DeIdentificationActionCodes.K });
+        // Findings Group Recording Time (Trial)
+        this.actionConfigurationMap.set('0040A024', { action: DeIdentificationActionCodes.K });
+        // First Treatment Date
+        this.actionConfigurationMap.set('30080054', { action: DeIdentificationActionCodes.K });
+        // Frame Acquisition DateTime
+        this.actionConfigurationMap.set('00189074', { action: DeIdentificationActionCodes.K });
+        // Frame Origin Timestamp
+        this.actionConfigurationMap.set('00340007', { action: DeIdentificationActionCodes.K });
+        // Frame Reference DateTime
+        this.actionConfigurationMap.set('00189151', { action: DeIdentificationActionCodes.K });
+        // Functional Sync Pulse
+        this.actionConfigurationMap.set('00189623', { action: DeIdentificationActionCodes.K });
+        // GPS Date​ Stamp
+        this.actionConfigurationMap.set('0016008D', { action: DeIdentificationActionCodes.K });
+        // Hanging Protocol Creation DateTime
+        this.actionConfigurationMap.set('0072000A', { action: DeIdentificationActionCodes.K });
+        // HL7 Document Effective Time
+        this.actionConfigurationMap.set('0040E004', { action: DeIdentificationActionCodes.K });
+        // Impedance Measurement DateTime
+        this.actionConfigurationMap.set('003A0314', { action: DeIdentificationActionCodes.K });
+        // Information Issue DateTime
+        this.actionConfigurationMap.set('00686270', { action: DeIdentificationActionCodes.K });
+        // Instance Coercion DateTime
+        this.actionConfigurationMap.set('00080015', { action: DeIdentificationActionCodes.K });
+        // Instance Creation Date
+        this.actionConfigurationMap.set('00080012', { action: DeIdentificationActionCodes.K });
+        // Instance Creation Time
+        this.actionConfigurationMap.set('00080012', { action: DeIdentificationActionCodes.K });
+        // Instruction Performed DateTime
+        this.actionConfigurationMap.set('00189919', { action: DeIdentificationActionCodes.K });
+        // Intended Fraction Start Time
+        this.actionConfigurationMap.set('30100085', { action: DeIdentificationActionCodes.K });
+        // Intended Phase End Date
+        this.actionConfigurationMap.set('3010004D', { action: DeIdentificationActionCodes.K });
+        // Intended Phase Start Date
+        this.actionConfigurationMap.set('3010004C', { action: DeIdentificationActionCodes.K });
+        // Interlock DateTime
+        this.actionConfigurationMap.set('300A0741', { action: DeIdentificationActionCodes.K });
+        // Interpretation Approval Date
+        this.actionConfigurationMap.set('40080112', { action: DeIdentificationActionCodes.K });
+        // Interpretation Approval Time
+        this.actionConfigurationMap.set('40080113', { action: DeIdentificationActionCodes.K });
+        // Interpretation Recorded Date
+        this.actionConfigurationMap.set('40080100', { action: DeIdentificationActionCodes.K });
+        // Interpretation Recorded Time
+        this.actionConfigurationMap.set('40080101', { action: DeIdentificationActionCodes.K });
+        // Interpretation Transcription Date
+        this.actionConfigurationMap.set('40080108', { action: DeIdentificationActionCodes.K });
+        // Interpretation Transcription Time
+        this.actionConfigurationMap.set('40080109', { action: DeIdentificationActionCodes.K });
+        // Intervention Drug Start Time
+        this.actionConfigurationMap.set('00180035', { action: DeIdentificationActionCodes.K });
+        // Intervention Drug Stop Time
+        this.actionConfigurationMap.set('00180027', { action: DeIdentificationActionCodes.K });
+        // Issue Date of Imaging Service Request
+        this.actionConfigurationMap.set('00402004', { action: DeIdentificationActionCodes.K });
+        // Issue Time of Imaging Service Request
+        this.actionConfigurationMap.set('00402005', { action: DeIdentificationActionCodes.K });
+        // Last Menstrual Date
+        this.actionConfigurationMap.set('001021D0', { action: DeIdentificationActionCodes.K });
+        // Modified Image Date
+        this.actionConfigurationMap.set('00203403', { action: DeIdentificationActionCodes.K });
+        // Modified Image Time
+        this.actionConfigurationMap.set('00203405', { action: DeIdentificationActionCodes.K });
+        // Most Recent Treatment Date
+        this.actionConfigurationMap.set('30080056', { action: DeIdentificationActionCodes.K });
+        // Observation Date (Trial)
+        this.actionConfigurationMap.set('0040A192', { action: DeIdentificationActionCodes.K });
+        // Observation DateTime
+        this.actionConfigurationMap.set('0040A032', { action: DeIdentificationActionCodes.K });
+        // Observation Start DateTime
+        this.actionConfigurationMap.set('0040A033', { action: DeIdentificationActionCodes.K });
+        // Observation Time (Trial)
+        this.actionConfigurationMap.set('0040A193', { action: DeIdentificationActionCodes.K });
+        // Overlay Date
+        this.actionConfigurationMap.set('00080024', { action: DeIdentificationActionCodes.K });
+        // Overlay Time
+        this.actionConfigurationMap.set('00080034', { action: DeIdentificationActionCodes.K });
+        // Override DateTime
+        this.actionConfigurationMap.set('300A0760', { action: DeIdentificationActionCodes.K });
+        // Participation DateTime
+        this.actionConfigurationMap.set('0040A082', { action: DeIdentificationActionCodes.K });
+        // Performed Procedure Step End Date
+        this.actionConfigurationMap.set('00400250', { action: DeIdentificationActionCodes.K });
+        // Performed Procedure Step End DateTime
+        this.actionConfigurationMap.set('00404051', { action: DeIdentificationActionCodes.K });
+        // Performed Procedure Step End Time
+        this.actionConfigurationMap.set('00400251', { action: DeIdentificationActionCodes.K });
+        // Performed Procedure Step Start Date
+        this.actionConfigurationMap.set('00400244', { action: DeIdentificationActionCodes.K });
+        // Performed Procedure Step Start DateTime
+        this.actionConfigurationMap.set('00404050', { action: DeIdentificationActionCodes.K });
+        // Performed Procedure Step Start Time
+        this.actionConfigurationMap.set('00400245', { action: DeIdentificationActionCodes.K });
+        // Presentation Creation Date
+        this.actionConfigurationMap.set('00700082', { action: DeIdentificationActionCodes.K });
+        // Presentation Creation Time
+        this.actionConfigurationMap.set('00700083', { action: DeIdentificationActionCodes.K });
+        // Procedure Step Cancellation DateTime
+        this.actionConfigurationMap.set('00404052', { action: DeIdentificationActionCodes.K });
+        // Product Expiration DateTime
+        this.actionConfigurationMap.set('0044000B', { action: DeIdentificationActionCodes.K });
+        // Radiopharmaceutical Start DateTime
+        this.actionConfigurationMap.set('00181078', { action: DeIdentificationActionCodes.K });
+        // Radiopharmaceutical Start Time
+        this.actionConfigurationMap.set('00181072', { action: DeIdentificationActionCodes.K });
+        // Radiopharmaceutical Stop DateTime
+        this.actionConfigurationMap.set('00181079', { action: DeIdentificationActionCodes.K });
+        // Radiopharmaceutical Stop Time
+        this.actionConfigurationMap.set('00181073', { action: DeIdentificationActionCodes.K });
+        // Recorded RT Control Point DateTime
+        this.actionConfigurationMap.set('300A073A', { action: DeIdentificationActionCodes.K });
+        // Referenced DateTime
+        this.actionConfigurationMap.set('0040A13A', { action: DeIdentificationActionCodes.K });
+        // Review Date
+        this.actionConfigurationMap.set('300E0004', { action: DeIdentificationActionCodes.K });
+        // Review Time
+        this.actionConfigurationMap.set('300E0005', { action: DeIdentificationActionCodes.K });
+        // RT Plan Date
+        this.actionConfigurationMap.set('300A0006', { action: DeIdentificationActionCodes.K });
+        // RT Plan Time
+        this.actionConfigurationMap.set('300A0007', { action: DeIdentificationActionCodes.K });
+        // Safe Position Exit Date
+        this.actionConfigurationMap.set('30080162', { action: DeIdentificationActionCodes.K });
+        // Safe Position Exit Time
+        this.actionConfigurationMap.set('30080164', { action: DeIdentificationActionCodes.K });
+        // Safe Position Return Date
+        this.actionConfigurationMap.set('30080166', { action: DeIdentificationActionCodes.K });
+        // Safe Position Return Time
+        this.actionConfigurationMap.set('30080168', { action: DeIdentificationActionCodes.K });
+        // Scheduled Admission Date
+        this.actionConfigurationMap.set('0038001A', { action: DeIdentificationActionCodes.K });
+        // Scheduled Admission Time
+        this.actionConfigurationMap.set('0038001B', { action: DeIdentificationActionCodes.K });
+        // Scheduled Discharge Date
+        this.actionConfigurationMap.set('0038001C', { action: DeIdentificationActionCodes.K });
+        // Scheduled Discharge Time
+        this.actionConfigurationMap.set('0038001D', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step End Date
+        this.actionConfigurationMap.set('00400004', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step End Time
+        this.actionConfigurationMap.set('00400005', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step Expiration DateTime
+        this.actionConfigurationMap.set('00404008', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step Modification DateTime
+        this.actionConfigurationMap.set('00404010', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step Start Date
+        this.actionConfigurationMap.set('00400002', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step Start DateTime
+        this.actionConfigurationMap.set('00404005', { action: DeIdentificationActionCodes.K });
+        // Scheduled Procedure Step Start Time
+        this.actionConfigurationMap.set('00400003', { action: DeIdentificationActionCodes.K });
+        // Scheduled Study Start Date
+        this.actionConfigurationMap.set('00321000', { action: DeIdentificationActionCodes.K });
+        // Scheduled Study Start Time
+        this.actionConfigurationMap.set('00321001', { action: DeIdentificationActionCodes.K });
+        // Scheduled Study Stop Date
+        this.actionConfigurationMap.set('00321010', { action: DeIdentificationActionCodes.K });
+        // Scheduled Study Stop Time
+        this.actionConfigurationMap.set('00321011', { action: DeIdentificationActionCodes.K });
+        // Selector DA Value
+        this.actionConfigurationMap.set('00720061', { action: DeIdentificationActionCodes.K });
+        // Selector DT Value
+        this.actionConfigurationMap.set('00720063', { action: DeIdentificationActionCodes.K });
+        // Selector TM Value
+        this.actionConfigurationMap.set('0072006B', { action: DeIdentificationActionCodes.K });
+        // Series Date
+        this.actionConfigurationMap.set('00080021', { action: DeIdentificationActionCodes.K });
+        // Series Time
+        this.actionConfigurationMap.set('00080031', { action: DeIdentificationActionCodes.K });
+        // SOP Authorization DateTime
+        this.actionConfigurationMap.set('01000420', { action: DeIdentificationActionCodes.K });
+        // Source End DateTime
+        this.actionConfigurationMap.set('0018936A', { action: DeIdentificationActionCodes.K });
+        // Source Start DateTime
+        this.actionConfigurationMap.set('00189369', { action: DeIdentificationActionCodes.K });
+        // Source Strength Reference Date
+        this.actionConfigurationMap.set('300A022C', { action: DeIdentificationActionCodes.K });
+        // Source Strength Reference Time
+        this.actionConfigurationMap.set('300A022E', { action: DeIdentificationActionCodes.K });
+        // Start Acquisition DateTime
+        this.actionConfigurationMap.set('00189516', { action: DeIdentificationActionCodes.K });
+        // Structure Set Date
+        this.actionConfigurationMap.set('30060008', { action: DeIdentificationActionCodes.K });
+        // Structure Set Time
+        this.actionConfigurationMap.set('30060009', { action: DeIdentificationActionCodes.K });
+        // Study Arrival Date
+        this.actionConfigurationMap.set('00321040', { action: DeIdentificationActionCodes.K });
+        // Study Arrival Time
+        this.actionConfigurationMap.set('00321041', { action: DeIdentificationActionCodes.K });
+        // Study Completion Date
+        this.actionConfigurationMap.set('00321050', { action: DeIdentificationActionCodes.K });
+        // Study Completion Time
+        this.actionConfigurationMap.set('00321051', { action: DeIdentificationActionCodes.K });
+        // Study Date
+        this.actionConfigurationMap.set('00080020', { action: DeIdentificationActionCodes.K });
+        // Study Read Date
+        this.actionConfigurationMap.set('00320034', { action: DeIdentificationActionCodes.K });
+        // Study Read Time
+        this.actionConfigurationMap.set('00320035', { action: DeIdentificationActionCodes.K });
+        // Study Time
+        this.actionConfigurationMap.set('00080030', { action: DeIdentificationActionCodes.K });
+        // Study Verified Date
+        this.actionConfigurationMap.set('00320032', { action: DeIdentificationActionCodes.K });
+        // Study Verified Time
+        this.actionConfigurationMap.set('00320033', { action: DeIdentificationActionCodes.K });
+        // Substance Administration DateTime
+        this.actionConfigurationMap.set('00440010', { action: DeIdentificationActionCodes.K });
+        // Template Local Version
+        this.actionConfigurationMap.set('0040DB07', { action: DeIdentificationActionCodes.K });
+        // Template Version
+        this.actionConfigurationMap.set('0040DB06', { action: DeIdentificationActionCodes.K });
+        // Time
+        this.actionConfigurationMap.set('0040A122', { action: DeIdentificationActionCodes.K });
+        // Time of Document or Verbal Transaction (Trial)
+        this.actionConfigurationMap.set('0040A112', { action: DeIdentificationActionCodes.K });
+        // Time of Last Calibration
+        this.actionConfigurationMap.set('00181201', { action: DeIdentificationActionCodes.K });
+        // Time of Last Detector Calibration
+        this.actionConfigurationMap.set('0018700E', { action: DeIdentificationActionCodes.K });
+        // Time of Secondary Capture
+        this.actionConfigurationMap.set('00181014', { action: DeIdentificationActionCodes.K });
+        // Timezone Offset From UTC
+        this.actionConfigurationMap.set('00080201', { action: DeIdentificationActionCodes.K });
+        // Treatment Control Point Date
+        this.actionConfigurationMap.set('30080024', { action: DeIdentificationActionCodes.K });
+        // Treatment Control Point Time
+        this.actionConfigurationMap.set('30080025', { action: DeIdentificationActionCodes.K });
+        // Treatment Date
+        this.actionConfigurationMap.set('30080250', { action: DeIdentificationActionCodes.K });
+        // Treatment Time
+        this.actionConfigurationMap.set('30080251', { action: DeIdentificationActionCodes.K });
+        // Treatment Tolerance Violation DateTime
+        this.actionConfigurationMap.set('300A0736', { action: DeIdentificationActionCodes.K });
+        // Verification DateTime
+        this.actionConfigurationMap.set('0040A030', { action: DeIdentificationActionCodes.K });
     }
 
     /**
