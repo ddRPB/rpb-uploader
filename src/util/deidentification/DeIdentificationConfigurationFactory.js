@@ -86,6 +86,9 @@ export default class DeIdentificationConfigurationFactory {
             case DeIdentificationProfiles.RETAIN_LONG_FULL_DATES:
                 this.createRetainFullDatesOption();
                 break;
+            case DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT:
+                this.createCleanStructuredContentOption();
+                break;
             default:
                 throw new Error(`Profile option "${profileOptions}" does not exist.`);
         }
@@ -1114,6 +1117,21 @@ export default class DeIdentificationConfigurationFactory {
         this.actionConfigurationMap.set('300A0736', { action: DeIdentificationActionCodes.K });
         // Verification DateTime
         this.actionConfigurationMap.set('0040A030', { action: DeIdentificationActionCodes.K });
+    }
+
+    createCleanStructuredContentOption() {
+        // annotation that the method is used and identitity is not removed
+
+        this.appliedDeIdentificationSteps.push({
+
+            codeValue: DeIdentificationProfileCodes.CLEAN_STRUCTURED_CONTENT,
+            codeMeaning: DeIdentificationProfileCodesMeaning.CLEAN_STRUCTURED_CONTENT,
+        });
+
+        // Acquisition Date
+        this.actionConfigurationMap.set('00400555', { action: DeIdentificationActionCodes.C });
+        this.actionConfigurationMap.set('0040A730', { action: DeIdentificationActionCodes.C });
+        this.actionConfigurationMap.set('00400610', { action: DeIdentificationActionCodes.C });
     }
 
     /**
