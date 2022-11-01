@@ -27,5 +27,6 @@ module.exports = Object.freeze({
     RETAIN_LONG_FULL_DATES: ' 113106', // Retain Longitudinal Temporal Information Full Dates Option
     RETAIN_PATIENT_CHARACTERISTICS: '113108', // Retain Patient Characteristics Option
     RETAIN_DEVICE_IDENTITY: '113109', // Retain Device Identity Option
-    CLEAN_DESCRIPTORS: '113105' // Clean Descriptors Option
+    CLEAN_DESCRIPTORS: '113105', // Clean Descriptors Option
+    CLEAN_STRUCTURED_CONTENT: '113104' // Clean Structured Content Option
 })
