@@ -801,6 +801,46 @@ class Uploader extends Component {
     read = async (file) => {
         let dicomFile = new DicomFile(file)
         try {
+
+            if (!file.path.endsWith('.dcm')) {
+                if (file.path.endsWith('.gz') || file.path.endsWith('.zip')) {
+                    throw new Error(`Compressed files will be ignored. FilePath ${file.path}`);
+                }
+
+                if (file.path.match((/\/\..*\/.*/)) != null) {
+                    throw new Error(`Hidden folders will be ignored. FilePath ${file.path}`);
+                }
+                if (file.path.match((/^\..*\/.*/)) != null) {
+                    throw new Error(`Hidden folders will be ignored. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.txt')) {
+                    throw new Error(`The file name ends with txt - it is not an ODM file. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.json')) {
+                    throw new Error(`The file name ends with json - it is not an ODM file. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.xml')) {
+                    throw new Error(`The file name ends with xml - it is not an ODM file. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.pdf')) {
+                    throw new Error(`The file name ends with pdf - it is not an ODM file. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.exe')) {
+                    throw new Error(`The file name ends with exe - it is not an ODM file. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.com')) {
+                    throw new Error(`The file name ends with com - is not an ODM file. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.xlsx') || file.path.endsWith('.xls')) {
+                    throw new Error(`The file name ends with xlsx - is not an ODM file. FilePath ${file.path}`);
+                }
+                if (file.path.endsWith('.docx') || file.path.endsWith('.doc')) {
+                    throw new Error(`The file name ends with com - is not an ODM file. FilePath ${file.path}`);
+                }
+
+            }
+
+
             await dicomFile.readDicomFile()
 
             // DicomDir do no register file
