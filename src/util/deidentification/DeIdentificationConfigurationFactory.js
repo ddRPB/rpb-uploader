@@ -89,6 +89,9 @@ export default class DeIdentificationConfigurationFactory {
             case DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT:
                 this.createCleanStructuredContentOption();
                 break;
+            case DeIdentificationProfiles.CLEAN_DESCRIPTORS:
+                this.createCleanDescriptorsOption();
+                break;
             default:
                 throw new Error(`Profile option "${profileOptions}" does not exist.`);
         }
@@ -640,14 +643,10 @@ export default class DeIdentificationConfigurationFactory {
 
     createRetainDeviceIdentityOption() {
         // annotation that the method is used and identitity is not removed
-
         this.appliedDeIdentificationSteps.push({
-
             codeValue: DeIdentificationProfileCodes.RETAIN_DEVICE_IDENTITY,
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY,
-
-        }
-        );
+        });
 
         // Beam Hold Transition DateTime
         this.actionConfigurationMap.set('300C0127', { action: DeIdentificationActionCodes.K });
@@ -743,19 +742,14 @@ export default class DeIdentificationConfigurationFactory {
         this.actionConfigurationMap.set('00189373', { action: DeIdentificationActionCodes.K });
         // X-Ray Source ID
         this.actionConfigurationMap.set('00189367', { action: DeIdentificationActionCodes.K });
-
     }
 
     createRetainPatienCharacteristicsOption() {
         // annotation that the method is used and identitity is not removed
-
         this.patientIdentitityRemoved = false;
-
         this.appliedDeIdentificationSteps.push({
-
             codeValue: DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS,
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS,
-
         });
 
         // Allergies
@@ -788,9 +782,7 @@ export default class DeIdentificationConfigurationFactory {
 
     createRetainFullDatesOption() {
         // annotation that the method is used and identitity is not removed
-
         this.appliedDeIdentificationSteps.push({
-
             codeValue: DeIdentificationProfileCodes.RETAIN_LONG_FULL_DATES,
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_LONG_FULL_DATES,
         });
@@ -1121,17 +1113,275 @@ export default class DeIdentificationConfigurationFactory {
 
     createCleanStructuredContentOption() {
         // annotation that the method is used and identitity is not removed
-
         this.appliedDeIdentificationSteps.push({
-
             codeValue: DeIdentificationProfileCodes.CLEAN_STRUCTURED_CONTENT,
             codeMeaning: DeIdentificationProfileCodesMeaning.CLEAN_STRUCTURED_CONTENT,
         });
 
         // Acquisition Date
         this.actionConfigurationMap.set('00400555', { action: DeIdentificationActionCodes.C });
+        // Content Sequence
         this.actionConfigurationMap.set('0040A730', { action: DeIdentificationActionCodes.C });
+        // Specimen Preparation Sequence
         this.actionConfigurationMap.set('00400610', { action: DeIdentificationActionCodes.C });
+    }
+
+    createCleanDescriptorsOption() {
+        // annotation that the method is used and identitity is not removed
+        this.appliedDeIdentificationSteps.push({
+            codeValue: DeIdentificationProfileCodes.CLEAN_DESCRIPTORS,
+            codeMeaning: DeIdentificationProfileCodesMeaning.CLEAN_DESCRIPTORS,
+        });
+
+        // Acquisition Comments
+        this.actionConfigurationMap.set('00184000', { action: DeIdentificationActionCodes.C });
+        // Acquisition Device Processing Description
+        this.actionConfigurationMap.set('00181400', { action: DeIdentificationActionCodes.C });
+        // Acquisition Field Of View Label
+        this.actionConfigurationMap.set('001811BB', { action: DeIdentificationActionCodes.C });
+        // Acquisition Protocol Description
+        this.actionConfigurationMap.set('00189424', { action: DeIdentificationActionCodes.C });
+        // Additional Patient History
+        this.actionConfigurationMap.set('001021B0', { action: DeIdentificationActionCodes.C });
+        // Admitting Diagnoses Code Sequence
+        this.actionConfigurationMap.set('00081084', { action: DeIdentificationActionCodes.C });
+        // Admitting Diagnoses Description
+        this.actionConfigurationMap.set('00081080', { action: DeIdentificationActionCodes.C });
+        // Allergies
+        this.actionConfigurationMap.set('00102110', { action: DeIdentificationActionCodes.C });
+        // Annotation Group Description
+        this.actionConfigurationMap.set('006A0006', { action: DeIdentificationActionCodes.C });
+        // Annotation Group Label
+        this.actionConfigurationMap.set('006A0005', { action: DeIdentificationActionCodes.C });
+        // Beam Description
+        this.actionConfigurationMap.set('300A00C3', { action: DeIdentificationActionCodes.C });
+        // Bolus Description
+        this.actionConfigurationMap.set('300A00DD', { action: DeIdentificationActionCodes.C });
+        // Clinical Trial Series Description
+        this.actionConfigurationMap.set('00120072', { action: DeIdentificationActionCodes.C });
+        // Clinical Trial Time Point Description
+        this.actionConfigurationMap.set('00120051', { action: DeIdentificationActionCodes.C });
+        // Comments on Radiation Dose
+        this.actionConfigurationMap.set('00400310', { action: DeIdentificationActionCodes.C });
+        // Comments on the Performed Procedure Step
+        this.actionConfigurationMap.set('00400280', { action: DeIdentificationActionCodes.C });
+        // Compensator Description
+        this.actionConfigurationMap.set('300A02EB', { action: DeIdentificationActionCodes.C });
+        // Conceptual Volume Combination Description
+        this.actionConfigurationMap.set('3010000F', { action: DeIdentificationActionCodes.C });
+        // Conceptual Volume Description
+        this.actionConfigurationMap.set('30100017', { action: DeIdentificationActionCodes.C });
+        // Container Description
+        this.actionConfigurationMap.set('0040051A', { action: DeIdentificationActionCodes.C });
+        // Contrast/Bolus Agent
+        this.actionConfigurationMap.set('00180010', { action: DeIdentificationActionCodes.C });
+        // Contribution Description
+        this.actionConfigurationMap.set('0018A003', { action: DeIdentificationActionCodes.C });
+        // Decomposition Description
+        this.actionConfigurationMap.set('0018937F', { action: DeIdentificationActionCodes.C });
+        // Derivation Description
+        this.actionConfigurationMap.set('00082111', { action: DeIdentificationActionCodes.C });
+        // Device Setting Description
+        this.actionConfigurationMap.set('0016004B', { action: DeIdentificationActionCodes.C });
+        // Discharge Diagnosis Description
+        this.actionConfigurationMap.set('00380040', { action: DeIdentificationActionCodes.C });
+        // Displacement Reference Label
+        this.actionConfigurationMap.set('300A079A', { action: DeIdentificationActionCodes.C });
+        // Dose Reference Description
+        this.actionConfigurationMap.set('300A0016', { action: DeIdentificationActionCodes.C });
+        // Entity Description
+        this.actionConfigurationMap.set('30100037', { action: DeIdentificationActionCodes.C });
+        // Entity Label
+        this.actionConfigurationMap.set('30100035', { action: DeIdentificationActionCodes.C });
+        // Entity Long Label
+        this.actionConfigurationMap.set('30100038', { action: DeIdentificationActionCodes.C });
+        // Entity Name
+        this.actionConfigurationMap.set('30100036', { action: DeIdentificationActionCodes.C });
+        // Equipment Frame of Reference Description
+        this.actionConfigurationMap.set('300A0676', { action: DeIdentificationActionCodes.C });
+        // Filter Lookup Table Description
+        this.actionConfigurationMap.set('003A032B', { action: DeIdentificationActionCodes.C });
+        // Fixation Device Description
+        this.actionConfigurationMap.set('300A0196', { action: DeIdentificationActionCodes.C });
+        // Fractionation Notes
+        this.actionConfigurationMap.set('3010007F', { action: DeIdentificationActionCodes.C });
+        // Fraction Group Description
+        this.actionConfigurationMap.set('300A0072', { action: DeIdentificationActionCodes.C });
+        // Frame Comments
+        this.actionConfigurationMap.set('00209158', { action: DeIdentificationActionCodes.C });
+        // Identifying Comments
+        this.actionConfigurationMap.set('00084000', { action: DeIdentificationActionCodes.C });
+        // Image Comments
+        this.actionConfigurationMap.set('00204000', { action: DeIdentificationActionCodes.C });
+        // Imaging Service Request Comments
+        this.actionConfigurationMap.set('00402400', { action: DeIdentificationActionCodes.C });
+        // Impressions
+        this.actionConfigurationMap.set('40080300', { action: DeIdentificationActionCodes.C });
+        // Interlock Description
+        this.actionConfigurationMap.set('300A0742', { action: DeIdentificationActionCodes.C });
+        // Interlock Origin Description
+        this.actionConfigurationMap.set('300A0783', { action: DeIdentificationActionCodes.C });
+        // Interpretation Diagnosis Description
+        this.actionConfigurationMap.set('40080115', { action: DeIdentificationActionCodes.C });
+        // Interpretation Text
+        this.actionConfigurationMap.set('4008010B', { action: DeIdentificationActionCodes.C });
+        // Label Text
+        this.actionConfigurationMap.set('22000002', { action: DeIdentificationActionCodes.C });
+        // Long Device Description
+        this.actionConfigurationMap.set('00500021', { action: DeIdentificationActionCodes.C });
+        // Maker Note
+        this.actionConfigurationMap.set('0016002B', { action: DeIdentificationActionCodes.C });
+        // Medical Alerts
+        this.actionConfigurationMap.set('00102000', { action: DeIdentificationActionCodes.C });
+        // Multi-energy Acquisition Description
+        this.actionConfigurationMap.set('0018937B', { action: DeIdentificationActionCodes.C });
+        // Occupation
+        this.actionConfigurationMap.set('00102180', { action: DeIdentificationActionCodes.C });
+        // Patient Comments
+        this.actionConfigurationMap.set('00104000', { action: DeIdentificationActionCodes.C });
+        // Patient Setup Photo Description
+        this.actionConfigurationMap.set('300A0794', { action: DeIdentificationActionCodes.C });
+        // Patient State
+        this.actionConfigurationMap.set('00380500', { action: DeIdentificationActionCodes.C });
+        // Patient Treatment Preparation Method Description
+        this.actionConfigurationMap.set('300A0792', { action: DeIdentificationActionCodes.C });
+        // Patient Treatment Preparation Procedure Parameter Description
+        this.actionConfigurationMap.set('300A078E', { action: DeIdentificationActionCodes.C });
+        // Performed Procedure Step Description
+        this.actionConfigurationMap.set('00400254', { action: DeIdentificationActionCodes.C });
+        // Prescription Description
+        this.actionConfigurationMap.set('300A000E', { action: DeIdentificationActionCodes.C });
+        // Prescription Notes
+        this.actionConfigurationMap.set('3010007B', { action: DeIdentificationActionCodes.C });
+        // Prescription Notes Sequence
+        this.actionConfigurationMap.set('30100081', { action: DeIdentificationActionCodes.C });
+        // Prior Treatment Dose Description
+        this.actionConfigurationMap.set('30100061', { action: DeIdentificationActionCodes.C });
+        // Protocol Name
+        this.actionConfigurationMap.set('00181030', { action: DeIdentificationActionCodes.C });
+        // Pyramid Description
+        this.actionConfigurationMap.set('00081088', { action: DeIdentificationActionCodes.C });
+        // Pyramid Label
+        this.actionConfigurationMap.set('00200027', { action: DeIdentificationActionCodes.C });
+        // Radiation Dose Identification Label
+        this.actionConfigurationMap.set('300A0619', { action: DeIdentificationActionCodes.C });
+        // Radiation Dose In-Vivo Measurement Label
+        this.actionConfigurationMap.set('300A0623', { action: DeIdentificationActionCodes.C });
+        // Radiation Generation Mode Description
+        this.actionConfigurationMap.set('300A067D', { action: DeIdentificationActionCodes.C });
+        // Radiation Generation Mode Label
+        this.actionConfigurationMap.set('300A067C', { action: DeIdentificationActionCodes.C });
+        // Reason for Omission Description
+        this.actionConfigurationMap.set('300C0113', { action: DeIdentificationActionCodes.C });
+        // Reason for Requested Procedure Code Sequence
+        this.actionConfigurationMap.set('0040100A', { action: DeIdentificationActionCodes.C });
+        // Reason for Study
+        this.actionConfigurationMap.set('00321030', { action: DeIdentificationActionCodes.C });
+        // Reason for Superseding
+        this.actionConfigurationMap.set('3010005C', { action: DeIdentificationActionCodes.C });
+        // Reason for the Attribute Modification
+        this.actionConfigurationMap.set('04000565', { action: DeIdentificationActionCodes.C });
+        // Reason for the Imaging Service Request
+        this.actionConfigurationMap.set('00402001', { action: DeIdentificationActionCodes.C });
+        // Reason for the Requested Procedure
+        this.actionConfigurationMap.set('00401002', { action: DeIdentificationActionCodes.C });
+        // Reason for Visit
+        this.actionConfigurationMap.set('00321066', { action: DeIdentificationActionCodes.C });
+        // Reason for Visit Code Sequence
+        this.actionConfigurationMap.set('00321067', { action: DeIdentificationActionCodes.C });
+        // Request Attributes Sequence
+        this.actionConfigurationMap.set('00400275', { action: DeIdentificationActionCodes.C });
+        // Requested Contrast Agent
+        this.actionConfigurationMap.set('00321070', { action: DeIdentificationActionCodes.C });
+        // Requested Procedure Comments
+        this.actionConfigurationMap.set('00401400', { action: DeIdentificationActionCodes.C });
+        // Requested Procedure Description
+        this.actionConfigurationMap.set('00321060', { action: DeIdentificationActionCodes.C });
+        // Requested Series Description
+        this.actionConfigurationMap.set('00189937', { action: DeIdentificationActionCodes.C });
+        // Respiratory Motion Compensation Technique Description
+        this.actionConfigurationMap.set('00189185', { action: DeIdentificationActionCodes.C });
+        // Results Comments
+        this.actionConfigurationMap.set('40084000', { action: DeIdentificationActionCodes.C });
+        // ROI Description
+        this.actionConfigurationMap.set('30060028', { action: DeIdentificationActionCodes.C });
+        // ROI Generation Description
+        this.actionConfigurationMap.set('30060038', { action: DeIdentificationActionCodes.C });
+        // ROI Name
+        this.actionConfigurationMap.set('30060026', { action: DeIdentificationActionCodes.C });
+        // ROI Observation Description
+        this.actionConfigurationMap.set('30060088', { action: DeIdentificationActionCodes.C });
+        // ROI Observation Label
+        this.actionConfigurationMap.set('30060085', { action: DeIdentificationActionCodes.C });
+        // RT Physician Intent Narrative
+        this.actionConfigurationMap.set('3010005A', { action: DeIdentificationActionCodes.C });
+        // RT Plan Description
+        this.actionConfigurationMap.set('300A0004', { action: DeIdentificationActionCodes.C });
+        // RT Plan Label
+        this.actionConfigurationMap.set('300A0002', { action: DeIdentificationActionCodes.C });
+        // RT Plan Name
+        this.actionConfigurationMap.set('300A0003', { action: DeIdentificationActionCodes.C });
+        // RT Prescription Label
+        this.actionConfigurationMap.set('30100054', { action: DeIdentificationActionCodes.C });
+        // RT Tolerance Set Label
+        this.actionConfigurationMap.set('300A062A', { action: DeIdentificationActionCodes.C });
+        // RT Treatment Approach Label
+        this.actionConfigurationMap.set('30100056', { action: DeIdentificationActionCodes.C });
+        // Scheduled Procedure Step Description
+        this.actionConfigurationMap.set('00400007', { action: DeIdentificationActionCodes.C });
+        // Selector LO Value
+        this.actionConfigurationMap.set('00720066', { action: DeIdentificationActionCodes.C });
+        // Selector LT Value
+        this.actionConfigurationMap.set('00720068', { action: DeIdentificationActionCodes.C });
+        // Selector SH Value
+        this.actionConfigurationMap.set('0072006C', { action: DeIdentificationActionCodes.C });
+        // Selector ST Value
+        this.actionConfigurationMap.set('0072006E', { action: DeIdentificationActionCodes.C });
+        // Selector UT Value
+        this.actionConfigurationMap.set('00720070', { action: DeIdentificationActionCodes.C });
+        // Series Description
+        this.actionConfigurationMap.set('0008103E', { action: DeIdentificationActionCodes.C });
+        // Service Episode Description
+        this.actionConfigurationMap.set('00380062', { action: DeIdentificationActionCodes.C });
+        // Setup Technique Description
+        this.actionConfigurationMap.set('300A01B2', { action: DeIdentificationActionCodes.C });
+        // Shielding Device Description
+        this.actionConfigurationMap.set('300A01A6', { action: DeIdentificationActionCodes.C });
+        // Specimen Detailed Description
+        this.actionConfigurationMap.set('00400602', { action: DeIdentificationActionCodes.C });
+        // Specimen Short Description
+        this.actionConfigurationMap.set('00400600', { action: DeIdentificationActionCodes.C });
+        // Structure Set Description
+        this.actionConfigurationMap.set('30060006', { action: DeIdentificationActionCodes.C });
+        // Structure Set Label
+        this.actionConfigurationMap.set('30060002', { action: DeIdentificationActionCodes.C });
+        // Structure Set Name
+        this.actionConfigurationMap.set('30060004', { action: DeIdentificationActionCodes.C });
+        // Study Comments
+        this.actionConfigurationMap.set('00324000', { action: DeIdentificationActionCodes.C });
+        // Study Description
+        this.actionConfigurationMap.set('00081030', { action: DeIdentificationActionCodes.C });
+        // Treatment Position Group Label
+        this.actionConfigurationMap.set('300A0608', { action: DeIdentificationActionCodes.C });
+        // Treatment Position Group Label
+        this.actionConfigurationMap.set('300A0608', { action: DeIdentificationActionCodes.C });
+        // Treatment Site
+        this.actionConfigurationMap.set('30100077', { action: DeIdentificationActionCodes.C });
+        // Treatment Sites
+        this.actionConfigurationMap.set('300A000B', { action: DeIdentificationActionCodes.C });
+        // Treatment Technique Notes
+        this.actionConfigurationMap.set('3010007A', { action: DeIdentificationActionCodes.C });
+        // Treatment Tolerance Violation Description
+        this.actionConfigurationMap.set('300A0734', { action: DeIdentificationActionCodes.C });
+        // User Content Label
+        this.actionConfigurationMap.set('30100033', { action: DeIdentificationActionCodes.C });
+        // User Content Long Label
+        this.actionConfigurationMap.set('30100034', { action: DeIdentificationActionCodes.C });
+        // Visit Comments
+        this.actionConfigurationMap.set('00384000', { action: DeIdentificationActionCodes.C });
+        // Waveform Filter Description
+        this.actionConfigurationMap.set('003A0329', { action: DeIdentificationActionCodes.C });
+
     }
 
     /**

@@ -37,19 +37,50 @@ describe('Clean Structured Content Option Integration Test', () => {
     const dummyItemValueAddition = 'abc';
 
     let dictCleanCandidates = {
-        '00400555': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO },
-        '0040A730': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.DT },
+        // '00400555': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.SQ },
+        // '0040A730': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.SQ },
         '00400610': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO },
     };
 
+    let dictCleanFirstChildrenCandidates = {
+        '00400555': {
+            Value: [{
+                '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
+            }],
+            vr: DicomValueRepresentations.SQ
+        },
+        '0040A730': {
+            Value: [{
+                '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
+            }],
+            vr: DicomValueRepresentations.SQ
+        },
+    }
 
-    test("Option ensures that the specific values will cleaned.", () => {
+
+    test("The children of a sequence will be cleaned.", () => {
+        deIdentComponent.applyDeIdentificationActions(dictCleanFirstChildrenCandidates);
+        for (let key of Object.keys(dictCleanFirstChildrenCandidates)) {
+            expect(dictCleanFirstChildrenCandidates[key], `${key} is defined`).toBeDefined();
+            const element = dictCleanFirstChildrenCandidates[key];
+
+            for (let seqElement of element.Value) {
+                for (let keyTwo of Object.keys(seqElement)) {
+                    const elementTwo = seqElement[keyTwo];
+                    expect(elementTwo.Value, `Value of ${keyTwo} should be cleaned`).toBe(dummyItemValue + dummyItemValueAddition);
+                }
+            }
+        }
+    })
+
+    test("Values of specific items will be cleaned.", () => {
         deIdentComponent.applyDeIdentificationActions(dictCleanCandidates);
         for (let key of Object.keys(dictCleanCandidates)) {
             expect(dictCleanCandidates[key], `${key} is defined`).toBeDefined();
             expect(dictCleanCandidates[key].Value, `Value of ${key} should be cleaned`).toBe(dummyItemValue + dummyItemValueAddition);
         }
     })
+
 
     test("Additional tags will indicate that the Clean Structured Content Option was applied on the data set", () => {
 
