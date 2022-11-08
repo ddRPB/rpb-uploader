@@ -43,7 +43,13 @@ const config = {
     portalUploaderParameterLandingPageRelativeUrl: '/pacs/rpbUploader.faces',
     portalLandingPageRelativeUrl: '/pacs/dicomPatientStudies.faces',
     chunkSize: 5,
-    deIdentificationProfileOption: [],
+    deIdentificationProfileOption: [
+        DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT,
+        DeIdentificationProfiles.CLEAN_DESCRIPTORS,
+        DeIdentificationProfiles.RETAIN_LONG_FULL_DATES,
+        DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS,
+        DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY
+    ],
 }
 
 // Application entry point
