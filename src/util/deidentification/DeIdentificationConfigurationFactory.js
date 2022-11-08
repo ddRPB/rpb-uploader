@@ -606,6 +606,7 @@ export default class DeIdentificationConfigurationFactory {
     createRpbAction() {
         this.actionConfigurationMap.set('00081030', { action: DeIdentificationActionCodes.KP });
         this.actionConfigurationMap.set('0008103E', { action: DeIdentificationActionCodes.KP });
+        this.actionConfigurationMap.set('00080090', { action: DeIdentificationActionCodes.D });
     }
 
     // Default replacements, based on the data type of the tag
