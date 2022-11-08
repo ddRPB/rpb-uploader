@@ -18,9 +18,9 @@
  */
 
 import dcmjs from 'dcmjs';
-import Logger from '../logging/Logger';
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import LogLevels from '../../constants/LogLevels';
+import Logger from '../logging/Logger';
 
 const { DicomMessage } = dcmjs.data;
 
@@ -105,6 +105,7 @@ export default class DicomFileDeIdentificationComponentDcmjs {
     }
 
     applyDeIdentificationActions(dataSetDict) {
+        let action, parameter, actionCode;
 
         for (let propertyName in dataSetDict) {
             const element = dataSetDict[propertyName];
@@ -112,17 +113,45 @@ export default class DicomFileDeIdentificationComponentDcmjs {
             if (element.vr) {
                 const vr = element.vr;
                 switch (vr) {
+                    // Sequences
                     case 'SQ':
-                        for (let seqElement of element.Value) {
-                            this.applyDeIdentificationActions(seqElement);
+                        ({ action, parameter, actionCode } = this.configuration.getTask(propertyName, vr));
+                        if (actionCode === undefined || actionCode === 'not defined') {
+                            // recursion for all elements of the sequence
+                            for (let seqElement of element.Value) {
+                                this.applyDeIdentificationActions(seqElement);
+                            }
+
+                        } else {
+                            switch (actionCode) {
+                                // specific recursion for cleaning - need to iterate to all children
+                                case DeIdentificationActionCodes.C:
+                                    parameter = this.createPatientIdentityValueArray();
+                                    for (let seqElement of element.Value) {
+                                        this.handleRecursiveDeIdentificationAction(seqElement, action, parameter)
+                                    }
+                                    break;
+
+                                default:
+                                    break;
+                            }
+
                         }
                         break;
+                    // all others (no sequence)
                     default:
-                        let { action, parameter, actionCode } = this.configuration.getTask(propertyName, vr);
+                        ({ action, parameter, actionCode } = this.configuration.getTask(propertyName, vr));
 
+                        // overwrite parameter for UID replacements
                         if (vr === 'UI') parameter = this.dicomUidReplacements;
+                        // overwrite parameter for cleaning
                         if (actionCode === DeIdentificationActionCodes.C) parameter = this.createPatientIdentityValueArray();
-                        action(dataSetDict, propertyName, parameter);
+
+                        try {
+                            action(dataSetDict, propertyName, parameter);
+                        } catch (error) {
+                            this.log.warn(`Failed to apply action ${action} to ${propertyName}.`, {}, error);
+                        }
 
                         break;
                 }
@@ -130,6 +159,27 @@ export default class DicomFileDeIdentificationComponentDcmjs {
 
         }
 
+    }
+
+    handleRecursiveDeIdentificationAction(dataSetDict, action, parameter) {
+        for (let key of Object.keys(dataSetDict)) {
+            const element = dataSetDict[key];
+            const vr = element.vr;
+
+            if (vr === 'SQ') {
+                for (let seqElement of element.Value) {
+                    this.handleRecursiveDeIdentificationAction(seqElement, action, parameter);
+                }
+            } else {
+                try {
+                    action(dataSetDict, key, parameter);
+                } catch (error) {
+                    this.log.warn(`Failed to apply action ${action} to ${key}.`, {}, error);
+
+                }
+            }
+
+        }
     }
 
 }

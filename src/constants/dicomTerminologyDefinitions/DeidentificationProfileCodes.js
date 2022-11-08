@@ -28,5 +28,5 @@ module.exports = Object.freeze({
     RETAIN_PATIENT_CHARACTERISTICS: '113108', // Retain Patient Characteristics Option
     RETAIN_DEVICE_IDENTITY: '113109', // Retain Device Identity Option
     CLEAN_DESCRIPTORS: '113105', // Clean Descriptors Option
-    CLEAN_STRUCTURED_CONTENT: '113104' // Clean Structured Content Option
+    CLEAN_STRUCTURED_CONTENT: '113104', // Clean Structured Content Option
 })

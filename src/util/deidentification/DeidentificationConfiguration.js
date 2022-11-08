@@ -155,27 +155,48 @@ export default class DeIdentificationConfiguration {
      * Replaces identifying Strings that will be provided in the identifyingStringsArray with an empty String.
      */
     cleanIdentifyingInformation(dictionary, propertyName, identifyingStringsArray) {
+
         if (Array.isArray(identifyingStringsArray)) {
             for (let replValue of identifyingStringsArray) {
                 let regex = new RegExp(replValue, 'gi');
-                const originalElementValue = dictionary[propertyName].Value;
-                if (Array.isArray(originalElementValue)) {
-                    const newElementValue = [];
+                const element = dictionary[propertyName];
+                const vr = element.vr;
 
-                    for (let el of originalElementValue) {
-                        newElementValue.push(el.replace(regex, ''));
+                if (this.isAStringValue(vr)) {
+                    const originalElementValue = element.Value;
+                    if (Array.isArray(originalElementValue)) {
+                        const newElementValue = [];
+
+                        for (let el of originalElementValue) {
+                            newElementValue.push(el.replace(regex, ''));
+                        }
+
+                        dictionary[propertyName].Value = newElementValue;
+
+                    } else {
+
+                        dictionary[propertyName].Value = originalElementValue.replace(regex, '');
                     }
-
-                    dictionary[propertyName].Value = newElementValue;
-
                 } else {
-
-                    dictionary[propertyName].Value = originalElementValue.replace(regex, '');
+                    console.log(`Cleaning method for VR: ${vr} is not implemented yet.`)
                 }
             }
         } else {
-            // TODO - we could throw an exception
+            throw new Error(`identifyingStringsArray is not an array: ${identifyingStringsArray.toString()}.`);
         }
+    }
+
+    isAStringValue(vr) {
+        return vr === DicomValueRepresentations.CS ||
+            vr === DicomValueRepresentations.LT ||
+            vr === DicomValueRepresentations.LO ||
+            vr === DicomValueRepresentations.OB ||
+            vr === DicomValueRepresentations.OW ||
+            vr === DicomValueRepresentations.PN ||
+            vr === DicomValueRepresentations.SH ||
+            vr === DicomValueRepresentations.ST ||
+            vr === DicomValueRepresentations.UN ||
+            vr === DicomValueRepresentations.UT;
     }
 
     /**
