@@ -304,6 +304,8 @@ export default class DeIdentificationConfiguration {
      * Adds or modifies additional tags to the data set that describe the applied de-identification process.
      */
     addReplacementTags(dictionary) {
+        // add Clinical Trial Subject Tags
+        this.addClinicalTrialSubjectTags(dictionary);
 
         // PatientIdentityRemoved
         this.handlePatientIdentityRemovedTag(dictionary);
@@ -330,6 +332,34 @@ export default class DeIdentificationConfiguration {
         // Lossy Image Compression 0028,2110
 
 
+    }
+
+
+    addClinicalTrialSubjectTags(dictionary) {
+
+        if (this.additionalTagValuesMap.get('00120020') != undefined) {
+            dictionary['00120020'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00120020')]
+            };
+
+        }
+
+        if (this.additionalTagValuesMap.get('00120030') != undefined) {
+            dictionary['00120030'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00120030')]
+            };
+
+        }
+
+        if (this.additionalTagValuesMap.get('00120040') != undefined) {
+            dictionary['00120040'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00120040')]
+            };
+
+        }
     }
 
     /**
