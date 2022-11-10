@@ -1,4 +1,4 @@
-import { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates } from "../../util/DateParser";
+import { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates, convertToDicomDateFormatedString } from "../../util/DateParser";
 
 describe("DateParser tests", () => {
 
@@ -81,6 +81,51 @@ describe("DateParser tests", () => {
             const parsedDate = parseDicomFormattedDates(stringToParse);
 
             expect(parsedDate).toStrictEqual(new Date('2002-01-30'));
+
+        });
+    })
+
+    describe("convertToDicomDateFormatedString", () => {
+
+        test("empty String throws", () => {
+            const stringToParse = "";
+            expect(() => {
+                convertToDicomDateFormatedString(stringToParse);
+            }).toThrow(`Can not read \'${stringToParse}\' as date.`);
+
+        });
+
+        test("null throws", () => {
+            const stringToParse = "";
+            expect(() => {
+                convertToDicomDateFormatedString(stringToParse);
+            }).toThrow(`Can not read \'${stringToParse}\' as date.`);
+
+        });
+
+        test("DICOM date String will be returned", () => {
+            const stringToParse = "20020130";
+            const convertedDateString = convertToDicomDateFormatedString(stringToParse);
+
+            expect(convertedDateString).toEqual(stringToParse);
+
+        });
+
+        test("ISO date String will be returned in DICOM date String format", () => {
+            const expectedString = "20020130";
+            const stringToParse = "2002-01-30";
+            const convertedDateString = convertToDicomDateFormatedString(stringToParse);
+
+            expect(convertedDateString).toEqual(expectedString);
+
+        });
+
+        test("RPB date String will be returned in DICOM date String format", () => {
+            const expectedString = "20020130";
+            const stringToParse = "30.01.2002";
+            const convertedDateString = convertToDicomDateFormatedString(stringToParse);
+
+            expect(convertedDateString).toEqual(expectedString);
 
         });
     })
