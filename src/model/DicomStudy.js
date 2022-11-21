@@ -134,15 +134,6 @@ export default class DicomStudy {
         return result;
     }
 
-    getSelectedSeriesInstances(selectedNodes) {
-        for (let id in selectedNodes) {
-            console.log(id);
-        }
-        return 6;
-
-
-    }
-
     getSeriesByInstanceUID(id) {
         let childSeriesArray = this.getSeriesArray();
         return childSeriesArray[id];
