@@ -182,7 +182,7 @@ export default class DeIdentificationConfiguration {
                 }
             }
         } else {
-            throw new Error(`identifyingStringsArray is not an array: ${identifyingStringsArray.toString()}.`);
+            throw `identifyingStringsArray is not an array: ${identifyingStringsArray.toString()}.`;
         }
     }
 
