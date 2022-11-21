@@ -7,7 +7,7 @@ import DeIdentificationProfiles from './../../../../constants/DeIdentificationPr
 import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations';
 import { applyConfigAction } from './../DeIdentificationConfigurationFactory.test';
 
-describe('Clean Structured Content Option Integration Test', () => {
+describe.skip('Clean Structured Content Option Integration Test', () => {
     const dummyPid = 'dummyPid';
     const dummySubjectId = 'dummy-subject-id';
     const dummyStudyEdcCode = 'dummy-edc-code';
