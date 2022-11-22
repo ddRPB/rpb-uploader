@@ -76,7 +76,7 @@ export default class DeIdentificationConfiguration {
             switch (action) {
                 case DeIdentificationActionCodes.C:
                     return {
-                        action: this.cleanIdentifyingInformation,
+                        action: this.cleanIdentifyingInformation.bind(this),
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.C,
                     };
@@ -105,14 +105,14 @@ export default class DeIdentificationConfiguration {
                     break;
                 case DeIdentificationActionCodes.U:
                     return {
-                        action: this.replaceUID,
+                        action: this.replaceUID.bind(this),
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.U,
                     };
                     break;
                 case DeIdentificationActionCodes.X:
                     return {
-                        action: this.removeItem,
+                        action: this.removeItem.bind(this),
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.X,
                     };
