@@ -116,4 +116,34 @@ describe('Retain Device Identity Option Integration Test', () => {
             .toEqual([DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY]);
     })
 
-})
+});
+
+describe('Retain Device Identity Option Plus RPB Modifications Integration Test', () => {
+    const dummyPid = 'dummyPid';
+    const dummySubjectId = 'dummy-subject-id';
+    const dummyStudyEdcCode = 'dummy-edc-code';
+
+    const uploadSlot = {
+        studyEdcCode: dummyStudyEdcCode,
+        subjectId: dummySubjectId,
+        pid: dummyPid
+    };
+
+    const profile = [DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY, DeIdentificationProfiles.RPB_PROFILE];
+    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    factory.addAdditionalDeIdentificationRelatedTags();
+    const deIdentConfig = factory.getConfiguration();
+    const dummyUid = 'dummyUid';
+
+    let dict = {
+        '00181002': { Value: dummyUid, vr: DicomValueRepresentations.DT },
+    };
+
+    test("Specific UID will be replaced.", () => {
+        for (let key of Object.keys(dict)) {
+            applyConfigAction(deIdentConfig, dict, key, DicomValueRepresentations.DT);
+            expect(dict[key].Value, `Value of ${key} should be keeped`).toBe('dummyReplacementUid');
+        }
+    })
+
+});

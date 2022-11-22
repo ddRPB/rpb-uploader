@@ -647,6 +647,9 @@ export default class DeIdentificationConfigurationFactory {
         // Ethics Committee Approval Effectiveness End Date
         this.actionConfigurationMap.set('00120087', { action: DeIdentificationActionCodes.X });
 
+        // Device UID -overwrite keep in Retain Device Identity Option
+        this.actionConfigurationMap.set('00181002', { action: DeIdentificationActionCodes.U });
+
     }
 
     // Default replacements, based on the data type of the tag

@@ -17,6 +17,7 @@
  * 
  */
 
+import DeIdentificationActionCodes from "../../../constants/DeIdentificationActionCodes";
 import DeIdentificationProfiles from "../../../constants/DeIdentificationProfiles";
 import DeidentificationProfileCodes from "../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes";
 import DeIdentificationProfileCodesMeaning from "../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
@@ -172,5 +173,12 @@ describe('Test DeIdentificationConfigurationFactory', () => {
 
 export function applyConfigAction(deIdentConfig, dict, propertyName, vr) {
     let { action, parameter, actionCode } = deIdentConfig.getTask(propertyName, vr);
+    // dummy replacement emulates UID replacement
+    if (actionCode === DeIdentificationActionCodes.U) {
+        const replacementMap = new Map();
+        replacementMap.set('dummyUid', 'dummyReplacementUid');
+        parameter = replacementMap;
+
+    }
     action(dict, propertyName, parameter);
 }

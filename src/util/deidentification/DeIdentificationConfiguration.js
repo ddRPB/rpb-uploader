@@ -287,7 +287,7 @@ export default class DeIdentificationConfiguration {
                 newElementValue.push(dicomUidReplacements.get(uid));
             }
         } else {
-            newElementValue = dicomUidReplacements.get(uid);
+            newElementValue = dicomUidReplacements.get(originalElementValue);
         }
         dictionary[propertyName].Value = newElementValue;
 
