@@ -46,17 +46,21 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap = new Map();
 
         this.patientIdentitityRemoved = true; // true - current default setting
-        this.rpbSpecificActions = true; // some modifications that are RPB specific 
+        this.rpbSpecificActions = false; // default - becomes true if the DeIdentificationProfiles.RPB_PROFILE is set
         this.appliedDeIdentificationSteps = [];
 
         this.createBasicProfile();
         this.createDefaultReplacementsValuesMap();
-        this.createTagSpecificReplacementsValuesMap();
+        // this.createTagSpecificReplacementsValuesMap();
 
         this.applyProfileOptions(profileOptions);
 
         if (this.rpbSpecificActions) {
-            this.createRpbAction();
+            this.uploadSlot.rpbSpecificActions = this.rpbSpecificActions;
+            this.createRpbProfileActions();
+            this.addTrialSubjectTags();
+            this.addReferingPhysicianReplacementTag();
+            this.addPatientNameAndIdReplacementTags();
         }
 
         this.addAdditionalDeIdentificationRelatedTags();
@@ -76,6 +80,9 @@ export default class DeIdentificationConfigurationFactory {
         switch (profileOptions) {
             case DeIdentificationProfiles.BASIC:
                 //do nothing
+                break;
+            case DeIdentificationProfiles.RPB_PROFILE:
+                this.rpbSpecificActions = true;
                 break;
             case DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY:
                 this.createRetainDeviceIdentityOption();
@@ -603,10 +610,43 @@ export default class DeIdentificationConfigurationFactory {
     }
 
     // In RPB projects, some tags will be prefixed
-    createRpbAction() {
+    createRpbProfileActions() {
+        // // PatientName
+        // this.actionConfigurationMap.set('00100010', { action: DeIdentificationActionCodes.D });
+        // // PatientID
+        // this.actionConfigurationMap.set('00100020', { action: DeIdentificationActionCodes.D });
+
+        // StudyDescription
         this.actionConfigurationMap.set('00081030', { action: DeIdentificationActionCodes.KP });
+        // SeriesDescription
         this.actionConfigurationMap.set('0008103E', { action: DeIdentificationActionCodes.KP });
-        this.actionConfigurationMap.set('00080090', { action: DeIdentificationActionCodes.D });
+        // // ReferringPhysicianName
+        // this.actionConfigurationMap.set('00080090', { action: DeIdentificationActionCodes.D });
+
+        // Clinical Trial Subject Module - First removing all old items
+        // ClinicalTrialSponsorName
+        this.actionConfigurationMap.set('00120010', { action: DeIdentificationActionCodes.X });
+        // ClinicalTrialProtocolID
+        this.actionConfigurationMap.set('00120020', { action: DeIdentificationActionCodes.X });
+        // ClinicalTrialProtocolName
+        this.actionConfigurationMap.set('00120021', { action: DeIdentificationActionCodes.X });
+        // ClinicalTrialSiteID
+        this.actionConfigurationMap.set('00120030', { action: DeIdentificationActionCodes.X });
+        // ClinicalTrialSiteName
+        this.actionConfigurationMap.set('00120031', { action: DeIdentificationActionCodes.X });
+        // ClinicalTrialSubjectID
+        this.actionConfigurationMap.set('00120040', { action: DeIdentificationActionCodes.X });
+        // Clinical Trial Coordinating Center Name
+        this.actionConfigurationMap.set('00120060', { action: DeIdentificationActionCodes.X });
+        // ClinicalTrialProtocolEthicsCommitteeName
+        this.actionConfigurationMap.set('00120081', { action: DeIdentificationActionCodes.X });
+        // Clinical Trial Protocol Ethics Committee Approval Number
+        this.actionConfigurationMap.set('00120082', { action: DeIdentificationActionCodes.X });
+        // Ethics Committee Approval Effectiveness Start Date
+        this.actionConfigurationMap.set('00120086', { action: DeIdentificationActionCodes.X });
+        // Ethics Committee Approval Effectiveness End Date
+        this.actionConfigurationMap.set('00120087', { action: DeIdentificationActionCodes.X });
+
     }
 
     // Default replacements, based on the data type of the tag
@@ -624,22 +664,22 @@ export default class DeIdentificationConfigurationFactory {
 
     createTagSpecificReplacementsValuesMap() {
 
-        // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
-        if (this.uploadSlot.pid != undefined) {
-            this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid)
-            this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid)
-        }
+        // // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
+        // if (this.uploadSlot.pid != undefined) {
+        //     // PatientName
+        //     this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid);
+        //     // PatientID
+        //     this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid);
+        // }
 
-        // In RPB projects, the referring Physician name will be replaced
-        if (this.rpbSpecificActions) {
-            if (this.uploadSlot.studyEdcCode != null && this.uploadSlot.subjectId != null) {
-                this.tagSpecificReplacementsValuesMap.set(
-                    '00080090',
-                    `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`
-                );
-            }
-        }
+        // // In RPB projects, the referring Physician name will be replaced
 
+        // if (this.uploadSlot.studyEdcCode != null && this.uploadSlot.subjectId != null) {
+        //     this.tagSpecificReplacementsValuesMap.set(
+        //         '00080090',
+        //         `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`
+        //     );
+        // }
     }
 
     createRetainDeviceIdentityOption() {
@@ -1438,6 +1478,43 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap.set('00120064', deIdentificationStepsObject);
 
 
+    }
+
+    addTrialSubjectTags() {
+        // Clinical Trial Subject Module
+
+        // ClinicalTrialProtocolID
+        if (this.uploadSlot.studyIdentifier != undefined) {
+            this.additionalTagValuesMap.set('00120020', this.uploadSlot.studyIdentifier);
+        }
+        // ClinicalTrialSiteID
+        if (this.uploadSlot.siteIdentifier != undefined) {
+            this.additionalTagValuesMap.set('00120030', this.uploadSlot.siteIdentifier);
+        }
+        // ClinicalTrialSubjectID
+        if (this.uploadSlot.subjectId != undefined) {
+            this.additionalTagValuesMap.set('00120040', this.uploadSlot.subjectId);
+        }
+    }
+
+    addReferingPhysicianReplacementTag() {
+        if (this.uploadSlot.studyEdcCode != null && this.uploadSlot.subjectId != null) {
+            this.additionalTagValuesMap.set(
+                '00080090',
+                `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`
+            );
+        }
+
+    }
+
+    addPatientNameAndIdReplacementTags() {
+        // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
+        if (this.uploadSlot.pid != undefined) {
+            // PatientName
+            this.additionalTagValuesMap.set('00100010', this.uploadSlot.pid);
+            // PatientID
+            this.additionalTagValuesMap.set('00100020', this.uploadSlot.pid);
+        }
     }
 
     getConfiguration() {

@@ -118,7 +118,7 @@ describe('DeIdentificationConfiguration Tests', () => {
 
         test("Tag from configuration is added if item does not exist.", () => {
             let dict = {};
-            deIdentConfig.addReplacementTags(dict);
+            deIdentConfig.addAdditionalTags(dict);
 
             const patientDeIdentifiedItem = dict[patientIdentityRemoved];
 
@@ -133,7 +133,7 @@ describe('DeIdentificationConfiguration Tests', () => {
                 '00120062': { Value: [YesNoEnum.YES], vr: DicomValueRepresentations.CS },
             };
 
-            deIdentConfig.addReplacementTags(dict);
+            deIdentConfig.addAdditionalTags(dict);
             const patientDeIdentifiedItem = dict[patientIdentityRemoved];
 
             expect(patientDeIdentifiedItem.Value.length, 'should be just one item').toBe(1);
@@ -150,7 +150,7 @@ describe('DeIdentificationConfiguration Tests', () => {
             const basicProfile = DeIdentificationProfiles.BASIC;
             const factoryTwo = new DeIdentificationConfigurationFactory(basicProfile, uploadSlot);
             const deIdentConfigTwo = factoryTwo.getConfiguration();
-            deIdentConfigTwo.addReplacementTags(dict);
+            deIdentConfigTwo.addAdditionalTags(dict);
 
             const patientDeIdentifiedItem = dict[patientIdentityRemoved];
 
@@ -181,7 +181,7 @@ describe('DeIdentificationConfiguration Tests', () => {
 
         test("Adding an item if the dictionary has no DeIdentificationMethod item.", () => {
             let dict = {};
-            deIdentConfig.addReplacementTags(dict);
+            deIdentConfig.addAdditionalTags(dict);
 
             expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
 
@@ -196,7 +196,7 @@ describe('DeIdentificationConfiguration Tests', () => {
             let dict = {
                 '00120063': { Value: dummyValue, vr: DicomValueRepresentations.LO },
             }
-            deIdentConfig.addReplacementTags(dict);
+            deIdentConfig.addAdditionalTags(dict);
 
             expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
 
@@ -214,7 +214,7 @@ describe('DeIdentificationConfiguration Tests', () => {
             let dict = {
                 '00120063': { Value: [dummyValue], vr: DicomValueRepresentations.LO },
             }
-            deIdentConfig.addReplacementTags(dict);
+            deIdentConfig.addAdditionalTags(dict);
 
             expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
 
@@ -237,7 +237,7 @@ describe('DeIdentificationConfiguration Tests', () => {
                     vr: DicomValueRepresentations.LO
                 },
             }
-            deIdentConfig.addReplacementTags(dict);
+            deIdentConfig.addAdditionalTags(dict);
 
             expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
 
@@ -260,7 +260,7 @@ describe('DeIdentificationConfiguration Tests', () => {
                     vr: DicomValueRepresentations.LO
                 },
             }
-            deIdentConfig.addReplacementTags(dict);
+            deIdentConfig.addAdditionalTags(dict);
 
             expect(dict[deIdentificationMethodTag], 'DeIdentificationMethod should be added').toBeDefined();
 
@@ -310,16 +310,6 @@ describe('DeIdentificationConfiguration Tests', () => {
 
             configuration.cleanIdentifyingInformation(dictionary, '00102110', [dummyItemPartThree]);
             expect(dictionary['00102110'].Value).toBe(dummyItemPartOne + dummyItemPartTwo);
-        });
-
-        // TODO - later we could change the functionality and throw an exception
-        test("Matching identity item without array does not change the value", () => {
-            let dictionary = {
-                '00102110': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-            };
-
-            configuration.cleanIdentifyingInformation(dictionary, '00102110', dummyItemPartThree);
-            expect(dictionary['00102110'].Value).toBe(dummyItemPartOne + dummyItemPartTwo + dummyItemPartThree);
         });
 
         test("Matching identity items change the value", () => {
@@ -760,7 +750,7 @@ describe('DeIdentificationConfiguration Tests', () => {
             const vr = "dummy";
             dataSetDictionary[tag] = element;
 
-            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.RPB_PROFILE, uploadSlot);
             const configuration = factory.getConfiguration();
             let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -780,7 +770,7 @@ describe('DeIdentificationConfiguration Tests', () => {
             const vr = "dummy";
             dataSetDictionary[tag] = element;
 
-            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.RPB_PROFILE, uploadSlot);
             const configuration = factory.getConfiguration();
             let { action, parameter } = configuration.getTask(tag, vr);
 

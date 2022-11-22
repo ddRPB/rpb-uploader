@@ -182,7 +182,7 @@ export default class DeIdentificationConfiguration {
                 }
             }
         } else {
-            throw new Error(`identifyingStringsArray is not an array: ${identifyingStringsArray.toString()}.`);
+            throw `identifyingStringsArray is not an array: ${identifyingStringsArray.toString()}.`;
         }
     }
 
@@ -303,21 +303,28 @@ export default class DeIdentificationConfiguration {
     /**
      * Adds or modifies additional tags to the data set that describe the applied de-identification process.
      */
-    addReplacementTags(dictionary) {
+    addAdditionalTags(dataSetDictionary) {
+        // add Clinical Trial Subject Tags
+        this.addClinicalTrialSubjectTagsIfDefined(dataSetDictionary);
+
+        // Refering Physician tag is used for ({EDC-Code})-{SubjectId}
+        this.addReferingPhysicianTagIfDefined(dataSetDictionary);
+
+        this.addPatientNameAndIdTagsIfDefined(dataSetDictionary);
 
         // PatientIdentityRemoved
-        this.handlePatientIdentityRemovedTag(dictionary);
+        this.handlePatientIdentityRemovedTag(dataSetDictionary);
 
         // DeidentificationMethod
-        this.handleDeidentificationMethodTag(dictionary);
+        this.handleDeidentificationMethodTag(dataSetDictionary);
 
         // DeidentificationMethodCodeSequence
-        this.handleDeidentificationMethodCodeSequenceTag(dictionary);
+        this.handleDeidentificationMethodCodeSequenceTag(dataSetDictionary);
 
         // Longitudinal Temporal Information Modified Attribute
 
-        if (dictionary['00280303'] === undefined) { // not defined yet
-            dictionary['00280303'] = {
+        if (dataSetDictionary['00280303'] === undefined) { // not defined yet
+            dataSetDictionary['00280303'] = {
                 vr: DicomValueRepresentations.CS,
                 Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED
             };
@@ -330,6 +337,62 @@ export default class DeIdentificationConfiguration {
         // Lossy Image Compression 0028,2110
 
 
+    }
+
+
+    addClinicalTrialSubjectTagsIfDefined(dataSetDictionary) {
+
+        if (this.additionalTagValuesMap.get('00120020') != undefined) {
+            dataSetDictionary['00120020'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00120020')]
+            };
+
+        }
+
+        if (this.additionalTagValuesMap.get('00120030') != undefined) {
+            dataSetDictionary['00120030'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00120030')]
+            };
+
+        }
+
+        if (this.additionalTagValuesMap.get('00120040') != undefined) {
+            dataSetDictionary['00120040'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00120040')]
+            };
+
+        }
+    }
+
+    addReferingPhysicianTagIfDefined(dataSetDictionary) {
+        if (this.additionalTagValuesMap.get('00080090') != undefined) {
+            dataSetDictionary['00080090'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00080090')]
+            };
+
+        }
+    }
+
+    addPatientNameAndIdTagsIfDefined(dataSetDictionary) {
+        if (this.additionalTagValuesMap.get('00100010') != undefined) {
+            dataSetDictionary['00100010'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00100010')]
+            };
+
+        }
+
+        if (this.additionalTagValuesMap.get('00100020') != undefined) {
+            dataSetDictionary['00100020'] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [this.additionalTagValuesMap.get('00100020')]
+            };
+
+        }
     }
 
     /**
@@ -355,18 +418,18 @@ export default class DeIdentificationConfiguration {
     /**
      * Adds or modifies the DeIdentificationMethod tag.
      */
-    handleDeidentificationMethodTag(dictionary) {
+    handleDeidentificationMethodTag(dataSetDictionary) {
         if (this.additionalTagValuesMap.get('00120063') != undefined) {
             const maxValueLength = 64;
 
-            const currentDeIdentificationMethodItem = dictionary['00120063'];
+            const currentDeIdentificationMethodItem = dataSetDictionary['00120063'];
             let currentDeIdentificationMethodValue;
             if (currentDeIdentificationMethodItem != undefined) {
                 currentDeIdentificationMethodValue = currentDeIdentificationMethodItem.Value;
             }
 
             if (currentDeIdentificationMethodValue === undefined) {
-                dictionary['00120063'] = {
+                dataSetDictionary['00120063'] = {
                     vr: DicomValueRepresentations.LO,
                     Value: [this.additionalTagValuesMap.get('00120063')]
                 };
@@ -383,7 +446,7 @@ export default class DeIdentificationConfiguration {
 
                 if (calculatedSize <= maxValueLength) {
                     newDeIdentificationMethodValue.push(this.additionalTagValuesMap.get('00120063'));
-                    dictionary['00120063'] = {
+                    dataSetDictionary['00120063'] = {
                         vr: DicomValueRepresentations.LO,
                         Value: newDeIdentificationMethodValue
                     };
@@ -392,7 +455,7 @@ export default class DeIdentificationConfiguration {
                     calculatedSize = 2 + newDeIdentificationMethodValue.toString().length + dots.length;
                     if (calculatedSize <= maxValueLength) {
                         newDeIdentificationMethodValue.push(dots);
-                        dictionary['00120063'] = {
+                        dataSetDictionary['00120063'] = {
                             vr: DicomValueRepresentations.LO,
                             Value: newDeIdentificationMethodValue
                         };
@@ -402,14 +465,16 @@ export default class DeIdentificationConfiguration {
 
                 }
             }
+        } else {
+            throw new Error('The values for the de-identification method tag (00120063) are not defined.');
         }
     }
 
     /**
      * Adds or modifies the PatientIdentityRemoved tag.
      */
-    handlePatientIdentityRemovedTag(dictionary) {
-        const patientDeIdentifiedItem = dictionary['00120062'];
+    handlePatientIdentityRemovedTag(dataSetDictionary) {
+        const patientDeIdentifiedItem = dataSetDictionary['00120062'];
         let patientDeIdentifiedValue;
 
         if (patientDeIdentifiedItem != undefined) {
@@ -422,12 +487,12 @@ export default class DeIdentificationConfiguration {
 
         if (this.additionalTagValuesMap.get('00120062') != undefined) {
             if (patientDeIdentifiedValue === undefined) { // not deIdentified yet
-                dictionary['00120062'] = {
+                dataSetDictionary['00120062'] = {
                     vr: DicomValueRepresentations.CS,
                     Value: [this.additionalTagValuesMap.get('00120062')]
                 };
             } else if (patientDeIdentifiedValue === YesNoEnum.NO) { // patient identity is not already removed yet
-                dictionary['00120062'] = {
+                dataSetDictionary['00120062'] = {
                     vr: DicomValueRepresentations.CS,
                     Value: [this.additionalTagValuesMap.get('00120062')]
                 };

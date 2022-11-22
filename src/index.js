@@ -48,7 +48,8 @@ const config = {
         DeIdentificationProfiles.CLEAN_DESCRIPTORS,
         DeIdentificationProfiles.RETAIN_LONG_FULL_DATES,
         DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS,
-        DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY
+        DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY,
+        DeIdentificationProfiles.RPB_PROFILE,
     ],
 }
 
