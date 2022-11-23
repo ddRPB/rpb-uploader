@@ -23,6 +23,7 @@ import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefini
 import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
 import YesNoEnum from "../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
+import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
 
 // https://www.dicomstandard.org/News-dir/ftsup/docs/sups/sup142.pdf
@@ -46,6 +47,7 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap = new Map();
 
         this.patientIdentitityRemoved = true; // true - current default setting
+        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED; // true - current default setting
         this.rpbSpecificActions = false; // default - becomes true if the DeIdentificationProfiles.RPB_PROFILE is set
         this.appliedDeIdentificationSteps = [];
 
@@ -667,13 +669,13 @@ export default class DeIdentificationConfigurationFactory {
 
     createTagSpecificReplacementsValuesMap() {
 
-        // // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
-        // if (this.uploadSlot.pid != undefined) {
-        //     // PatientName
-        //     this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid);
-        //     // PatientID
-        //     this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid);
-        // }
+        // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
+        if (this.uploadSlot.pid != undefined) {
+            // PatientName
+            this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid);
+            // PatientID
+            this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid);
+        }
 
         // // In RPB projects, the referring Physician name will be replaced
 
