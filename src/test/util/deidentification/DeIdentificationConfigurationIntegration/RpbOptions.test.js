@@ -90,27 +90,6 @@ describe('RPB Profile Integration Test', () => {
 
         })
 
-        describe('Specific tag groups are removed', () => {
-
-            const dummyItemValue = 'dummyItemValue';
-            // could create more examples of a range
-            let dict = {
-                // 50xx,xxxx example
-                '50123456': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-                // 60xx,3000 example
-                '60123000': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-                // 60xx,4000 example
-                '60124000': { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
-            };
-
-            test("Option ensures that the specific ranges will be removed.", () => {
-                for (let key of Object.keys(dict)) {
-                    applyConfigAction(deIdentConfig, dict, key, DicomValueRepresentations.LO);
-                }
-                expect(Object.keys(dict).length, '').toBe(0);
-            })
-
-        })
     });
 
 
