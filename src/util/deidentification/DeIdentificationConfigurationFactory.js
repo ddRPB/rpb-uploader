@@ -652,6 +652,11 @@ export default class DeIdentificationConfigurationFactory {
         // Device UID -overwrite keep in Retain Device Identity Option
         this.actionConfigurationMap.set('00181002', { action: DeIdentificationActionCodes.U });
 
+        if (this.patientIdentitityRemoved === true) {
+            // EncryptedAttributesSequence will be removed
+            this.actionConfigurationMap.set('04000500', { action: DeIdentificationActionCodes.X });
+        }
+
     }
 
     // Default replacements, based on the data type of the tag

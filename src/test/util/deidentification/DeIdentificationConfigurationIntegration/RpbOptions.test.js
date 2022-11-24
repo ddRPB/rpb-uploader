@@ -92,6 +92,46 @@ describe('RPB Profile Integration Test', () => {
 
     });
 
+    describe('EncryptedAttributesSequence will be removed if patientIdentitityRemoved is activated by De-Identification Profile settings', () => {
+
+        const EncryptedAttributesItemDict = {
+            // EncryptedContentTransferSyntaxUID
+            '04000510': { Value: 'dummyUID', vr: DicomValueRepresentations.UI },
+        };
+
+
+
+        test("EncryptedAttributesSequence will be removed.", () => {
+            const dict = {
+                // EncryptedAttributesSequence
+                '04000500': { Value: [EncryptedAttributesItemDict], vr: DicomValueRepresentations.SQ },
+            };
+
+            for (let key of Object.keys(dict)) {
+                applyConfigAction(deIdentConfig, dict, key, DicomValueRepresentations.SQ);
+            }
+            expect(Object.keys(dict).length, '').toBe(0);
+        })
+
+        test("EncryptedAttributesSequence will be not removed, because Patient Identity will be keeped by setup.", () => {
+            const profileWithRetainPatientCharacteristics = [DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS, DeIdentificationProfiles.RPB_PROFILE];
+            const factoryWithKeepIdentitySetup = new DeIdentificationConfigurationFactory(profileWithRetainPatientCharacteristics, uploadSlot);
+            factoryWithKeepIdentitySetup.addAdditionalDeIdentificationRelatedTags();
+            const deIdentConfigThatKeepsIdentity = factoryWithKeepIdentitySetup.getConfiguration();
+
+            const dictionary = {
+                // EncryptedAttributesSequence
+                '04000500': { Value: [EncryptedAttributesItemDict], vr: DicomValueRepresentations.SQ },
+            };
+
+            for (let key of Object.keys(dictionary)) {
+                applyConfigAction(deIdentConfigThatKeepsIdentity, dictionary, key, DicomValueRepresentations.SQ);
+            }
+            expect(Object.keys(dictionary).length, '').toBe(1);
+        })
+
+    })
+
 
 
 })
