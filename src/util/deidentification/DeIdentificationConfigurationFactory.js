@@ -47,13 +47,13 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap = new Map();
 
         this.patientIdentitityRemoved = true; // true - current default setting
-        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED; // true - current default setting
+        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.REMOVED; // true - current default setting
         this.rpbSpecificActions = false; // default - becomes true if the DeIdentificationProfiles.RPB_PROFILE is set
         this.appliedDeIdentificationSteps = [];
 
         this.createBasicProfile();
         this.createDefaultReplacementsValuesMap();
-        // this.createTagSpecificReplacementsValuesMap();
+        this.createTagSpecificReplacementsValuesMap();
 
         this.applyProfileOptions(profileOptions);
 
@@ -694,6 +694,8 @@ export default class DeIdentificationConfigurationFactory {
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY,
         });
 
+        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED;
+
         // Beam Hold Transition DateTime
         this.actionConfigurationMap.set('300C0127', { action: DeIdentificationActionCodes.K });
         // Calibration Date
@@ -832,6 +834,8 @@ export default class DeIdentificationConfigurationFactory {
             codeValue: DeIdentificationProfileCodes.RETAIN_LONG_FULL_DATES,
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_LONG_FULL_DATES,
         });
+
+        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED;
 
         // Acquisition Date
         this.actionConfigurationMap.set('00080022', { action: DeIdentificationActionCodes.K });
@@ -1437,6 +1441,11 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap.set(
             '00120062',
             this.patientIdentitityRemoved ? YesNoEnum.YES : YesNoEnum.NO
+        );
+
+        this.additionalTagValuesMap.set(
+            '00280303',
+            this.longitudinalTemporalInformationModified
         );
 
         this.additionalTagValuesMap.set(

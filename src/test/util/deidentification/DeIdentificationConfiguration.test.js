@@ -1,6 +1,7 @@
 import DeIdentificationProfiles from "../../../constants/DeIdentificationProfiles";
 import YesNoEnum from "../../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../../constants/DicomValueRepresentations";
+import LongitudinalTemporalInformationModifiedAttribute from "../../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import DeIdentificationConfigurationFactory from "../../../util/deidentification/DeIdentificationConfigurationFactory";
 
 describe('DeIdentificationConfiguration Tests', () => {
@@ -783,4 +784,120 @@ describe('DeIdentificationConfiguration Tests', () => {
         //Todo
     })
 
+    describe('LongitudinalTemporalInformationModified Attribute setting', () => {
+        let dataSetDictionary = {};
+
+        describe('Basic Profile -> Configuration default value is removed', () => {
+            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+            const configuration = factory.getConfiguration();
+
+            test("DataSet Attribute is Removed", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+
+            });
+
+            test("DataSet Attribute is Modified", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+
+            });
+
+            test("DataSet Attribute is Unmodified", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+
+            });
+        })
+
+        describe('Configuration is set to modified', () => {
+            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+            const configuration = factory.getConfiguration();
+            configuration.additionalTagValuesMap.set('00280303', LongitudinalTemporalInformationModifiedAttribute.MODIFIED);
+            test("DataSet Attribute is Removed", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+
+            });
+
+            test("DataSet Attribute is Modified", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.MODIFIED]);
+
+            });
+
+            test("DataSet Attribute is Unmodified", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.MODIFIED]);
+
+            });
+        })
+
+        describe('Configuration is set to unmodified', () => {
+            const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+            const configuration = factory.getConfiguration();
+            configuration.additionalTagValuesMap.set('00280303', LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED);
+            test("DataSet Attribute is Removed", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+
+            });
+
+            test("DataSet Attribute is Modified", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.MODIFIED]);
+
+            });
+
+            test("DataSet Attribute is Unmodified", () => {
+                dataSetDictionary = {
+                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED },
+                };
+
+                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED]);
+
+            });
+        })
+
+
+    })
 })
+
+
+
+
+
+

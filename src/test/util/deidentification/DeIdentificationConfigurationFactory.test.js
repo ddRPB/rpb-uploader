@@ -169,6 +169,7 @@ describe('Test DeIdentificationConfigurationFactory', () => {
         })
 
     })
+
 })
 
 export function applyConfigAction(deIdentConfig, dict, propertyName, vr) {

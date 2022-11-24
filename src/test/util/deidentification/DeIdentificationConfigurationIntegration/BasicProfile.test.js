@@ -16,9 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
-import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DeIdentificationProfiles from '../../../../constants/DeIdentificationProfiles';
+import YesNoEnum from '../../../../constants/dicomValueEnums/YesNoEnum';
 import DicomValueRepresentations from '../../../../constants/DicomValueRepresentations';
+import LongitudinalTemporalInformationModifiedAttribute from '../../../../constants/LongitudinalTemporalInformationModifiedAttribute';
+import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import { applyConfigAction } from '../DeIdentificationConfigurationFactory.test';
 
 describe('Basic Profile Integration Test', () => {
@@ -43,9 +45,6 @@ describe('Basic Profile Integration Test', () => {
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 
-
-
-
     describe('Specific tag groups are removed', () => {
 
         const dummyItemValue = 'dummyItemValue';
@@ -67,5 +66,19 @@ describe('Basic Profile Integration Test', () => {
         })
 
     })
+
+    describe('Additional tags tests', () => {
+
+        let dict = {};
+        deIdentConfig.addAdditionalTags(dict);
+
+        test('PatientIdentityRemoved is set to yes', () => {
+            expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.YES]);
+        })
+        test('LongitudinalTemporalInformationModified is set to removed', () => {
+            expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+        })
+    })
+
 
 })

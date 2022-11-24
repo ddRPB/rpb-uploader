@@ -20,6 +20,7 @@
 import DeIdentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
 import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
 import YesNoEnum from '../../../../constants/dicomValueEnums/YesNoEnum';
+import LongitudinalTemporalInformationModifiedAttribute from '../../../../constants/LongitudinalTemporalInformationModifiedAttribute';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
 import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations';
@@ -114,6 +115,19 @@ describe('Retain Device Identity Option Integration Test', () => {
         expect(lastMethod['00080102'].Value, `00080102 - should be DCM`).toEqual(['DCM']);
         expect(lastMethod['00080104'].Value, `00080104 - should be ${DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY}`)
             .toEqual([DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY]);
+    })
+
+    describe('Additional tags tests', () => {
+
+        let dict = {};
+        deIdentConfig.addAdditionalTags(dict);
+
+        test('PatientIdentityRemoved is set to yes', () => {
+            expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.YES]);
+        })
+        test('LongitudinalTemporalInformationModified is set to unmodified', () => {
+            expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED]);
+        })
     })
 
 });
