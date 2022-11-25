@@ -699,8 +699,6 @@ export default class DeIdentificationConfigurationFactory {
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY,
         });
 
-        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED;
-
         // Beam Hold Transition DateTime
         this.actionConfigurationMap.set('300C0127', { action: DeIdentificationActionCodes.K });
         // Calibration Date

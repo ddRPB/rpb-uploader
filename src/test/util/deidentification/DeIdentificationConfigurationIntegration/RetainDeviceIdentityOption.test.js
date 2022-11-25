@@ -126,7 +126,7 @@ describe('Retain Device Identity Option Integration Test', () => {
             expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.YES]);
         })
         test('LongitudinalTemporalInformationModified is set to unmodified', () => {
-            expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED]);
+            expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
         })
     })
 
