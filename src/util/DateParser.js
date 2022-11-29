@@ -80,7 +80,7 @@ function parseDicomFormattedDates(dateString) {
 }
 
 function convertToDicomDateFormatedString(dateString) {
-    if (dateString === undefined) {
+    if (dateString === undefined || dateString === null) {
         throw `Can not read \'${dateString}\' as date.`;
     }
 
@@ -94,20 +94,15 @@ function convertToDicomDateFormatedString(dateString) {
     }
 
     const ocFormattedDateRegex = /(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/
-    if (dateString.match(ocFormattedDateRegex) != null) {
-        const convertedDateString = dateString =>
-            dateString.replace(ocFormattedDateRegex, "$<year>$<month>$<day>");
-
-        return convertedDateString;
+    if (dateString.toString().match(ocFormattedDateRegex) != null) {
+        return dateString.replace(ocFormattedDateRegex, "$<year>$<month>$<day>");
     }
 
     const rpbFormattedDateRegex = /(?<day>[0-9]{2}).(?<month>[0-9]{2}).(?<year>[0-9]{4})/
-    if (dateString.match(rpbFormattedDateRegex) != null) {
-        const convertedDateString = dateString =>
-            dateString.replace(rpbFormattedDateRegex, "$<year>$<month>$<day>");
-
-        return convertedDateString;
+    if (dateString.toString().match(rpbFormattedDateRegex) != null) {
+        return dateString.replace(rpbFormattedDateRegex, "$<year>$<month>$<day>");
     }
+
 }
 
 export { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates, convertToDicomDateFormatedString };
