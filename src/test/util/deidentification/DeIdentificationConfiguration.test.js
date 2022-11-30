@@ -124,7 +124,7 @@ describe('DeIdentificationConfiguration Tests', () => {
             const patientDeIdentifiedItem = dict[patientIdentityRemoved];
 
             expect(patientDeIdentifiedItem.Value.length, 'should be just one item').toBe(1);
-            expect(patientDeIdentifiedItem.Value[0], 'matches the expected value').toMatch(YesNoEnum.NO);
+            expect(patientDeIdentifiedItem.Value[0], 'matches the expected value').toMatch(YesNoEnum.YES);
 
 
         })
@@ -801,25 +801,7 @@ describe('DeIdentificationConfiguration Tests', () => {
 
             });
 
-            test("DataSet Attribute is Modified", () => {
-                dataSetDictionary = {
-                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
-                };
 
-                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
-                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
-
-            });
-
-            test("DataSet Attribute is Unmodified", () => {
-                dataSetDictionary = {
-                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
-                };
-
-                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
-                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
-
-            });
         })
 
         describe('Configuration is set to modified', () => {
@@ -832,29 +814,10 @@ describe('DeIdentificationConfiguration Tests', () => {
                 };
 
                 configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
-                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
-
-            });
-
-            test("DataSet Attribute is Modified", () => {
-                dataSetDictionary = {
-                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
-                };
-
-                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
                 expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.MODIFIED]);
 
             });
 
-            test("DataSet Attribute is Unmodified", () => {
-                dataSetDictionary = {
-                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED },
-                };
-
-                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
-                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.MODIFIED]);
-
-            });
         })
 
         describe('Configuration is set to unmodified', () => {
@@ -867,29 +830,10 @@ describe('DeIdentificationConfiguration Tests', () => {
                 };
 
                 configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
-                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
-
-            });
-
-            test("DataSet Attribute is Modified", () => {
-                dataSetDictionary = {
-                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED },
-                };
-
-                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
-                expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.MODIFIED]);
-
-            });
-
-            test("DataSet Attribute is Unmodified", () => {
-                dataSetDictionary = {
-                    '00280303': { Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED },
-                };
-
-                configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
                 expect(dataSetDictionary['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED]);
 
             });
+
         })
 
 

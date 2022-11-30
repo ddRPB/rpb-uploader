@@ -78,7 +78,7 @@ describe('Retain Patient Characteristics Profile Integration Test', () => {
         const deIdentConfig = factory.getConfiguration();
 
         // Patient Identity Removed Attribute
-        expect(deIdentConfig.additionalTagValuesMap.get('00120062'), 'Patient Identity removed - should be no').toBe(YesNoEnum.NO);
+        expect(deIdentConfig.additionalTagValuesMap.get('00120062'), 'Patient Identity removed - should be yes').toBe(YesNoEnum.YES);
         // De-identification Method Attribute
         expect(deIdentConfig.additionalTagValuesMap.get('00120063'), 'addtional 00120063 tag').toBe('Per DICOM PS 3.15 AnnexE. RPB-Uploader v1.0');
         // De-identification Method Code Sequence Attribute
@@ -99,8 +99,8 @@ describe('Retain Patient Characteristics Profile Integration Test', () => {
         let dict = {};
         deIdentConfig.addAdditionalTags(dict);
 
-        test('PatientIdentityRemoved is set to no', () => {
-            expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.NO]);
+        test('PatientIdentityRemoved is set to yes', () => {
+            expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.YES]);
         })
         test('LongitudinalTemporalInformationModified is set to removed', () => {
             expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);

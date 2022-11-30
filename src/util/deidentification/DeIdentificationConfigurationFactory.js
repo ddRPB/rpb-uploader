@@ -796,8 +796,6 @@ export default class DeIdentificationConfigurationFactory {
     }
 
     createRetainPatienCharacteristicsOption() {
-        // annotation that the method is used and identitity is not removed
-        this.patientIdentitityRemoved = false;
         this.appliedDeIdentificationSteps.push({
             codeValue: DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS,
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS,
