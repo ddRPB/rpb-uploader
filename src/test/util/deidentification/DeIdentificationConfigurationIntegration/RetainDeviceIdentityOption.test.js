@@ -20,6 +20,7 @@
 import DeIdentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
 import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
 import YesNoEnum from '../../../../constants/dicomValueEnums/YesNoEnum';
+import LongitudinalTemporalInformationModifiedAttribute from '../../../../constants/LongitudinalTemporalInformationModifiedAttribute';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
 import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations';
@@ -116,4 +117,47 @@ describe('Retain Device Identity Option Integration Test', () => {
             .toEqual([DeIdentificationProfileCodesMeaning.RETAIN_DEVICE_IDENTITY]);
     })
 
-})
+    describe('Additional tags tests', () => {
+
+        let dict = {};
+        deIdentConfig.addAdditionalTags(dict);
+
+        test('PatientIdentityRemoved is set to yes', () => {
+            expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.YES]);
+        })
+        test('LongitudinalTemporalInformationModified is set to unmodified', () => {
+            expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+        })
+    })
+
+});
+
+describe('Retain Device Identity Option Plus RPB Modifications Integration Test', () => {
+    const dummyPid = 'dummyPid';
+    const dummySubjectId = 'dummy-subject-id';
+    const dummyStudyEdcCode = 'dummy-edc-code';
+
+    const uploadSlot = {
+        studyEdcCode: dummyStudyEdcCode,
+        subjectId: dummySubjectId,
+        pid: dummyPid
+    };
+
+    const profile = [DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY, DeIdentificationProfiles.RPB_PROFILE];
+    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    factory.addAdditionalDeIdentificationRelatedTags();
+    const deIdentConfig = factory.getConfiguration();
+    const dummyUid = 'dummyUid';
+
+    let dict = {
+        '00181002': { Value: dummyUid, vr: DicomValueRepresentations.DT },
+    };
+
+    test("Specific UID will be replaced.", () => {
+        for (let key of Object.keys(dict)) {
+            applyConfigAction(deIdentConfig, dict, key, DicomValueRepresentations.DT);
+            expect(dict[key].Value, `Value of ${key} should be keeped`).toBe('dummyReplacementUid');
+        }
+    })
+
+});

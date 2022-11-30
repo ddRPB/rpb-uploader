@@ -76,7 +76,7 @@ export default class DeIdentificationConfiguration {
             switch (action) {
                 case DeIdentificationActionCodes.C:
                     return {
-                        action: this.cleanIdentifyingInformation,
+                        action: this.cleanIdentifyingInformation.bind(this),
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.C,
                     };
@@ -105,14 +105,14 @@ export default class DeIdentificationConfiguration {
                     break;
                 case DeIdentificationActionCodes.U:
                     return {
-                        action: this.replaceUID,
+                        action: this.replaceUID.bind(this),
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.U,
                     };
                     break;
                 case DeIdentificationActionCodes.X:
                     return {
-                        action: this.removeItem,
+                        action: this.removeItem.bind(this),
                         parameter: undefined,
                         actionCode: DeIdentificationActionCodes.X,
                     };
@@ -287,7 +287,7 @@ export default class DeIdentificationConfiguration {
                 newElementValue.push(dicomUidReplacements.get(uid));
             }
         } else {
-            newElementValue = dicomUidReplacements.get(uid);
+            newElementValue = dicomUidReplacements.get(originalElementValue);
         }
         dictionary[propertyName].Value = newElementValue;
 
@@ -314,6 +314,9 @@ export default class DeIdentificationConfiguration {
 
         // PatientIdentityRemoved
         this.handlePatientIdentityRemovedTag(dataSetDictionary);
+
+        // Longitudinal Temporal Information Modified
+        this.handleLongitudinalTemporalInformationModified(dataSetDictionary);
 
         // DeidentificationMethod
         this.handleDeidentificationMethodTag(dataSetDictionary);
@@ -497,6 +500,58 @@ export default class DeIdentificationConfiguration {
                     Value: [this.additionalTagValuesMap.get('00120062')]
                 };
             }
+        }
+    }
+
+    handleLongitudinalTemporalInformationModified(dataSetDictionary) {
+        const longitudinalTemporalInformationItem = dataSetDictionary['00280303'];
+        let longitudinalTemporalInformationItemValue;
+
+        if (longitudinalTemporalInformationItem != undefined) {
+            longitudinalTemporalInformationItemValue = longitudinalTemporalInformationItem.Value;
+        }
+
+        if (Array.isArray(longitudinalTemporalInformationItemValue)) {
+            longitudinalTemporalInformationItemValue = longitudinalTemporalInformationItem[0];
+        }
+
+        if (this.additionalTagValuesMap.get('00280303') != undefined) {
+            if (longitudinalTemporalInformationItemValue === undefined) { // not deIdentified yet
+                dataSetDictionary['00280303'] = {
+                    vr: DicomValueRepresentations.CS,
+                    Value: [this.additionalTagValuesMap.get('00280303')]
+                };
+            } else {
+                switch (longitudinalTemporalInformationItemValue) {
+                    case LongitudinalTemporalInformationModifiedAttribute.REMOVED:
+                        dataSetDictionary['00280303'] = {
+                            vr: DicomValueRepresentations.CS,
+                            Value: [LongitudinalTemporalInformationModifiedAttribute.REMOVED]
+                        };
+                        break;
+                    case LongitudinalTemporalInformationModifiedAttribute.MODIFIED:
+                        if (this.additionalTagValuesMap.get('00280303') === LongitudinalTemporalInformationModifiedAttribute.REMOVED) {
+                            dataSetDictionary['00280303'] = {
+                                vr: DicomValueRepresentations.CS,
+                                Value: [LongitudinalTemporalInformationModifiedAttribute.REMOVED]
+                            };
+                        } else {
+                            dataSetDictionary['00280303'] = {
+                                vr: DicomValueRepresentations.CS,
+                                Value: [LongitudinalTemporalInformationModifiedAttribute.MODIFIED]
+                            };
+                        }
+
+                        break;
+
+                    default:
+                        dataSetDictionary['00280303'] = {
+                            vr: DicomValueRepresentations.CS,
+                            Value: [this.additionalTagValuesMap.get('00280303')]
+                        };
+                        break;
+                }
+            };
         }
     }
 

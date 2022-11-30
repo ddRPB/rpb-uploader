@@ -23,6 +23,7 @@ import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefini
 import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
 import YesNoEnum from "../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
+import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
 
 // https://www.dicomstandard.org/News-dir/ftsup/docs/sups/sup142.pdf
@@ -46,12 +47,13 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap = new Map();
 
         this.patientIdentitityRemoved = true; // true - current default setting
+        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.REMOVED; // true - current default setting
         this.rpbSpecificActions = false; // default - becomes true if the DeIdentificationProfiles.RPB_PROFILE is set
         this.appliedDeIdentificationSteps = [];
 
         this.createBasicProfile();
         this.createDefaultReplacementsValuesMap();
-        // this.createTagSpecificReplacementsValuesMap();
+        this.createTagSpecificReplacementsValuesMap();
 
         this.applyProfileOptions(profileOptions);
 
@@ -647,6 +649,14 @@ export default class DeIdentificationConfigurationFactory {
         // Ethics Committee Approval Effectiveness End Date
         this.actionConfigurationMap.set('00120087', { action: DeIdentificationActionCodes.X });
 
+        // Device UID -overwrite keep in Retain Device Identity Option
+        this.actionConfigurationMap.set('00181002', { action: DeIdentificationActionCodes.U });
+
+        if (this.patientIdentitityRemoved === true) {
+            // EncryptedAttributesSequence will be removed
+            this.actionConfigurationMap.set('04000500', { action: DeIdentificationActionCodes.X });
+        }
+
     }
 
     // Default replacements, based on the data type of the tag
@@ -664,13 +674,13 @@ export default class DeIdentificationConfigurationFactory {
 
     createTagSpecificReplacementsValuesMap() {
 
-        // // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
-        // if (this.uploadSlot.pid != undefined) {
-        //     // PatientName
-        //     this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid);
-        //     // PatientID
-        //     this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid);
-        // }
+        // The patient name and patient Id will be replaced by the PID (pseudonym of the specific patient)
+        if (this.uploadSlot.pid != undefined) {
+            // PatientName
+            this.tagSpecificReplacementsValuesMap.set('00100010', this.uploadSlot.pid);
+            // PatientID
+            this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid);
+        }
 
         // // In RPB projects, the referring Physician name will be replaced
 
@@ -827,6 +837,8 @@ export default class DeIdentificationConfigurationFactory {
             codeValue: DeIdentificationProfileCodes.RETAIN_LONG_FULL_DATES,
             codeMeaning: DeIdentificationProfileCodesMeaning.RETAIN_LONG_FULL_DATES,
         });
+
+        this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED;
 
         // Acquisition Date
         this.actionConfigurationMap.set('00080022', { action: DeIdentificationActionCodes.K });
@@ -1432,6 +1444,11 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap.set(
             '00120062',
             this.patientIdentitityRemoved ? YesNoEnum.YES : YesNoEnum.NO
+        );
+
+        this.additionalTagValuesMap.set(
+            '00280303',
+            this.longitudinalTemporalInformationModified
         );
 
         this.additionalTagValuesMap.set(

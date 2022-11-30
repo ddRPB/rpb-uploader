@@ -1,13 +1,14 @@
 import DeIdentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
 import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
 import YesNoEnum from '../../../../constants/dicomValueEnums/YesNoEnum';
+import LongitudinalTemporalInformationModifiedAttribute from '../../../../constants/LongitudinalTemporalInformationModifiedAttribute';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DicomFileDeIdentificationComponentDcmjs from '../../../../util/deidentification/DicomFileDeIdentificationComponentDcmjs';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
 import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations';
 import { applyConfigAction } from './../DeIdentificationConfigurationFactory.test';
 
-describe.skip('Retain Patient Characteristics Profile Integration Test', () => {
+describe('Retain Patient Characteristics Profile Integration Test', () => {
     const dummyPid = 'dummyPid';
     const dummySubjectId = 'dummy-subject-id';
     const dummyStudyEdcCode = 'dummy-edc-code';
@@ -92,5 +93,19 @@ describe.skip('Retain Patient Characteristics Profile Integration Test', () => {
             .toEqual([DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS]);
 
     })
+
+    describe('Additional tags tests', () => {
+
+        let dict = {};
+        deIdentConfig.addAdditionalTags(dict);
+
+        test('PatientIdentityRemoved is set to no', () => {
+            expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.NO]);
+        })
+        test('LongitudinalTemporalInformationModified is set to removed', () => {
+            expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+        })
+    })
+
 
 })

@@ -1,6 +1,7 @@
 import DeIdentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
 import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
 import YesNoEnum from '../../../../constants/dicomValueEnums/YesNoEnum';
+import LongitudinalTemporalInformationModifiedAttribute from '../../../../constants/LongitudinalTemporalInformationModifiedAttribute';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DicomFileDeIdentificationComponentDcmjs from '../../../../util/deidentification/DicomFileDeIdentificationComponentDcmjs';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
@@ -272,5 +273,19 @@ describe.skip('Clean Descriptors Option Integration Test', () => {
             .toEqual([DeIdentificationProfileCodesMeaning.CLEAN_DESCRIPTORS]);
 
     })
+
+    describe('Additional tags tests', () => {
+
+        let dict = {};
+        deIdentConfig.addAdditionalTags(dict);
+
+        test('PatientIdentityRemoved is set to yes', () => {
+            expect(dict['00120062'].Value).toStrictEqual([YesNoEnum.YES]);
+        })
+        test('LongitudinalTemporalInformationModified is set to removed', () => {
+            expect(dict['00280303'].Value).toStrictEqual([LongitudinalTemporalInformationModifiedAttribute.REMOVED]);
+        })
+    })
+
 
 })
