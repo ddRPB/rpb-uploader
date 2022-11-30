@@ -18,9 +18,7 @@
  */
 
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
-import YesNoEnum from "../../constants/dicomValueEnums/YesNoEnum";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
-import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
 
 /**
@@ -324,15 +322,6 @@ export default class DeIdentificationConfiguration {
         // DeidentificationMethodCodeSequence
         this.handleDeidentificationMethodCodeSequenceTag(dataSetDictionary);
 
-        // Longitudinal Temporal Information Modified Attribute
-
-        if (dataSetDictionary['00280303'] === undefined) { // not defined yet
-            dataSetDictionary['00280303'] = {
-                vr: DicomValueRepresentations.CS,
-                Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED
-            };
-        } // otherwise it would be modified in a previous step
-
         // Todo:
 
         // Burned In Annotation 0028,0301
@@ -477,80 +466,24 @@ export default class DeIdentificationConfiguration {
      * Adds or modifies the PatientIdentityRemoved tag.
      */
     handlePatientIdentityRemovedTag(dataSetDictionary) {
-        const patientDeIdentifiedItem = dataSetDictionary['00120062'];
-        let patientDeIdentifiedValue;
-
-        if (patientDeIdentifiedItem != undefined) {
-            patientDeIdentifiedValue = patientDeIdentifiedItem.Value;
-        }
-
-        if (Array.isArray(patientDeIdentifiedValue)) {
-            patientDeIdentifiedValue = patientDeIdentifiedValue[0];
-        }
 
         if (this.additionalTagValuesMap.get('00120062') != undefined) {
-            if (patientDeIdentifiedValue === undefined) { // not deIdentified yet
-                dataSetDictionary['00120062'] = {
-                    vr: DicomValueRepresentations.CS,
-                    Value: [this.additionalTagValuesMap.get('00120062')]
-                };
-            } else if (patientDeIdentifiedValue === YesNoEnum.NO) { // patient identity is not already removed yet
-                dataSetDictionary['00120062'] = {
-                    vr: DicomValueRepresentations.CS,
-                    Value: [this.additionalTagValuesMap.get('00120062')]
-                };
-            }
+            dataSetDictionary['00120062'] = {
+                vr: DicomValueRepresentations.CS,
+                Value: [this.additionalTagValuesMap.get('00120062')]
+            };
         }
     }
 
+    /**
+     * Adds or modifies the LongitudinalTemporalInformationModified tag
+     */
     handleLongitudinalTemporalInformationModified(dataSetDictionary) {
-        const longitudinalTemporalInformationItem = dataSetDictionary['00280303'];
-        let longitudinalTemporalInformationItemValue;
-
-        if (longitudinalTemporalInformationItem != undefined) {
-            longitudinalTemporalInformationItemValue = longitudinalTemporalInformationItem.Value;
-        }
-
-        if (Array.isArray(longitudinalTemporalInformationItemValue)) {
-            longitudinalTemporalInformationItemValue = longitudinalTemporalInformationItem[0];
-        }
 
         if (this.additionalTagValuesMap.get('00280303') != undefined) {
-            if (longitudinalTemporalInformationItemValue === undefined) { // not deIdentified yet
-                dataSetDictionary['00280303'] = {
-                    vr: DicomValueRepresentations.CS,
-                    Value: [this.additionalTagValuesMap.get('00280303')]
-                };
-            } else {
-                switch (longitudinalTemporalInformationItemValue) {
-                    case LongitudinalTemporalInformationModifiedAttribute.REMOVED:
-                        dataSetDictionary['00280303'] = {
-                            vr: DicomValueRepresentations.CS,
-                            Value: [LongitudinalTemporalInformationModifiedAttribute.REMOVED]
-                        };
-                        break;
-                    case LongitudinalTemporalInformationModifiedAttribute.MODIFIED:
-                        if (this.additionalTagValuesMap.get('00280303') === LongitudinalTemporalInformationModifiedAttribute.REMOVED) {
-                            dataSetDictionary['00280303'] = {
-                                vr: DicomValueRepresentations.CS,
-                                Value: [LongitudinalTemporalInformationModifiedAttribute.REMOVED]
-                            };
-                        } else {
-                            dataSetDictionary['00280303'] = {
-                                vr: DicomValueRepresentations.CS,
-                                Value: [LongitudinalTemporalInformationModifiedAttribute.MODIFIED]
-                            };
-                        }
-
-                        break;
-
-                    default:
-                        dataSetDictionary['00280303'] = {
-                            vr: DicomValueRepresentations.CS,
-                            Value: [this.additionalTagValuesMap.get('00280303')]
-                        };
-                        break;
-                }
+            dataSetDictionary['00280303'] = {
+                vr: DicomValueRepresentations.CS,
+                Value: [this.additionalTagValuesMap.get('00280303')]
             };
         }
     }

@@ -113,22 +113,23 @@ describe('RPB Profile Integration Test', () => {
             expect(Object.keys(dict).length, '').toBe(0);
         })
 
-        test("EncryptedAttributesSequence will be not removed, because Patient Identity will be keeped by setup.", () => {
-            const profileWithRetainPatientCharacteristics = [DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS, DeIdentificationProfiles.RPB_PROFILE];
-            const factoryWithKeepIdentitySetup = new DeIdentificationConfigurationFactory(profileWithRetainPatientCharacteristics, uploadSlot);
-            factoryWithKeepIdentitySetup.addAdditionalDeIdentificationRelatedTags();
-            const deIdentConfigThatKeepsIdentity = factoryWithKeepIdentitySetup.getConfiguration();
+        // this use case is not supported
+        // test("EncryptedAttributesSequence will be not removed, because Patient Identity will be keeped by setup.", () => {
+        //     const profileWithRetainPatientCharacteristics = [DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS, DeIdentificationProfiles.RPB_PROFILE];
+        //     const factoryWithKeepIdentitySetup = new DeIdentificationConfigurationFactory(profileWithRetainPatientCharacteristics, uploadSlot);
+        //     factoryWithKeepIdentitySetup.addAdditionalDeIdentificationRelatedTags();
+        //     const deIdentConfigThatKeepsIdentity = factoryWithKeepIdentitySetup.getConfiguration();
 
-            const dictionary = {
-                // EncryptedAttributesSequence
-                '04000500': { Value: [EncryptedAttributesItemDict], vr: DicomValueRepresentations.SQ },
-            };
+        //     const dictionary = {
+        //         // EncryptedAttributesSequence
+        //         '04000500': { Value: [EncryptedAttributesItemDict], vr: DicomValueRepresentations.SQ },
+        //     };
 
-            for (let key of Object.keys(dictionary)) {
-                applyConfigAction(deIdentConfigThatKeepsIdentity, dictionary, key, DicomValueRepresentations.SQ);
-            }
-            expect(Object.keys(dictionary).length, '').toBe(1);
-        })
+        //     for (let key of Object.keys(dictionary)) {
+        //         applyConfigAction(deIdentConfigThatKeepsIdentity, dictionary, key, DicomValueRepresentations.SQ);
+        //     }
+        //     expect(Object.keys(dictionary).length, '').toBe(1);
+        // })
 
     })
 
