@@ -26,7 +26,6 @@ export class DicomSeriesSelection extends Component {
         super(props);
     }
 
-
     buildSeriesRows() {
         let seriesArray = []
 
@@ -44,7 +43,6 @@ export class DicomSeriesSelection extends Component {
         }
         return seriesArray
     }
-
 
     render() {
         return (

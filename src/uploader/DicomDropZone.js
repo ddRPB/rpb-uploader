@@ -22,7 +22,6 @@ import React, { Component } from 'react';
 // React GUI components
 import Dropzone from 'react-dropzone';
 
-
 /**
  * Dropzone component
  */
