@@ -413,7 +413,7 @@ export default class DicomUploadPackage {
                 //https://www.npmjs.com/package/promise-poller
                 const interval = 5000;
                 const timeout = 5000;
-                const retries = 25
+                const retries = 50
                 const pollTask = () => this.evaluateUploadOfSeries(this.uploadSlot.pid, this.replacedStudyInstanceUID, deIdentifiedSeriesUid, selectedSeries.getInstancesSize());
 
                 let poller;
@@ -434,7 +434,7 @@ export default class DicomUploadPackage {
 
                     data.error = e;
                     this.log.debug({ message: 'Query for specific series failed', data });
-                    errors.push({ message: 'Query for specific series failed', data });
+                    errors.push({ message: 'Query for series validation failed - please wait some seconds and push the retry button.', data });
                     return { errors: errors };
                 }
 

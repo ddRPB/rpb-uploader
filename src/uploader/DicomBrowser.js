@@ -17,7 +17,7 @@
  * 
  */
 
-// React and Redux
+// React
 import React, { Component } from 'react';
 // Primereact
 import { Column } from 'primereact/column';

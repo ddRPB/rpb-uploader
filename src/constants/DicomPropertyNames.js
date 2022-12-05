@@ -17,7 +17,6 @@
  * 
  */
 
-
 module.exports = Object.freeze({
     SOPInstanceUID: 'SOPInstanceUID',
     StudyInstanceUID: 'StudyInstanceUID',

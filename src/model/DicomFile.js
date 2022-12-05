@@ -104,6 +104,10 @@ export default class DicomFile {
         this.parseDicomData(byteArray);
     }
 
+    /**
+     * Parses only specific parameters of the DICOM file that are necessary to be presented to the user
+     * and to create the Tree view.
+     */
     parseDicomData(byteArray) {
         this.byteArray = byteArray;
         this.dataSet = dicomParser.parseDicom(byteArray)
@@ -133,11 +137,35 @@ export default class DicomFile {
                 this.parseCtProperties(this.dataSet.elements, this.parsedParameters);
                 break;
             default:
-            // 
+                this.parseOtherModalitiesProperties(this.dataSet.elements, this.parsedParameters);
         }
     }
 
+    /**
+     * Minimal set of properties for not RT related modalities
+     */
+    parseOtherModalitiesProperties(elements, resultMap) {
 
+        for (let propertyName in elements) {
+            let element = elements[propertyName];
+
+            switch (element.tag) {
+                case "x00080018":
+                    resultMap.set("SOPInstanceUID", this._getString(element));
+                    break;
+                case "x0020000d":
+                    resultMap.set("StudyInstanceUID", this._getString(element));
+                    break;
+                case "x0020000e":
+                    resultMap.set("SeriesInstanceUID", this._getString(element));
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Parses properties of the RTStruct
+     */
     parseRtStructProperties(elements, resultMap) {
 
         for (let propertyName in elements) {
@@ -323,6 +351,9 @@ export default class DicomFile {
         }
     }
 
+    /**
+     * Parses properties of the RTPlan
+     */
     parseRtPlanProperties(elements, resultMap) {
 
         for (let propertyName in elements) {
@@ -400,6 +431,9 @@ export default class DicomFile {
         }
     }
 
+    /**
+     * Parses properties of the RTDose
+     */
     parseRtDoseProperties(elements, resultMap) {
 
         for (let propertyName in elements) {
@@ -472,6 +506,9 @@ export default class DicomFile {
         }
     }
 
+    /**
+     * Parses properties of the RTImages
+     */
     parseRtImageProperties(elements, resultMap) {
 
         for (let propertyName in elements) {
@@ -543,6 +580,9 @@ export default class DicomFile {
         }
     }
 
+    /**
+     * Parses properties of the Ct's
+     */
     parseCtProperties(elements, resultMap) {
 
         for (let propertyName in elements) {
@@ -590,7 +630,6 @@ export default class DicomFile {
             }
         }
     }
-
 
     getStudyInstanceUID() {
         return this._getDicomTag('0020000d')

@@ -16,11 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
-
-// Warnings
-import { MISSING_TAG_00080060 } from './Warning'
 // DICOM domain model
-import DicomFile from './DicomFile'
 
 /**
  * DicomSeries domain object
@@ -107,28 +103,5 @@ export default class DicomSeries {
 
     getInstancesSize() {
         return Object.keys(this.instances).length;
-    }
-
-    //TODO: it would make sense to introduce getWarning on Study level to deal with RT references
-    async getWarnings() {
-        let firstInstance = this.getInstances()[0]
-        let dicomFile = new DicomFile(firstInstance.getFile())
-        await dicomFile.readDicomFile()
-
-        let warnings = {}
-        // Check missing tags
-        if ((dicomFile.getModality()) === undefined) {
-            warnings[MISSING_TAG_00080060.key] = MISSING_TAG_00080060;
-        } else {
-            // if ((dicomFile._getDicomTag('00080021') === undefined) && (dicomFile._getDicomTag('00080022') === undefined)) {
-            //     warnings[MISSING_TAG_00080022.key] = MISSING_TAG_00080022;
-            // }
-            // Check PT specific tags
-            // if (this.modality === 'PT') {
-            //
-            // }
-        }
-
-        return warnings
     }
 }
