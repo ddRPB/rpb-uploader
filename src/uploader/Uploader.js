@@ -781,7 +781,9 @@ class Uploader extends Component {
             })
 
             const studyArray = this.dicomUploadDictionary.getStudies();
+            let parsedFilesCount = 0;
             for (let studyObject of studyArray) {
+                parsedFilesCount += studyObject.getInstancesSize();
 
                 const treeBuilder = new TreeBuilder([studyObject]);
                 studyObject.key = studyObject.studyInstanceUID;
@@ -790,7 +792,13 @@ class Uploader extends Component {
 
             }
 
-            this.setState({ studyArray: studyArray });
+            this.setState((previousState) => {
+                return {
+                    studyArray: studyArray,
+                    fileParsed: parsedFilesCount,
+                    ignoredFilesCount: this.ignoredFilesArray.length
+                }
+            });
         })
     }
 
@@ -854,9 +862,6 @@ class Uploader extends Component {
             const series = study.addSeries(dicomFile.getDicomSeriesObject());
             series.addInstance(dicomFile.getDicomInstanceObject())
 
-            this.setState((previousState) => {
-                return { fileParsed: ++previousState.fileParsed }
-            })
 
         } catch (error) {
             // In case of exception register file in ignored file list
@@ -870,13 +875,6 @@ class Uploader extends Component {
             this.ignoredFilesArray.push({ fileName, errorMessage });
 
             this.log.trace('Parsing of a file failed. ', {}, { fileName, errorMessage });
-
-
-            this.setState((previousState) => {
-                return {
-                    ignoredFilesCount: ++previousState.ignoredFilesCount,
-                }
-            });
 
             if (this.ignoredFilesArray.length < 10) {
                 this.setState((previousState) => {
