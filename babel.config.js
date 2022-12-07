@@ -8,6 +8,7 @@ module.exports = {
     ],
     "@babel/preset-react"
   ],
+  sourceMaps: "both",
   plugins: [
     "@babel/plugin-transform-runtime",
     "@babel/plugin-syntax-dynamic-import",

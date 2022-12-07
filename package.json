@@ -76,6 +76,7 @@
     "mailparser": "^3.4.0",
     "mini-css-extract-plugin": "^2.5.3",
     "react-app-rewire-html-webpack-plugin": "^1.1.0",
+    "react-app-rewire-source-map-loader": "^1.0.2",
     "react-app-rewired": "^2.2.1",
     "react-scripts": "^5.0.1",
     "style-loader": "^3.3.1",

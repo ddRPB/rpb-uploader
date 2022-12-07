@@ -5,6 +5,7 @@ const { useBabelRc, addWebpackResolve, addWebpackPlugin, override } = require('c
 const webpack = require('webpack');
 const path = require("path");
 const rewireHtmlWebpackPlugin = require('react-app-rewire-html-webpack-plugin')
+const rewireSourceMap = require('react-app-rewire-source-map-loader')
 
 module.exports = override(
     useBabelRc(),
@@ -18,13 +19,17 @@ module.exports = override(
         }
 
     }),
+
     function override(config, env) {
         const overrideConfig = {
             template: path.resolve(__dirname, "public/index.html"),
             inject: true,
             favicon: "./public/favicon.ico"
         }
-        config = rewireHtmlWebpackPlugin(config, env, overrideConfig)
+        config = rewireHtmlWebpackPlugin(config, env, overrideConfig);
+        env = 'development'
+        rewireSourceMap(config, env);
+
         return config
     }
 

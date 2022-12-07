@@ -6,13 +6,14 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { sourceMaps } = require("./babel.config");
 
 module.exports = function (_env, argv) {
     const isProduction = argv.mode === "production";
     const isDevelopment = !isProduction;
 
     return {
-        devtool: isDevelopment && "cheap-module-source-map",
+        devtool: isDevelopment ? 'cheap-module-source-map' : 'source-map',
         entry: "./src/index.js",
         output: {
             path: path.resolve(__dirname, "dist"),
@@ -29,7 +30,8 @@ module.exports = function (_env, argv) {
                         options: {
                             cacheDirectory: true,
                             cacheCompression: false,
-                            envName: isProduction ? "production" : "development"
+                            envName: isProduction ? "production" : "development",
+                            sourceMaps: true
                         }
                     }
                 },
