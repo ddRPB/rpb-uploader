@@ -67,10 +67,10 @@ export default class DicomStudy {
 
     addSeries(seriesObject) {
         if (!this.seriesExists(seriesObject.seriesInstanceUID)) {
-            this.series[seriesObject.seriesInstanceUID] = seriesObject
-            return seriesObject
+            this.series[seriesObject.seriesInstanceUID] = seriesObject;
+            return seriesObject;
         } else {
-            throw new Error('Existing Series')
+            return this.series[seriesObject.seriesInstanceUID];
         }
     }
 

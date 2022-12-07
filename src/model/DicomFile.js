@@ -40,7 +40,7 @@ export default class DicomFile {
 
     __pFileReader(file) {
         return new Promise((resolve, reject) => {
-            var fileReader = new FileReader();
+            const fileReader = new FileReader();
             fileReader.readAsArrayBuffer(file);
             fileReader.onload = () => {
                 resolve(fileReader);
