@@ -176,10 +176,10 @@ export default class DicomUploadPackage {
      * Errors will be propagated back.
      */
     async prepareUpload(setAnalysedFilesCountValue) {
-        let uids = [];
-        let identityData = [];
-        let patientIdentityData = [];
-        let errors = []
+        const uids = [];
+        const identityData = [];
+        const patientIdentityData = [];
+        const errors = []
         let processedFilesCount = 0;
 
         this.uploadChunks = [];
@@ -210,9 +210,9 @@ export default class DicomUploadPackage {
                             errors.push({ message, data });
                         }
 
-                        uids = uids.concat(uidArray);
-                        identityData = identityData.concat(identities);
-                        patientIdentityData = patientIdentityData.concat(patientIdentities);
+                        uids.push(...uidArray);
+                        identityData.push(...identities);
+                        patientIdentityData.push(...patientIdentities);
 
                         // create new chunk if necessary
                         if (currentChunk.getCount() < this.chunkSize) {
@@ -225,7 +225,7 @@ export default class DicomUploadPackage {
 
                         // update UI
                         processedFilesCount++;
-                        setAnalysedFilesCountValue(processedFilesCount);
+                        if (processedFilesCount % 250 === 0) { setAnalysedFilesCountValue(processedFilesCount); }
 
                     }
 
@@ -248,6 +248,7 @@ export default class DicomUploadPackage {
             }
         }
 
+        setAnalysedFilesCountValue(processedFilesCount);
         this.identityData = Array.from(new Set(identityData));
 
         return {
