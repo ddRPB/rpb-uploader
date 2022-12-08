@@ -30,10 +30,10 @@ export default class DicomUploadDictionary {
      */
     addStudy(studyObject) {
         if (!this.studyExists(studyObject.studyInstanceUID)) {
-            this.data[studyObject.studyInstanceUID] = studyObject
-            return studyObject
+            this.data[studyObject.studyInstanceUID] = studyObject;
+            return studyObject;
         } else {
-            throw new Error('Existing Study')
+            return this.data[studyObject.studyInstanceUID];
         }
     }
 

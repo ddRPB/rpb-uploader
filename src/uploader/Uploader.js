@@ -767,7 +767,7 @@ class Uploader extends Component {
         })
 
         // Build promise array for all files reading
-        let readPromises = files.map((file) => {
+        const readPromises = files.map((file) => {
             return this.read(file)
         })
 
@@ -780,8 +780,10 @@ class Uploader extends Component {
                 isAnalysisDone: true
             })
 
-            let studyArray = this.dicomUploadDictionary.getStudies();
+            const studyArray = this.dicomUploadDictionary.getStudies();
+            let parsedFilesCount = 0;
             for (let studyObject of studyArray) {
+                parsedFilesCount += studyObject.getInstancesSize();
 
                 const treeBuilder = new TreeBuilder([studyObject]);
                 studyObject.key = studyObject.studyInstanceUID;
@@ -790,7 +792,13 @@ class Uploader extends Component {
 
             }
 
-            this.setState({ studyArray: studyArray });
+            this.setState((previousState) => {
+                return {
+                    studyArray: studyArray,
+                    fileParsed: parsedFilesCount,
+                    ignoredFilesCount: this.ignoredFilesArray.length
+                }
+            });
         })
     }
 
@@ -799,7 +807,7 @@ class Uploader extends Component {
      * @param {File} file
      */
     read = async (file) => {
-        let dicomFile = new DicomFile(file)
+        const dicomFile = new DicomFile(file);
         try {
 
             if (!file.path.endsWith('.dcm')) {
@@ -849,29 +857,11 @@ class Uploader extends Component {
             }
 
             // Register Study, Series, Instance in upload study dictionary
-            let studyInstanceUID = dicomFile.getStudyInstanceUID()
-            let seriesInstanceUID = dicomFile.getSeriesInstanceUID()
 
-            let study
-            if (!this.dicomUploadDictionary.studyExists(studyInstanceUID)) {
-                study = this.dicomUploadDictionary.addStudy(dicomFile.getDicomStudyObject())
-            } else {
-                study = this.dicomUploadDictionary.getStudy(studyInstanceUID);
-                this.verifyPatientIdIsConsistent(dicomFile, study);
-            }
-
-            let series
-            if (!study.seriesExists(seriesInstanceUID)) {
-                series = study.addSeries(dicomFile.getDicomSeriesObject())
-            } else {
-                series = study.getSeries(seriesInstanceUID)
-            }
-
+            const study = this.dicomUploadDictionary.addStudy(dicomFile.getDicomStudyObject());
+            const series = study.addSeries(dicomFile.getDicomSeriesObject());
             series.addInstance(dicomFile.getDicomInstanceObject())
 
-            this.setState((previousState) => {
-                return { fileParsed: ++previousState.fileParsed }
-            })
 
         } catch (error) {
             // In case of exception register file in ignored file list
@@ -885,13 +875,6 @@ class Uploader extends Component {
             this.ignoredFilesArray.push({ fileName, errorMessage });
 
             this.log.trace('Parsing of a file failed. ', {}, { fileName, errorMessage });
-
-
-            this.setState((previousState) => {
-                return {
-                    ignoredFilesCount: ++previousState.ignoredFilesCount,
-                }
-            });
 
             if (this.ignoredFilesArray.length < 10) {
                 this.setState((previousState) => {
