@@ -860,7 +860,15 @@ class Uploader extends Component {
 
             const study = this.dicomUploadDictionary.addStudy(dicomFile.getDicomStudyObject());
             const series = study.addSeries(dicomFile.getDicomSeriesObject());
-            series.addInstance(dicomFile.getDicomInstanceObject())
+            series.addInstance(dicomFile.getDicomInstanceObject());
+
+            const parsedFilesCount = this.dicomUploadDictionary.getParsedFilesSize();
+
+            if (parsedFilesCount % 250 === 0) {
+                this.setState({
+                    fileParsed: parsedFilesCount
+                });
+            }
 
 
         } catch (error) {
