@@ -172,12 +172,14 @@ export default class DicomFileInspector {
                     case DicomValueRepresentations.PN:
 
                         if (!identityRemoved) {
-                            let value = element.Value;
+                            const value = element.Value;
                             // unwrap array value if there is just one item
                             if (Array.isArray(value)) {
-                                identities.push(...value);
+                                identities.push(...value.filter(element => { return element != "" }));
                             } else {
-                                identities.push(value);
+                                if (value != "") {
+                                    identities.push(value);
+                                }
                             }
                         }
 
@@ -192,7 +194,7 @@ export default class DicomFileInspector {
         }
         return {
             uidArray,
-            identities: identities.filter(element => { return element !== "" }),
+            identities: identities,
             patientIdentities: patientIdentities.filter(element => { return element !== "" }),
         };
     }
