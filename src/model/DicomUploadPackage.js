@@ -54,8 +54,6 @@ export default class DicomUploadPackage {
         this.studyInstanceUID = '';
         this.replacedStudyInstanceUID = '';
 
-        this.processedChunksCount = 0;
-
         this.apiKey = null;
         this.uploadServiceUrl = null;
 
@@ -159,7 +157,6 @@ export default class DicomUploadPackage {
 
     resetUploadProcess() {
         this.uploadChunks = [];
-        this.processedChunksCount = 0;
 
         this.pseudomizedFiles = [];
         this.uploadedFiles = [];
@@ -249,7 +246,7 @@ export default class DicomUploadPackage {
         }
 
         setAnalysedFilesCountValue(processedFilesCount);
-        this.identityData = Array.from(new Set(identityData));
+        // this.identityData = Array.from(new Set(identityData));
 
         return {
             uids: Array.from(new Set(uids)),
@@ -270,8 +267,10 @@ export default class DicomUploadPackage {
             this.replacedStudyInstanceUID = replacedStudyUID;
         }
 
+        let processedChunksCount = 0;
 
         for (let chunk of this.uploadChunks) {
+            processedChunksCount++
 
             this.log.trace(
                 "Start de-identification of chunk", {}, { studyUid: chunk.originalStudyUid, seriesUid: chunk.originalSeriesUid, files: chunk.originalFileNames, }
@@ -316,7 +315,11 @@ export default class DicomUploadPackage {
 
                     chunk.deIdentified = true;
                     this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
-                    setDeIdentifiedFilesCountValue(this.pseudomizedFiles.length);
+                    const pseudomizedFilesCount = this.pseudomizedFiles.length;
+
+                    // if (pseudomizedFilesCount % (this.chunkSize * 50) === 0) {
+                    //     setDeIdentifiedFilesCountValue(this.pseudomizedFiles.length);
+                    // }
 
                     chunk.mimeMessage = mimeMessageBuilder.build();
 
@@ -361,11 +364,13 @@ export default class DicomUploadPackage {
                         case 200:
                             chunk.transfered = true;
                             this.uploadedFiles = this.uploadedFiles.concat(chunk.getFileNames());
+
+                            const uploadedFilesCount = this.uploadedFiles.length;
+                            if (processedChunksCount === 1 || processedChunksCount % 10 == 0 || processedChunksCount > (this.uploadChunks.length - 5)) {
+                                setUploadedFilesCountValue(uploadedFilesCount);
+                            }
+
                             chunk.cleanupAfterTransfer();
-
-                            this.processedChunksCount++;
-                            setUploadedFilesCountValue(this.uploadedFiles.length);
-
                             this.log.trace('Upload of chunk was successful', {}, data);
                             break;
                         case 413:
