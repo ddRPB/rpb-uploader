@@ -60,4 +60,14 @@ export default class DicomUploadDictionary {
         return Object.values(this.data)
     }
 
+    getParsedFilesSize() {
+        let parsedFilesCount = 0;
+        for (let studyObject of this.getStudies()) {
+            parsedFilesCount += studyObject.getInstancesSize();
+        }
+
+        return parsedFilesCount;
+
+    }
+
 }

@@ -68,7 +68,7 @@ export default class DicomFileInspector {
 
     async __pFileReader(file) {
         return new Promise((resolve, reject) => {
-            var fileReader = new FileReader();
+            const fileReader = new FileReader();
             fileReader.readAsArrayBuffer(file);
             fileReader.onload = () => {
                 resolve(fileReader);
@@ -82,9 +82,9 @@ export default class DicomFileInspector {
 
     readDicomFile(arrayBuffer) {
 
-        let uidArray = [];
-        let identities = [];
-        let patientIdentities = [];
+        const uidArray = [];
+        const identities = [];
+        const patientIdentities = [];
         let dataSet;
 
         try {
@@ -95,20 +95,20 @@ export default class DicomFileInspector {
         try {
             let parsingResultMeta = this.parseDicomData(dataSet.meta);
             if (parsingResultMeta.uidArray) {
-                uidArray = uidArray.concat(parsingResultMeta.uidArray);
+                uidArray.push(...parsingResultMeta.uidArray);
             }
         } catch (e) {
             this.log.trace("DicomFileInspector.readDicomFile.this.dataSet.meta failed: " + e.toString());
         } try {
             let parsingResult = this.parseDicomData(dataSet.dict);
             if (parsingResult.uidArray) {
-                uidArray = uidArray.concat(parsingResult.uidArray);
+                uidArray.push(...parsingResult.uidArray);
             }
             if (parsingResult.identities) {
-                identities = identities.concat(parsingResult.identities);
+                identities.push(...parsingResult.identities);
             }
             if (parsingResult.patientIdentities) {
-                patientIdentities = patientIdentities.concat(parsingResult.patientIdentities);
+                patientIdentities.push(...parsingResult.patientIdentities);
             }
         } catch (e) {
             this.log.trace("DicomFileInspector.readDicomFile failed: " + e.toString());
@@ -123,10 +123,10 @@ export default class DicomFileInspector {
     }
 
     parseDicomData(dataSetDict) {
-        let uidArray = [];
+        const uidArray = [];
         const identityRemoved = this.isPatientIdentityRemoved(dataSetDict);
-        let identities = [];
-        let patientIdentities = [];
+        const identities = [];
+        const patientIdentities = [];
 
         // Patient ID Attribute
         if (dataSetDict['00100010'] != undefined) {
@@ -147,13 +147,13 @@ export default class DicomFileInspector {
                         for (let seqElement of element.Value) {
                             let parsingResult = this.parseDicomData(seqElement);
                             if (parsingResult.uidArray) {
-                                uidArray = uidArray.concat(parsingResult.uidArray);
+                                uidArray.push(...parsingResult.uidArray);
                             }
                             if (parsingResult.identities) {
-                                identities = identities.concat(parsingResult.identities);
+                                identities.push(...parsingResult.identities);
                             }
                             if (parsingResult.patientIdentities) {
-                                patientIdentities = patientIdentities.concat(parsingResult.patientIdentities);
+                                patientIdentities.push(...parsingResult.patientIdentities);
                             }
                         }
                         break;
@@ -162,7 +162,7 @@ export default class DicomFileInspector {
                         // filter just tags that are supposed to be replaced by configuration
                         if (this.deIdentificationConfiguration.isUidReplacementCandidate(propertyName)) {
                             if (Array.isArray(element.Value)) {
-                                uidArray = uidArray.concat(element.Value);
+                                uidArray.push(...element.Value);
                             } else {
                                 uidArray.push(element.Value);
                             }
@@ -172,12 +172,14 @@ export default class DicomFileInspector {
                     case DicomValueRepresentations.PN:
 
                         if (!identityRemoved) {
-                            let value = element.Value;
+                            const value = element.Value;
                             // unwrap array value if there is just one item
                             if (Array.isArray(value)) {
-                                identities = identities.concat(value);
+                                identities.push(...value.filter(element => { return element != "" }));
                             } else {
-                                identities.push(value);
+                                if (value != "") {
+                                    identities.push(value);
+                                }
                             }
                         }
 
@@ -192,7 +194,7 @@ export default class DicomFileInspector {
         }
         return {
             uidArray,
-            identities: identities.filter(element => { return element !== "" }),
+            identities: identities,
             patientIdentities: patientIdentities.filter(element => { return element !== "" }),
         };
     }
