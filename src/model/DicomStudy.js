@@ -28,10 +28,10 @@ export default class DicomStudy {
         this.studyInstanceUID = studyInstanceUID
         this.studyDate = studyDate
         this.studyDescription = studyDescription
-        this.patientID = patientID
-        this.patientBirthDate = patientBirthDate
-        this.patientSex = patientSex
-        this.patientName = patientName
+        this.patientID = new Set([(patientID === undefined || patientID === null) ? '' : patientID]);
+        this.patientBirthDate = new Set([(patientBirthDate === undefined || patientBirthDate === null) ? '' : patientBirthDate]);
+        this.patientSex = new Set([(patientSex === undefined || patientSex === null) ? '' : patientSex]);
+        this.patientName = new Set([(patientName === undefined || patientName === null) ? '' : patientName]);
     }
 
     getStudyType() {
@@ -63,6 +63,13 @@ export default class DicomStudy {
         else {
             return 'Other'
         }
+    }
+
+    addStudy(studyObject) {
+        this.patientID = new Set([...this.patientID, ...studyObject.patientID]);
+        this.patientBirthDate = new Set([...this.patientBirthDate, ...studyObject.patientBirthDate]);
+        this.patientSex = new Set([...this.patientSex, ...studyObject.patientSex]);
+        this.patientName = new Set([...this.patientName, ...studyObject.patientName]);
     }
 
     addSeries(seriesObject) {
@@ -106,15 +113,19 @@ export default class DicomStudy {
     }
 
     getPatientBirthDate() {
-        return (this.patientBirthDate === undefined || this.patientBirthDate === null) ? '' : this.patientBirthDate
+        [...this.patientBirthDate].join(' / ');
     }
 
     getPatientSex() {
-        return (this.patientSex === undefined || this.patientSex === null) ? '' : this.patientSex.toUpperCase()
+        return [...this.patientSex].join(' / ');
     }
 
     getPatientID() {
-        return (this.patientID === undefined || this.patientID === null) ? '' : this.patientID
+        return [...this.patientID].join(' / ');
+    }
+
+    getPatientName() {
+        return [...this.patientName].join(' / ');
     }
 
     /***
@@ -157,6 +168,14 @@ export default class DicomStudy {
         let childSeriesArray = this.getSeriesArray();
         return childSeriesArray[id];
 
+    }
+
+    propertiesHaveDifferentValues() {
+        if (this.patientID.size > 1) { return true; }
+        if (this.patientBirthDate.size > 1) { return true; }
+        if (this.patientSex.size > 1) { return true; }
+        if (this.patientName.size > 1) { return true; }
+        return false;
     }
 
 }
