@@ -27,6 +27,7 @@ import { Toolbar } from 'primereact/toolbar';
 import styledComponents from 'styled-components';
 // Custom GUI components
 import IgnoredFilesPanel from './IgnoredFilesPanel';
+import SanityCheckResultsPanel from './SanityCheckResultsPanel';
 
 /**
  * DicomParsingDetails component
@@ -34,12 +35,18 @@ import IgnoredFilesPanel from './IgnoredFilesPanel';
 export default class DicomParsingMenu extends Component {
 
     state = {
-        showIgnoredFiles: false
+        showIgnoredFiles: false,
+        showSanityCheckResultsPanel: false
     }
 
     toggleShowIgnoredFile = () => {
         this.setState((state) => { return { showIgnoredFiles: !state.showIgnoredFiles } })
     }
+
+    toggleSanityCheckResultsPanel = () => {
+        this.setState((state) => { return { showSanityCheckResultsPanel: !state.showSanityCheckResultsPanel } })
+    }
+
 
     /**
      * Render the component
@@ -80,7 +87,8 @@ export default class DicomParsingMenu extends Component {
                             </StyledButton>
                             <StyledButton
                                 type="button"
-                                label="Ignored:" className={this.props.ignoredFilesCount === 0 ? "p-button-outlined p-button-warning" : "p-button-warning"} style={{ "width": "135px" }}
+                                label="Ignored:"
+                                className={this.props.ignoredFilesCount === 0 ? "p-button-outlined p-button-warning" : "p-button-warning"} style={{ "width": "135px" }}
                                 onClick={this.toggleShowIgnoredFile}
                             >
                                 <Badge
@@ -91,17 +99,19 @@ export default class DicomParsingMenu extends Component {
                             <StyledButton
                                 type="button"
                                 label="Selected:"
-                                className={"p-button-outlined p-button-secondary"}
-                                disabled={true}
+                                className="p-button-outlined p-button-secondary"
+                                onClick={this.toggleSanityCheckResultsPanel}
+
                             >
                                 <Badge
                                     className="text-900"
                                     value={this.props.selectedDicomFiles.length}
                                 />
+
                             </StyledButton>
                         </React.Fragment>}
                     right={
-                        <React.Fragment>
+                        < React.Fragment >
                             <StyledButton
                                 label="Connect"
                                 onClick={this.props.getServerUploadParameter}
@@ -109,6 +119,14 @@ export default class DicomParsingMenu extends Component {
                                 iconPos="right"
                                 className='p-button-success'
                                 hidden={this.props.uploadApiKey != null}
+                            />
+                            <StyledButton
+                                label="Issues"
+                                onClick={this.toggleSanityCheckResultsPanel}
+                                icon="pi pi-exclamation-triangle"
+                                iconPos="right"
+                                className='p-button-warning'
+                                hidden={this.props.sanityCheckResults.length === 0}
                             />
                             <StyledButton
                                 label="Upload"
@@ -123,13 +141,19 @@ export default class DicomParsingMenu extends Component {
 
                     }
                 >
-                </Toolbar>
+                </Toolbar >
                 <IgnoredFilesPanel
                     display={this.state.showIgnoredFiles}
                     closeListener={this.toggleShowIgnoredFile}
                     isParsingFiles={this.props.isParsingFiles}
                     ignoredFilesCount={this.props.ignoredFilesCount}
                     ignoredFilesDetails={this.props.ignoredFilesDetails}
+                />
+
+                <SanityCheckResultsPanel
+                    display={this.state.showSanityCheckResultsPanel}
+                    closeListener={this.toggleSanityCheckResultsPanel}
+                    sanityCheckResults={this.props.sanityCheckResults}
                 />
 
             </React.Fragment >

@@ -25,14 +25,16 @@ export default class DicomStudy {
     series = {}
 
     constructor(studyInstanceUID, studyDate, studyDescription, patientID, patientName, patientBirthDate, patientSex) {
-        this.studyInstanceUID = studyInstanceUID
-        this.studyDate = studyDate
-        this.studyDescription = studyDescription
+        this.studyInstanceUID = studyInstanceUID;
+        this.studyDate = new Set([(studyDate === undefined || studyDate === null) ? '' : studyDate]);
+        this.studyDescription = new Set([(studyDescription === undefined || studyDescription === null) ? '' : studyDescription]);
         this.patientID = new Set([(patientID === undefined || patientID === null) ? '' : patientID]);
         this.patientBirthDate = new Set([(patientBirthDate === undefined || patientBirthDate === null) ? '' : patientBirthDate]);
         this.patientSex = new Set([(patientSex === undefined || patientSex === null) ? '' : patientSex]);
         this.patientName = new Set([(patientName === undefined || patientName === null) ? '' : patientName]);
     }
+
+
 
     getStudyType() {
         let modalities = this.getSeriesModalities()
@@ -66,6 +68,9 @@ export default class DicomStudy {
     }
 
     addStudy(studyObject) {
+        this.studyDate = new Set([...this.studyDate, ...studyObject.studyDate]);
+        this.studyDescription = new Set([...this.studyDescription, ...studyObject.studyDescription]);
+
         this.patientID = new Set([...this.patientID, ...studyObject.patientID]);
         this.patientBirthDate = new Set([...this.patientBirthDate, ...studyObject.patientBirthDate]);
         this.patientSex = new Set([...this.patientSex, ...studyObject.patientSex]);
@@ -105,15 +110,15 @@ export default class DicomStudy {
     }
 
     getStudyDate() {
-        return (this.studyDate === undefined || this.studyDate === null) ? '' : this.studyDate
+        return [...this.studyDate].join(' / ');
     }
 
     getStudyDescription() {
-        return (this.studyDescription === undefined || this.studyDescription === null) ? '' : this.studyDescription
+        return [...this.studyDescription].join(' / ');
     }
 
     getPatientBirthDate() {
-        [...this.patientBirthDate].join(' / ');
+        return [...this.patientBirthDate].join(' / ');
     }
 
     getPatientSex() {
@@ -170,7 +175,7 @@ export default class DicomStudy {
 
     }
 
-    propertiesHaveDifferentValues() {
+    patientPropertiesHaveDifferentValues() {
         if (this.patientID.size > 1) { return true; }
         if (this.patientBirthDate.size > 1) { return true; }
         if (this.patientSex.size > 1) { return true; }

@@ -28,6 +28,7 @@ import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import DicomUidService from '../util/deidentification/DicomUidService';
 import TreeBuilder from '../util/TreeBuilder';
+import DicomStudyAnalyser from '../util/verification/DicomStudyAnalyser';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
@@ -55,6 +56,7 @@ class Uploader extends Component {
         zipProgress: 0,
         ignoredFilesCount: 0,
         ignoredFilesDetails: [],
+        sanityCheckResults: [],
         isAnalysisDone: false,
         studyArray: [],
         selectedNodeKeys: [],
@@ -442,7 +444,15 @@ class Uploader extends Component {
      * Will be called in the DicomStudySelection component if a study has been selected.
      */
     selectStudy(e) {
-        this.setState({ selectedStudy: { ...e.value }, selectedNodeKeys: [], selectedDicomFiles: 0 });
+
+        this.dicomStudyAnalyser = new DicomStudyAnalyser(e.value, this.createUploadSlotParameterObject());
+
+        this.setState({
+            selectedStudy: { ...e.value },
+            selectedNodeKeys: [],
+            selectedDicomFiles: [],
+            sanityCheckResults: this.dicomStudyAnalyser.getStudyEvaluationResult()
+        });
     }
 
     /**
@@ -463,6 +473,11 @@ class Uploader extends Component {
 
         this.dicomUploadPackage.setStudyInstanceUID(selectedStudyUID);
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
+
+        this.setState(
+            { sanityCheckResults: this.dicomStudyAnalyser.updateWithSeriesAnalysis(selectedSeriesObjects) }
+        );
+
 
         this.log.trace(
             "Update DicomUploadPackage with selected nodes",
@@ -968,6 +983,7 @@ class Uploader extends Component {
                         fileParsed={this.state.fileParsed}
                         ignoredFilesCount={this.state.ignoredFilesCount}
                         ignoredFilesDetails={this.state.ignoredFilesDetails}
+                        sanityCheckResults={this.state.sanityCheckResults}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
                         resetAll={this.resetAll}

@@ -36,9 +36,11 @@ export class DicomStudySelection extends Component {
         let studies = []
         for (let study of Object.values(this.props.studies)) {
             study.studyType = study.getStudyType();
+            study.joinedStudyDates = study.getStudyDate();
+            study.joinedStudyDescriptions = study.getStudyDescription();
             study.seriesModalities = (Array.from(new Set((study.getSeriesModalitiesArray())))).sort().join(", ");
             study.files = study.getInstancesSize();
-            study.differentPropertyValues = study.propertiesHaveDifferentValues();
+            study.patientPropertiesDifferent = study.patientPropertiesHaveDifferentValues();
 
             studies.push({ ...study })
         }
@@ -54,7 +56,7 @@ export class DicomStudySelection extends Component {
 
         const patientDetailsList = this.createPatientDetailsList(node, key);
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
-        const differentPropertyValues = node.differentPropertyValues;
+        const differentPropertyValues = node.patientPropertiesDifferent;
 
         if (differentPropertyValues) {
             return <StyledButton
@@ -160,8 +162,8 @@ export class DicomStudySelection extends Component {
                     <Column selectionMode="single" headerStyle={{ width: '3em' }} className="text-sm" />
                     <Column field="studyType" header="Study Type" className="text-sm" />
                     <Column className="text-sm" columnKey="Details" header="Details" body={this.detailsActionTemplate.bind(this)} />
-                    <Column field="studyDescription" header="Study Description" className="text-sm" />
-                    <Column field="studyDate" header="Study Date" className="text-sm" />
+                    <Column field="joinedStudyDescriptions" header="Study Description" className="text-sm" />
+                    <Column field="joinedStudyDates" header="Study Date" className="text-sm" />
                     <Column field="files" header="Files" className="text-sm" />
                     <Column field="seriesModalities" header="Modalities" className="text-sm" />
                 </DataTable>
