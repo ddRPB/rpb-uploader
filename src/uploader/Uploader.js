@@ -451,7 +451,7 @@ class Uploader extends Component {
             selectedStudy: { ...e.value },
             selectedNodeKeys: [],
             selectedDicomFiles: [],
-            sanityCheckResults: this.dicomStudyAnalyser.getStudyEvaluationResult()
+            sanityCheckResults: this.dicomStudyAnalyser.getStudyAndUploadSlotEvaluationResults(),
         });
     }
 
@@ -999,6 +999,7 @@ class Uploader extends Component {
                             studies={this.state.studyArray}
                             selectStudy={this.selectStudy}
                             selectedStudy={this.state.selectedStudy}
+                            uploadSlot={this.createUploadSlotParameterObject()}
                         />
                     </div>
 
@@ -1035,8 +1036,6 @@ class Uploader extends Component {
                     </div>
 
                     <ScrollTop />
-
-
 
                 </BlockUI>
 

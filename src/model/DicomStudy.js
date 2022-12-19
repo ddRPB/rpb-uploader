@@ -34,8 +34,6 @@ export default class DicomStudy {
         this.patientName = new Set([(patientName === undefined || patientName === null) ? '' : patientName]);
     }
 
-
-
     getStudyType() {
         let modalities = this.getSeriesModalities()
         if ((modalities.includes('CT') || modalities.includes('MR')) && modalities.includes('RTSTRUCT') && !modalities.includes('RTPLAN') && !modalities.includes('RTDOSE')) {
