@@ -1,6 +1,6 @@
 import path from 'path';
 import DicomGenderEnum from '../../../constants/dicomValueEnums/DicomGenderEnum';
-import SanityCheckCategories from '../../../constants/sanityCheck/SanityCheckCategory';
+import SanityCheckCategory from '../../../constants/sanityCheck/SanityCheckCategory';
 import SanityCheckResult from '../../../constants/sanityCheck/SanityCheckResult';
 import SanityCheckSeverity from '../../../constants/sanityCheck/SanityCheckSeverity';
 import DicomStudy from '../../../model/DicomStudy';
@@ -73,7 +73,7 @@ describe('DicomStudyAnalyser',
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                        SanityCheckCategories.uploadSlot,
+                        SanityCheckCategory.uploadSlot,
                         `patientSex is not defined in study property`,
                         SanityCheckSeverity.WARNING,
                     )
@@ -139,7 +139,7 @@ describe('DicomStudyAnalyser',
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.ONE_MATCHES,
-                        SanityCheckCategories.uploadSlot,
+                        SanityCheckCategory.uploadSlot,
                         `One gender property matches the upload slot definition`,
                         SanityCheckSeverity.WARNING,
                     )
@@ -170,7 +170,7 @@ describe('DicomStudyAnalyser',
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.CONFLICT,
-                        SanityCheckCategories.uploadSlot,
+                        SanityCheckCategory.uploadSlot,
                         `Gender property does not match the upload slot definition`,
                         SanityCheckSeverity.ERROR,
                     )
@@ -213,7 +213,7 @@ describe('DicomStudyAnalyser',
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.CONFLICT,
-                        SanityCheckCategories.uploadSlot,
+                        SanityCheckCategory.uploadSlot,
                         `Gender property does not match the upload slot definition`,
                         SanityCheckSeverity.ERROR,)
                 );
@@ -257,6 +257,229 @@ describe('DicomStudyAnalyser',
                 expect(result.length).toBe(0);
 
             })
+
+            test('Upload Slot DOB is replacement date', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    patientBirthDate,
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1900-01-01',
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+
+            test('Date of birth is not defined in study', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1980-02-02',
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(1);
+
+                expect(result[0]).toMatchObject(
+                    new EvaluationResultItem(
+                        SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
+                        SanityCheckCategory.uploadSlot,
+                        `Date of birth is not defined in study property`,
+                        SanityCheckSeverity.WARNING,
+                    ));
+            })
+
+            test('Study date of birth is a replacement', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19000101",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1980-02-02',
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+
+            test('Study date of birth matches upload slot definition', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19800202",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1980-02-02',
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+
+            test('One of the study dates of birth matches upload slot definition', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19800202",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1980-02-02',
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudy.addStudy(
+                    new DicomStudy(
+                        studyInstanceUID,
+                        studyDate,
+                        studyDescription,
+                        patientID,
+                        patientName,
+                        "19850505",
+                        patientSex
+                    ));
+
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(1);
+                expect(result[0]).toMatchObject(
+                    new EvaluationResultItem(
+                        SanityCheckResult.ONE_MATCHES,
+                        SanityCheckCategory.uploadSlot,
+                        `One of the study birth dates matches upload slot definition`,
+                        SanityCheckSeverity.WARNING,
+                    )
+                );
+
+            })
+
+            test('Study date of birth does not match the upload slot definition', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19750505",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1980-02-02',
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(1);
+                expect(result[0]).toMatchObject(
+                    new EvaluationResultItem(
+                        SanityCheckResult.CONFLICT,
+                        SanityCheckCategory.uploadSlot,
+                        `Study date of birth property does not match the upload slot definition`,
+                        SanityCheckSeverity.ERROR,
+                    )
+                );
+
+            })
+
+            test('No one study date of birth does not match the upload slot definition', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19750505",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1980-02-02',
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudy.addStudy(
+                    new DicomStudy(
+                        studyInstanceUID,
+                        studyDate,
+                        studyDescription,
+                        patientID,
+                        patientName,
+                        "19850505",
+                        patientSex
+                    ));
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(1);
+                expect(result[0]).toMatchObject(
+                    new EvaluationResultItem(
+                        SanityCheckResult.CONFLICT,
+                        SanityCheckCategory.uploadSlot,
+                        `Study date of birth property does not match the upload slot definition`,
+                        SanityCheckSeverity.ERROR,
+                    )
+                );
+
+            })
+
         });
 
 

@@ -21,6 +21,7 @@ import LogLevels from "../../constants/LogLevels";
 import SanityCheckCategory from "../../constants/sanityCheck/SanityCheckCategory";
 import SanityCheckResult from "../../constants/sanityCheck/SanityCheckResult";
 import SanityCheckSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
+import { convertToDicomDateFormatedString } from "../DateParser";
 import Logger from "../logging/Logger";
 import EvaluationResultItem from "./EvaluationResultItem";
 
@@ -219,19 +220,80 @@ export default class DicomStudyAnalyser {
         const replacementDates = ['19000101'];
         const uploadSlotDoB = this.uploadSlotDefinition.dob;
         const studySubjectDobSet = this.studyObject.patientBirthDate;
+        const uploadSlotDoBDate = convertToDicomDateFormatedString(uploadSlotDoB);
 
-        if (replacementDates.includes(this.uploadSlotDefinition.dob)) {
+
+        if (replacementDates.includes(uploadSlotDoBDate)) {
             // is replacement
+            this.log.info(
+                `Date of Birth upload slot parameter is a replacement date and cannot be used for sanity check`,
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.REPLACEMENT,
+                }
+            );
+            return;
+        }
+
+        if (this.studyObject.patientBirthDate.size === 1 && this.studyObject.patientBirthDate.has("")) {
+            this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
+                SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
+                SanityCheckCategory.uploadSlot,
+                `Date of birth is not defined in study property`,
+                SanityCheckSeverity.WARNING,
+            ));
             return;
         }
 
         if (this.studyObject.patientBirthDate.size === 1) {
             const studyDob = Array.from(this.studyObject.patientBirthDate)[0];
+            if (replacementDates.includes(studyDob)) {
+                // is replacement
+                this.log.info(
+                    `Study date of birth a replacement date. It cannot be used for sanity checks`,
+                    {},
+                    {
+                        studyInstanceUID: this.studyObject.studyInstanceUID,
+                        category: SanityCheckCategory.uploadSlot,
+                        result: SanityCheckResult.REPLACEMENT,
+                    });
+                return;
+            }
+
+            if (studyDob === uploadSlotDoBDate) {
+                this.log.info(
+                    `Study date matches upload slot definition`,
+                    {},
+                    {
+                        studyInstanceUID: this.studyObject.studyInstanceUID,
+                        category: SanityCheckCategory.uploadSlot,
+                        result: SanityCheckResult.MATCHES,
+                    });
+                return;
+            }
+
+        } else {
+            if (studySubjectDobSet.has(uploadSlotDoBDate)) {
+                this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
+                    SanityCheckResult.ONE_MATCHES,
+                    SanityCheckCategory.uploadSlot,
+                    `One of the study birth dates matches upload slot definition`,
+                    SanityCheckSeverity.WARNING,
+                ));
+                return;
+            }
         }
 
-        // for(let replacementDate of replacementDates){
-        //     if()
-        // }
+        this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
+            SanityCheckResult.CONFLICT,
+            SanityCheckCategory.uploadSlot,
+            `Study date of birth property does not match the upload slot definition`,
+            SanityCheckSeverity.ERROR,
+        ));
+
+
 
 
 
