@@ -20,12 +20,13 @@ describe('DicomStudyAnalyser',
             const patientSex = 'dummyPatientSex';
             const patientName = 'dummyPatientName';
             const patientBirthDate = '19000101';
+            const dummyUploadSlotBirthDate = '19000101';
 
             let dicomStudy;
             let uploadSlot;
             let dicomStudyAnalyser;
 
-            test.skip('Gender parameter is not defined in upload slot', () => {
+            test('Gender parameter is not defined in upload slot', () => {
                 dicomStudy = new DicomStudy(
                     studyInstanceUID,
                     studyDate,
@@ -37,26 +38,18 @@ describe('DicomStudyAnalyser',
                 );
 
                 uploadSlot = {
+                    'dob': null,
+                    'yob': null,
                     'gender': null
                 };
 
                 dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
                 let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
 
-                expect(result.length).toBe(1);
-                expect(result[0]).toMatchObject(
-                    new EvaluationResultItem(
-                        SanityCheckResult.NOT_DEFINED_IN_UPLOADSLOT,
-                        SanityCheckCategories.uploadSlot,
-                        `Gender is not defined in upload slot`,
-                        SanityCheckSeverity.INFO,
-                    )
-                );
-
-
+                expect(result.length).toBe(0);
             });
 
-            test.skip('Gender parameter is not defined in study', () => {
+            test('Gender parameter is not defined in study', () => {
                 dicomStudy = new DicomStudy(
                     studyInstanceUID,
                     studyDate,
@@ -68,6 +61,8 @@ describe('DicomStudyAnalyser',
                 );
 
                 uploadSlot = {
+                    'dob': null,
+                    'yob': null,
                     'gender': DicomGenderEnum.F
                 };
 
@@ -80,14 +75,12 @@ describe('DicomStudyAnalyser',
                         SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
                         SanityCheckCategories.uploadSlot,
                         `patientSex is not defined in study property`,
-                        SanityCheckSeverity.INFO,
+                        SanityCheckSeverity.WARNING,
                     )
                 );
-
-
             });
 
-            test.skip('Gender parameter matches study parameter', () => {
+            test('Gender parameter matches study parameter', () => {
                 dicomStudy = new DicomStudy(
                     studyInstanceUID,
                     studyDate,
@@ -99,23 +92,15 @@ describe('DicomStudyAnalyser',
                 );
 
                 uploadSlot = {
+                    'dob': null,
+                    'yob': null,
                     'gender': DicomGenderEnum.O
                 };
 
                 dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
                 let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
 
-                expect(result.length).toBe(1);
-                expect(result[0]).toMatchObject(
-                    new EvaluationResultItem(
-                        SanityCheckResult.MATCHES,
-                        SanityCheckCategories.uploadSlot,
-                        `Study property gender matches the upload slot definition`,
-                        SanityCheckSeverity.INFO,
-                    )
-                );
-
-
+                expect(result.length).toBe(0);
             });
 
             test('Study has different gender parameter, one matches the upload slot parameter', () => {
@@ -130,6 +115,8 @@ describe('DicomStudyAnalyser',
                 );
 
                 uploadSlot = {
+                    'dob': null,
+                    'yob': null,
                     'gender': DicomGenderEnum.O
                 };
 
@@ -157,8 +144,6 @@ describe('DicomStudyAnalyser',
                         SanityCheckSeverity.WARNING,
                     )
                 );
-
-
             });
 
             test('Study parameter does not match the upload slot parameter', () => {
@@ -173,6 +158,8 @@ describe('DicomStudyAnalyser',
                 );
 
                 uploadSlot = {
+                    'dob': null,
+                    'yob': null,
                     'gender': DicomGenderEnum.O
                 };
 
@@ -188,8 +175,6 @@ describe('DicomStudyAnalyser',
                         SanityCheckSeverity.ERROR,
                     )
                 );
-
-
             });
 
             test('No one of the two different Study parameters matches the upload slot parameter', () => {
@@ -204,6 +189,8 @@ describe('DicomStudyAnalyser',
                 );
 
                 uploadSlot = {
+                    'dob': null,
+                    'yob': null,
                     'gender': DicomGenderEnum.O
                 };
 
@@ -230,12 +217,47 @@ describe('DicomStudyAnalyser',
                         `Gender property does not match the upload slot definition`,
                         SanityCheckSeverity.ERROR,)
                 );
-
-
             });
 
+        });
 
-        })
+        describe('Date of Birth', () => {
+            const studyInstanceUID = 'dummyStudyInstanceUID';
+            const studyDate = 'dummyStudyDate';
+            const studyDescription = 'dummyStudyDescription';
+            const patientID = 'dummyPatientID';
+            const patientSex = 'dummyPatientSex';
+            const patientName = 'dummyPatientName';
+            const patientBirthDate = '19000101';
+
+            let dicomStudy;
+            let uploadSlot;
+            let dicomStudyAnalyser;
+
+            test('Upload Slot DOB is null', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    patientBirthDate,
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+        });
 
 
     })

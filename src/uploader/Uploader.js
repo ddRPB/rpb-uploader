@@ -445,7 +445,7 @@ class Uploader extends Component {
      */
     selectStudy(e) {
 
-        this.dicomStudyAnalyser = new DicomStudyAnalyser(e.value, this.createUploadSlotParameterObject());
+        this.dicomStudyAnalyser = new DicomStudyAnalyser(e.value, this.createUploadSlotParameterObject(), this.log);
 
         this.setState({
             selectedStudy: { ...e.value },

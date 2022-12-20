@@ -17,9 +17,11 @@
  * 
  */
 
-import SanityCheckCategories from "../../constants/sanityCheck/SanityCheckCategory";
-import SanityCheckResults from "../../constants/sanityCheck/SanityCheckResult";
-import SanityChecksSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
+import LogLevels from "../../constants/LogLevels";
+import SanityCheckCategory from "../../constants/sanityCheck/SanityCheckCategory";
+import SanityCheckResult from "../../constants/sanityCheck/SanityCheckResult";
+import SanityCheckSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
+import Logger from "../logging/Logger";
 import EvaluationResultItem from "./EvaluationResultItem";
 
 export default class DicomStudyAnalyser {
@@ -28,19 +30,33 @@ export default class DicomStudyAnalyser {
     uploadSlotEvaluationResults;
 
 
-    constructor(studyObject, uploadSlotDefinition) {
+    constructor(studyObject, uploadSlotDefinition, log = new Logger(LogLevels.FATAL)) {
         this.studyObject = studyObject;
         this.uploadSlotDefinition = uploadSlotDefinition;
+        this.log = log;
 
         this.studyEvaluationResults = [];
         this.seriesEvaluationResults = [];
         this.uploadSlotEvaluationResults = [];
 
         if (this.studyObject != null) {
+            this.log.trace(
+                "Start sanity checks for selected study.",
+                {},
+                { studyInstanceUID: this.studyObject.studyInstanceUID }
+            );
             this.evaluateStudyFilePropertiesAreConsistent();
         }
 
         if (this.studyObject != null && this.uploadSlotDefinition != null) {
+            this.log.trace(
+                "Start sanity checks for selected study in relation to the upload slot.",
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    uploadSlotDefinition: Object.entries(this.uploadSlotDefinition),
+                }
+            );
             this.evaluateUploadSlotdefinition();
         }
     }
@@ -65,74 +81,84 @@ export default class DicomStudyAnalyser {
         if (this.studyObject.studyDate.size > 1) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategories.study,
+                SanityCheckCategory.study,
                 `The files of that study have inconsistent study dates - ${[...this.studyObject.studyDate].join(' / ')}`,
-                SanityChecksSeverity.WARNING,
+                SanityCheckSeverity.WARNING,
             ));
         }
 
         if (this.studyObject.studyDescription.size > 1) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategories.study,
+                SanityCheckCategory.study,
                 `The files of that study have inconsistent study description - ${[...this.studyObject.studyDescription].join(' / ')}`,
-                SanityChecksSeverity.WARNING,
+                SanityCheckSeverity.WARNING,
             ));
         }
 
         if (this.studyObject.patientID.size > 1) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategories.study,
+                SanityCheckCategory.study,
                 `The files of that study have inconsistent PatientID - ${[...this.studyObject.patientID].join(' / ')}`,
-                SanityChecksSeverity.WARNING,
+                SanityCheckSeverity.WARNING,
             ));
         }
 
         if (this.studyObject.patientBirthDate.size > 1) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategories.study,
+                SanityCheckCategory.study,
                 `The files of that study have inconsistent patient birthdate - ${[...this.studyObject.patientBirthDate].join(' / ')}`,
-                SanityChecksSeverity.WARNING,
+                SanityCheckSeverity.WARNING,
             ));
         }
 
         if (this.studyObject.patientSex.size > 1) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategories.study,
+                SanityCheckCategory.study,
                 `The files of that study have inconsistent patient sex - ${[...this.studyObject.patientSex].join(' / ')}`,
-                SanityChecksSeverity.WARNING,
+                SanityCheckSeverity.WARNING,
             ));
         }
 
         if (this.studyObject.patientName.size > 1) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategories.study,
+                SanityCheckCategory.study,
                 `The files of that study have inconsistent patient name - ${[...this.studyObject.patientName].join(' / ')}`,
-                SanityChecksSeverity.WARNING,
+                SanityCheckSeverity.WARNING,
             ));
         }
     }
 
     evaluateUploadSlotdefinition() {
         if (this.uploadSlotDefinition.gender === null) {
-            // this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-            //     SanityCheckResults.NOT_DEFINED_IN_UPLOADSLOT,
-            //     SanityCheckCategories.uploadSlot,
-            //     `Gender is not defined in upload slot`,
-            //     SanityChecksSeverity.INFO,
-            // ));
-
+            this.log.info(
+                `Gender is not defined in upload slot`,
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.NOT_DEFINED_IN_UPLOADSLOT,
+                }
+            );
 
         } else {
             this.evaluateUploadSlotGender();
         }
 
         if (this.uploadSlotDefinition.dob === null) {
-            // dob is not defined in upload slot
+            this.log.info(
+                `Date of Birth is not defined in upload slot`,
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.NOT_DEFINED_IN_UPLOADSLOT,
+                }
+            );
         } else {
             this.evaluateUploadSlotDoB();
         }
@@ -143,10 +169,10 @@ export default class DicomStudyAnalyser {
     evaluateUploadSlotGender() {
         if (this.studyObject.patientSex.size === 1 && this.studyObject.patientSex.has("")) {
             this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                SanityCheckResults.NOT_DEFINED_IN_STUDYPROPERTY,
-                SanityCheckCategories.uploadSlot,
+                SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
+                SanityCheckCategory.uploadSlot,
                 `patientSex is not defined in study property`,
-                SanityChecksSeverity.WARNING,
+                SanityCheckSeverity.WARNING,
             ));
             return;
         }
@@ -158,19 +184,22 @@ export default class DicomStudyAnalyser {
         )
         ) {
             if (this.studyObject.patientSex.size === 1) {
-                // this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                //     SanityCheckResults.MATCHES,
-                //     SanityCheckCategories.uploadSlot,
-                //     `Study property gender matches the upload slot definition`,
-                //     SanityChecksSeverity.INFO,
-                // ));
+                this.log.trace(
+                    `Study property gender matches the upload slot definition`,
+                    {},
+                    {
+                        studyInstanceUID: this.studyObject.studyInstanceUID,
+                        category: SanityCheckCategory.uploadSlot,
+                        result: SanityCheckResult.MATCHES,
+                    }
+                );
                 return;
             } else {
                 this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                    SanityCheckResults.ONE_MATCHES,
-                    SanityCheckCategories.uploadSlot,
+                    SanityCheckResult.ONE_MATCHES,
+                    SanityCheckCategory.uploadSlot,
                     `One gender property matches the upload slot definition`,
-                    SanityChecksSeverity.WARNING,
+                    SanityCheckSeverity.WARNING,
                 ));
                 return;
             }
@@ -178,10 +207,10 @@ export default class DicomStudyAnalyser {
         }
 
         this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-            SanityCheckResults.CONFLICT,
-            SanityCheckCategories.uploadSlot,
+            SanityCheckResult.CONFLICT,
+            SanityCheckCategory.uploadSlot,
             `Gender property does not match the upload slot definition`,
-            SanityChecksSeverity.ERROR,
+            SanityCheckSeverity.ERROR,
         ));
 
     }
