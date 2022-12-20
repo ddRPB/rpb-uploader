@@ -17,9 +17,9 @@
  * 
  */
 
-import SanityCheckCategories from "../../constants/sanitityChecks/SanityChecksCategories";
-import SanityCheckResults from "../../constants/sanitityChecks/SanityChecksResults";
-import SanityChecksSeverity from "../../constants/sanitityChecks/SanityChecksSeverity";
+import SanityCheckCategories from "../../constants/sanityCheck/SanityCheckCategory";
+import SanityCheckResults from "../../constants/sanityCheck/SanityCheckResult";
+import SanityChecksSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
 import EvaluationResultItem from "./EvaluationResultItem";
 
 export default class DicomStudyAnalyser {
@@ -118,7 +118,7 @@ export default class DicomStudyAnalyser {
     }
 
     evaluateUploadSlotdefinition() {
-        if (this.uploadSlotDefinition.gender === undefined) {
+        if (this.uploadSlotDefinition.gender === null) {
             // this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
             //     SanityCheckResults.NOT_DEFINED_IN_UPLOADSLOT,
             //     SanityCheckCategories.uploadSlot,
@@ -130,6 +130,14 @@ export default class DicomStudyAnalyser {
         } else {
             this.evaluateUploadSlotGender();
         }
+
+        if (this.uploadSlotDefinition.dob === null) {
+            // dob is not defined in upload slot
+        } else {
+            this.evaluateUploadSlotDoB();
+        }
+
+
     }
 
     evaluateUploadSlotGender() {
@@ -175,6 +183,28 @@ export default class DicomStudyAnalyser {
             `Gender property does not match the upload slot definition`,
             SanityChecksSeverity.ERROR,
         ));
+
+    }
+
+    evaluateUploadSlotDoB() {
+        const replacementDates = ['19000101'];
+        const uploadSlotDoB = this.uploadSlotDefinition.dob;
+        const studySubjectDobSet = this.studyObject.patientBirthDate;
+
+        if (replacementDates.includes(this.uploadSlotDefinition.dob)) {
+            // is replacement
+            return;
+        }
+
+        if (this.studyObject.patientBirthDate.size === 1) {
+            const studyDob = Array.from(this.studyObject.patientBirthDate)[0];
+        }
+
+        // for(let replacementDate of replacementDates){
+        //     if()
+        // }
+
+
 
 
 
