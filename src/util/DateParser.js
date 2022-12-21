@@ -105,5 +105,18 @@ function convertToDicomDateFormatedString(dateString) {
 
 }
 
-export { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates, convertToDicomDateFormatedString };
+function convertDicomDateStringToYear(dateString) {
+    if (dateString === undefined || dateString === null) {
+        throw `Can not read \'${dateString}\' as DICOM date.`;
+    }
+
+    const dicomFormattedDateRegex = /(?<year>[0-9]{4})(?<month>[0-9]{2})(?<day>[0-9]{2})/;
+    if (dateString.match(dicomFormattedDateRegex) != null) {
+        return dateString.replace(dicomFormattedDateRegex, "$<year>");
+    }
+
+    throw `Can not read \'${dateString}\' as DICOM date.`;
+}
+
+export { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates, convertToDicomDateFormatedString, convertDicomDateStringToYear };
 

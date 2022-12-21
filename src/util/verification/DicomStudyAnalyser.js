@@ -17,11 +17,12 @@
  * 
  */
 
+import DicomGenderEnum from "../../constants/dicomValueEnums/DicomGenderEnum";
 import LogLevels from "../../constants/LogLevels";
 import SanityCheckCategory from "../../constants/sanityCheck/SanityCheckCategory";
 import SanityCheckResult from "../../constants/sanityCheck/SanityCheckResult";
 import SanityCheckSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
-import { convertToDicomDateFormatedString } from "../DateParser";
+import { convertDicomDateStringToYear, convertToDicomDateFormatedString } from "../DateParser";
 import Logger from "../logging/Logger";
 import EvaluationResultItem from "./EvaluationResultItem";
 
@@ -164,17 +165,47 @@ export default class DicomStudyAnalyser {
             this.evaluateUploadSlotDoB();
         }
 
+        if (this.uploadSlotDefinition.yob === null) {
+            this.log.info(
+                `Year of Birth is not defined in upload slot`,
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.NOT_DEFINED_IN_UPLOADSLOT,
+                }
+            );
+        } else {
+            this.evaluateUploadSlotYoB();
+        }
+
 
     }
 
     evaluateUploadSlotGender() {
         if (this.studyObject.patientSex.size === 1 && this.studyObject.patientSex.has("")) {
-            this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                SanityCheckCategory.uploadSlot,
+            this.log.info(
                 `patientSex is not defined in study property`,
-                SanityCheckSeverity.WARNING,
-            ));
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
+                }
+            );
+            return;
+        }
+
+        if (this.studyObject.patientSex.size === 1 && this.studyObject.patientSex.has(DicomGenderEnum.O)) {
+            this.log.info(
+                `patientSex in study property is a replacement value`,
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.REPLACEMENT,
+                }
+            );
             return;
         }
 
@@ -238,12 +269,15 @@ export default class DicomStudyAnalyser {
         }
 
         if (this.studyObject.patientBirthDate.size === 1 && this.studyObject.patientBirthDate.has("")) {
-            this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                SanityCheckCategory.uploadSlot,
+            this.log.info(
                 `Date of birth is not defined in study property`,
-                SanityCheckSeverity.WARNING,
-            ));
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
+                }
+            );
             return;
         }
 
@@ -293,12 +327,93 @@ export default class DicomStudyAnalyser {
             SanityCheckSeverity.ERROR,
         ));
 
+    }
 
+    evaluateUploadSlotYoB() {
+        const replacementYear = ['1900'];
+        const uploadSlotYoB = this.uploadSlotDefinition.yob;
+        const studySubjectDoBArray = [...this.studyObject.patientBirthDate];
 
+        const studySubjectYobSet = studySubjectDoBArray.map(
+            (item) => {
+                if (item != "") {
+                    return convertDicomDateStringToYear(item);
+                }
+            });
 
+        if (replacementYear.includes(uploadSlotYoB)) {
+            // is replacement
+            this.log.info(
+                `Year of birth upload slot parameter is a replacement date and cannot be used for sanity check`,
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.REPLACEMENT,
+                }
+            );
+            return;
+        }
 
+        if (this.studyObject.patientBirthDate.size === 1 && this.studyObject.patientBirthDate.has("")) {
+            this.log.info(
+                `Date of birth is not defined in study property`,
+                {},
+                {
+                    studyInstanceUID: this.studyObject.studyInstanceUID,
+                    category: SanityCheckCategory.uploadSlot,
+                    result: SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
+                }
+            );
+            return;
+        }
 
+        if (this.studyObject.patientBirthDate.size === 1) {
+            const studyYob = convertDicomDateStringToYear(Array.from(this.studyObject.patientBirthDate)[0]);
+            if (replacementYear.includes(studyYob)) {
+                // is replacement
+                this.log.info(
+                    `Study year of birth a replacement. It cannot be used for sanity checks`,
+                    {},
+                    {
+                        studyInstanceUID: this.studyObject.studyInstanceUID,
+                        category: SanityCheckCategory.uploadSlot,
+                        result: SanityCheckResult.REPLACEMENT,
+                    });
+                return;
+            }
 
+            if (studyYob === uploadSlotYoB) {
+                this.log.info(
+                    `Study year of birth matches upload slot definition`,
+                    {},
+                    {
+                        studyInstanceUID: this.studyObject.studyInstanceUID,
+                        category: SanityCheckCategory.uploadSlot,
+                        result: SanityCheckResult.MATCHES,
+                    });
+                return;
+            }
+        } else {
+            if (studySubjectYobSet.includes(uploadSlotYoB)) {
+                this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
+                    SanityCheckResult.ONE_MATCHES,
+                    SanityCheckCategory.uploadSlot,
+                    `One of the study birth years matches upload slot definition`,
+                    SanityCheckSeverity.WARNING,
+                ));
+                return;
+            }
+        }
+
+        this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
+            SanityCheckResult.CONFLICT,
+            SanityCheckCategory.uploadSlot,
+            `Study year of birth property does not match the upload slot definition`,
+            SanityCheckSeverity.ERROR,
+        ));
+
+        return;
     }
 
     updateWithSeriesAnalysis(series) {

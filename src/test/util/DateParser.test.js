@@ -1,4 +1,7 @@
-import { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates, convertToDicomDateFormatedString } from "../../util/DateParser";
+import {
+    convertDicomDateStringToYear, convertToDicomDateFormatedString, parseDicomFormattedDates, parseOcFormattedDates,
+    parseRpbFormattedDates
+} from "../../util/DateParser";
 
 describe("DateParser tests", () => {
 
@@ -126,6 +129,41 @@ describe("DateParser tests", () => {
             const convertedDateString = convertToDicomDateFormatedString(stringToParse);
 
             expect(convertedDateString).toEqual(expectedString);
+
+        });
+    })
+
+    describe('convertDicomDateStringToYear', () => {
+
+        test("Empty String throws", () => {
+            const stringToParse = "";
+            expect(() => {
+                convertDicomDateStringToYear(stringToParse);
+            }).toThrow(`Can not read \'${stringToParse}\' as DICOM date.`);
+
+        });
+
+        test("Wrong formated String throws", () => {
+            const stringToParse = "";
+            expect(() => {
+                convertDicomDateStringToYear(stringToParse);
+            }).toThrow(`Can not read \'${stringToParse}\' as DICOM date.`);
+
+        });
+
+        test("Null throws", () => {
+            const stringToParse = null;
+            expect(() => {
+                convertDicomDateStringToYear(stringToParse);
+            }).toThrow(`Can not read \'${stringToParse}\' as DICOM date.`);
+
+        });
+
+        test("DICOM date String will be returned", () => {
+            const stringToParse = "20020130";
+            const convertedDateString = convertDicomDateStringToYear(stringToParse);
+
+            expect(convertedDateString).toEqual("2002");
 
         });
     })

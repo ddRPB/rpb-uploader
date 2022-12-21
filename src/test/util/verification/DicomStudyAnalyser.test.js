@@ -49,6 +49,29 @@ describe('DicomStudyAnalyser',
                 expect(result.length).toBe(0);
             });
 
+            test('Gender parameter of the study is \"other\"', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    patientBirthDate,
+                    DicomGenderEnum.O
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': null,
+                    'gender': DicomGenderEnum.F
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+            });
+
             test('Gender parameter is not defined in study', () => {
                 dicomStudy = new DicomStudy(
                     studyInstanceUID,
@@ -69,15 +92,7 @@ describe('DicomStudyAnalyser',
                 dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
                 let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
 
-                expect(result.length).toBe(1);
-                expect(result[0]).toMatchObject(
-                    new EvaluationResultItem(
-                        SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                        SanityCheckCategory.uploadSlot,
-                        `patientSex is not defined in study property`,
-                        SanityCheckSeverity.WARNING,
-                    )
-                );
+                expect(result.length).toBe(0);
             });
 
             test('Gender parameter matches study parameter', () => {
@@ -302,15 +317,7 @@ describe('DicomStudyAnalyser',
                 dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
                 let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
 
-                expect(result.length).toBe(1);
-
-                expect(result[0]).toMatchObject(
-                    new EvaluationResultItem(
-                        SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                        SanityCheckCategory.uploadSlot,
-                        `Date of birth is not defined in study property`,
-                        SanityCheckSeverity.WARNING,
-                    ));
+                expect(result.length).toBe(0);
             })
 
             test('Study date of birth is a replacement', () => {
@@ -477,10 +484,164 @@ describe('DicomStudyAnalyser',
                         SanityCheckSeverity.ERROR,
                     )
                 );
+            })
+
+
+        });
+
+        describe('Year of Birth', () => {
+            const studyInstanceUID = 'dummyStudyInstanceUID';
+            const studyDate = 'dummyStudyDate';
+            const studyDescription = 'dummyStudyDescription';
+            const patientID = 'dummyPatientID';
+            const patientSex = 'dummyPatientSex';
+            const patientName = 'dummyPatientName';
+            const patientBirthDate = '19000101';
+
+            let dicomStudy;
+            let uploadSlot;
+            let dicomStudyAnalyser;
+
+            test('Upload Slot YoB is null', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    patientBirthDate,
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': null,
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
 
             })
 
-        });
+            test('Upload Slot YOB is a replacement date', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    patientBirthDate,
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': '1900',
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+
+            test('Study YOB is a replacement date', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    patientBirthDate,
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': '1985',
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+
+            test('Study year of birth matches upload slot definition', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19800202",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': '1980',
+                    'gender': null
+                };
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+
+            test('One of the study year of birth matches upload slot definition', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19800202",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': '1980',
+                    'gender': null
+                };
+
+                dicomStudy.addStudy(
+                    new DicomStudy(
+                        studyInstanceUID,
+                        studyDate,
+                        studyDescription,
+                        patientID,
+                        patientName,
+                        "19850505",
+                        patientSex
+                    ));
+
+                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
+                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(1);
+                expect(result[0]).toMatchObject(
+                    new EvaluationResultItem(
+                        SanityCheckResult.ONE_MATCHES,
+                        SanityCheckCategory.uploadSlot,
+                        `One of the study birth years matches upload slot definition`,
+                        SanityCheckSeverity.WARNING,
+                    )
+                );
+            })
+
+
+        })
 
 
     })

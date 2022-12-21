@@ -18,8 +18,8 @@
  */
 
 module.exports = Object.freeze({
-    M: 'male',
-    F: 'female',
-    O: 'other',
+    M: 'M', // male
+    F: 'F', // female
+    O: 'O', // other
 
 })
