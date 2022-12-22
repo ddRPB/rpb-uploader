@@ -26,7 +26,7 @@ import { convertDicomDateStringToYear, convertToDicomDateFormatedString } from "
 import Logger from "../logging/Logger";
 import EvaluationResultItem from "./EvaluationResultItem";
 
-export default class DicomStudyAnalyser {
+export default class SanityCheckHelper {
     studyEvaluationResults;
     seriesEvaluationResults;
     uploadSlotEvaluationResults;

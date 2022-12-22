@@ -28,7 +28,7 @@ import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import DicomUidService from '../util/deidentification/DicomUidService';
 import TreeBuilder from '../util/TreeBuilder';
-import DicomStudyAnalyser from '../util/verification/DicomStudyAnalyser';
+import SanityCheckHelper from '../util/verification/SanityCheckHelper';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
@@ -445,13 +445,13 @@ class Uploader extends Component {
      */
     selectStudy(e) {
 
-        this.dicomStudyAnalyser = new DicomStudyAnalyser(e.value, this.createUploadSlotParameterObject(), this.log);
+        this.sanityCheckHelper = new SanityCheckHelper(e.value, this.createUploadSlotParameterObject(), this.log);
 
         this.setState({
             selectedStudy: { ...e.value },
             selectedNodeKeys: [],
             selectedDicomFiles: [],
-            sanityCheckResults: this.dicomStudyAnalyser.getStudyAndUploadSlotEvaluationResults(),
+            sanityCheckResults: this.sanityCheckHelper.getStudyAndUploadSlotEvaluationResults(),
         });
     }
 
@@ -475,7 +475,7 @@ class Uploader extends Component {
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
 
         this.setState(
-            { sanityCheckResults: this.dicomStudyAnalyser.updateWithSeriesAnalysis(selectedSeriesObjects) }
+            { sanityCheckResults: this.sanityCheckHelper.updateWithSeriesAnalysis(selectedSeriesObjects) }
         );
 
 

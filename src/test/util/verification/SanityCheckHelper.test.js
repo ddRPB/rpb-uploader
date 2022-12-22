@@ -4,13 +4,13 @@ import SanityCheckCategory from '../../../constants/sanityCheck/SanityCheckCateg
 import SanityCheckResult from '../../../constants/sanityCheck/SanityCheckResult';
 import SanityCheckSeverity from '../../../constants/sanityCheck/SanityCheckSeverity';
 import DicomStudy from '../../../model/DicomStudy';
-import DicomStudyAnalyser from '../../../util/verification/DicomStudyAnalyser';
+import SanityCheckHelper from '../../../util/verification/SanityCheckHelper';
 import EvaluationResultItem from '../../../util/verification/EvaluationResultItem';
 
 // const dicomTestFilesDataPath = path.join(__dirname, './../../data');
 const dicomTestFilesDataPath = path.join(__dirname, './../../data/ctDicomFile.dcm');
 
-describe('DicomStudyAnalyser',
+describe('SanityCheckHelper',
     () => {
         describe('Gender', () => {
             const studyInstanceUID = 'dummyStudyInstanceUID';
@@ -24,7 +24,7 @@ describe('DicomStudyAnalyser',
 
             let dicomStudy;
             let uploadSlot;
-            let dicomStudyAnalyser;
+            let sanityCheckHelper;
 
             test('Gender parameter is not defined in upload slot', () => {
                 dicomStudy = new DicomStudy(
@@ -43,8 +43,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
             });
@@ -66,8 +66,8 @@ describe('DicomStudyAnalyser',
                     'gender': DicomGenderEnum.F
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
             });
@@ -89,8 +89,8 @@ describe('DicomStudyAnalyser',
                     'gender': DicomGenderEnum.F
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
             });
@@ -112,8 +112,8 @@ describe('DicomStudyAnalyser',
                     'gender': DicomGenderEnum.O
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
             });
@@ -147,8 +147,8 @@ describe('DicomStudyAnalyser',
                     )
                 )
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(1);
                 expect(result[0]).toMatchObject(
@@ -178,8 +178,8 @@ describe('DicomStudyAnalyser',
                     'gender': DicomGenderEnum.O
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(1);
                 expect(result[0]).toMatchObject(
@@ -221,8 +221,8 @@ describe('DicomStudyAnalyser',
                     )
                 )
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(1);
                 expect(result[0]).toMatchObject(
@@ -247,7 +247,7 @@ describe('DicomStudyAnalyser',
 
             let dicomStudy;
             let uploadSlot;
-            let dicomStudyAnalyser;
+            let sanityCheckHelper;
 
             test('Upload Slot DOB is null', () => {
                 dicomStudy = new DicomStudy(
@@ -266,8 +266,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -290,8 +290,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -314,8 +314,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
             })
@@ -337,8 +337,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -361,8 +361,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -397,8 +397,8 @@ describe('DicomStudyAnalyser',
                     ));
 
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(1);
                 expect(result[0]).toMatchObject(
@@ -429,8 +429,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(1);
                 expect(result[0]).toMatchObject(
@@ -472,8 +472,8 @@ describe('DicomStudyAnalyser',
                         patientSex
                     ));
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(1);
                 expect(result[0]).toMatchObject(
@@ -500,7 +500,7 @@ describe('DicomStudyAnalyser',
 
             let dicomStudy;
             let uploadSlot;
-            let dicomStudyAnalyser;
+            let sanityCheckHelper;
 
             test('Upload Slot YoB is null', () => {
                 dicomStudy = new DicomStudy(
@@ -519,8 +519,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -543,8 +543,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -567,8 +567,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -591,8 +591,8 @@ describe('DicomStudyAnalyser',
                     'gender': null
                 };
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(0);
 
@@ -626,8 +626,8 @@ describe('DicomStudyAnalyser',
                         patientSex
                     ));
 
-                dicomStudyAnalyser = new DicomStudyAnalyser(dicomStudy, uploadSlot);
-                let result = dicomStudyAnalyser.getUploadSlotEvaluationResults();
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
 
                 expect(result.length).toBe(1);
                 expect(result[0]).toMatchObject(
