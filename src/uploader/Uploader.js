@@ -29,6 +29,7 @@ import DicomUploadPackage from '../model/DicomUploadPackage';
 import DicomUidService from '../util/deidentification/DicomUidService';
 import TreeBuilder from '../util/TreeBuilder';
 import SanityCheckHelper from '../util/verification/SanityCheckHelper';
+import SanityCheckTypes from './../constants/sanityCheck/SanityCheckTypes';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
@@ -59,6 +60,7 @@ class Uploader extends Component {
         sanityCheckResults: [],
         isAnalysisDone: false,
         studyArray: [],
+        sanityCheckConfiguration: this.createDefaultSanityCheckConfiguration(),
         selectedNodeKeys: [],
         selectedDicomFiles: [],
         selectedStudy: null,
@@ -98,6 +100,12 @@ class Uploader extends Component {
 
         // configuration from the index.js
         this.config = this.props.config;
+
+        // default sanityCheckConfiguration
+        // this.setState(
+        //     { sanityCheckConfiguration: this.createDefaultSanityCheckConfiguration() }
+        // );
+
         // logger for the application
         this.log = this.props.log;
 
@@ -112,6 +120,12 @@ class Uploader extends Component {
         this.verifyPropsAndDownloadServerUploadParameter();
 
         this.ignoredFilesArray = [];
+    }
+
+    createDefaultSanityCheckConfiguration() {
+        return {
+            [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: true,
+        };
     }
 
     /**
@@ -445,7 +459,7 @@ class Uploader extends Component {
      */
     selectStudy(e) {
 
-        this.sanityCheckHelper = new SanityCheckHelper(e.value, this.createUploadSlotParameterObject(), this.log);
+        this.sanityCheckHelper = new SanityCheckHelper(e.value, this.createUploadSlotParameterObject(), this.state.sanityCheckConfiguration, this.log);
 
         this.setState({
             selectedStudy: { ...e.value },
@@ -474,8 +488,20 @@ class Uploader extends Component {
         this.dicomUploadPackage.setStudyInstanceUID(selectedStudyUID);
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
 
+
+
         this.setState(
-            { sanityCheckResults: this.sanityCheckHelper.updateWithSeriesAnalysis(selectedSeriesObjects) }
+            {
+                sanityCheckConfiguration: { [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: false, },
+            }
+        );
+
+        const sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(selectedSeriesObjects, this.state.sanityCheckConfiguration);
+
+        this.setState(
+            {
+                sanityCheckResults: sanityCheckResults
+            }
         );
 
 
@@ -984,6 +1010,7 @@ class Uploader extends Component {
                         ignoredFilesCount={this.state.ignoredFilesCount}
                         ignoredFilesDetails={this.state.ignoredFilesDetails}
                         sanityCheckResults={this.state.sanityCheckResults}
+                        sanityCheckConfiguration={this.state.sanityCheckConfiguration}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
                         resetAll={this.resetAll}

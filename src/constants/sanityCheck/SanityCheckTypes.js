@@ -19,12 +19,17 @@
 
 
 module.exports = Object.freeze({
-    // Dicom data parameter in relation to upload slot parameter
-    NOT_DEFINED_IN_UPLOADSLOT: 'Not defined in Upload Slot', // Upload slot property is not defined
-    NOT_DEFINED_IN_STUDYPROPERTY: 'Not defined in Study Property', // Study property is not defined
-    REPLACEMENT: 'Replacement',  // Parameter or upload slot definition is already a replacement
-    CONFLICT: 'Conflict', // The upload slot definition does not fit to the parameter -> user needs to decide
-    MATCHES: 'Match',  // The upload slot definition fits to the parameter
-    ONE_MATCHES: 'One parameter matches', // Property is not consistent in all files and one of the properties matches the upload slot
-    INCONSISTENT: 'Inconsistent',
+    // Study Level
+    STUDY_DATE_IS_CONSISTENT: 'STUDY_DATE_IS_CONSISTENT',
+    STUDY_DESCRIPTION_IS_CONSISTENT: 'STUDY_DESCRIPTION_IS_CONSISTENT',
+    // Patient
+    PATIENT_ID_IS_CONSISTENT: 'PATIENT_ID_IS_CONSISTENT',
+    PATIENT_BIRTH_DATE_IS_CONSISTENT: 'PATIENT_BIRTH_DATE_IS_CONSISTENT',
+    PATIENT_GENDER_IS_CONSISTENT: 'PATIENT_GENDER_IS_CONSISTENT',
+    PATIENT_NAME_IS_CONSISTENT: 'PATIENT_NAME_IS_CONSISTENT',
+    // Upload Slot
+    PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT: 'PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT',
+    PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT: 'PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT',
+    PATIENT_GENDER_MATCHES_UPLOADSLOT: 'PATIENT_GENDER_MATCHES_UPLOADSLOT',
+
 })

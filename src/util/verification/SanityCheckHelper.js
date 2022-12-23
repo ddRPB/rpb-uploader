@@ -22,19 +22,27 @@ import LogLevels from "../../constants/LogLevels";
 import SanityCheckCategory from "../../constants/sanityCheck/SanityCheckCategory";
 import SanityCheckResult from "../../constants/sanityCheck/SanityCheckResult";
 import SanityCheckSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
+import SanityCheckTypes from "../../constants/sanityCheck/SanityCheckTypes";
 import { convertDicomDateStringToYear, convertToDicomDateFormatedString } from "../DateParser";
 import Logger from "../logging/Logger";
 import EvaluationResultItem from "./EvaluationResultItem";
 
+/**
+ * The SanityCheckHelper perform some verifications on the DICOM data that will be selected from the user in the UI.
+ * Selecting a DICOM study (first step in the UI) triggers the creation of a new Instance that checks on study level.
+ * Selecting DICOM series that belong to the study triggers the updateWithSeriesAnalysis function that then verifies against the
+ * specific series and updates the analysis results.
+ */
 export default class SanityCheckHelper {
     studyEvaluationResults;
     seriesEvaluationResults;
     uploadSlotEvaluationResults;
 
 
-    constructor(studyObject, uploadSlotDefinition, log = new Logger(LogLevels.FATAL)) {
+    constructor(studyObject, uploadSlotDefinition, sanityCheckConfiguration, log = new Logger(LogLevels.FATAL)) {
         this.studyObject = studyObject;
         this.uploadSlotDefinition = uploadSlotDefinition;
+        this.sanityCheckConfiguration = sanityCheckConfiguration;
         this.log = log;
 
         this.studyEvaluationResults = [];
@@ -98,41 +106,14 @@ export default class SanityCheckHelper {
             ));
         }
 
-        if (this.studyObject.patientID.size > 1) {
-            this.studyEvaluationResults.push(new EvaluationResultItem(
-                'DicomStudy file properties inconsistent',
-                SanityCheckCategory.study,
-                `The files of that study have inconsistent PatientID - ${[...this.studyObject.patientID].join(' / ')}`,
-                SanityCheckSeverity.WARNING,
-            ));
-        }
+        this.evaluatePatientIdConsistency(this.studyObject.patientID, this.studyEvaluationResults);
 
-        if (this.studyObject.patientBirthDate.size > 1) {
-            this.studyEvaluationResults.push(new EvaluationResultItem(
-                'DicomStudy file properties inconsistent',
-                SanityCheckCategory.study,
-                `The files of that study have inconsistent patient birthdate - ${[...this.studyObject.patientBirthDate].join(' / ')}`,
-                SanityCheckSeverity.WARNING,
-            ));
-        }
+        this.evaluatePatientBirthDateConsistency(this.studyObject.patientBirthDate, this.studyEvaluationResults);
 
-        if (this.studyObject.patientSex.size > 1) {
-            this.studyEvaluationResults.push(new EvaluationResultItem(
-                'DicomStudy file properties inconsistent',
-                SanityCheckCategory.study,
-                `The files of that study have inconsistent patient sex - ${[...this.studyObject.patientSex].join(' / ')}`,
-                SanityCheckSeverity.WARNING,
-            ));
-        }
+        this.evaluatePatientGenderConsistency(this.studyObject.patientSex, this.studyEvaluationResults);
 
-        if (this.studyObject.patientName.size > 1) {
-            this.studyEvaluationResults.push(new EvaluationResultItem(
-                'DicomStudy file properties inconsistent',
-                SanityCheckCategory.study,
-                `The files of that study have inconsistent patient name - ${[...this.studyObject.patientName].join(' / ')}`,
-                SanityCheckSeverity.WARNING,
-            ));
-        }
+        this.evaluatePatientNameConsistency(this.studyObject.patientName, this.studyEvaluationResults);
+
     }
 
     evaluateUploadSlotdefinition() {
@@ -148,7 +129,8 @@ export default class SanityCheckHelper {
             );
 
         } else {
-            this.evaluateUploadSlotGender();
+            // this.evaluateUploadSlotGender();
+            this.evaluatePatientGenderMatchesUploadSlot(this.studyObject.patientSex, this.uploadSlotEvaluationResults);
         }
 
         if (this.uploadSlotDefinition.dob === null) {
@@ -416,15 +398,141 @@ export default class SanityCheckHelper {
         return;
     }
 
-    updateWithSeriesAnalysis(series) {
+    updateWithSeriesAnalysis(series, sanityCheckConfiguration) {
+        this.sanityCheckConfiguration = sanityCheckConfiguration;
+
+        let patientId = new Set();
+        let patientBirthDate = new Set();
+        let patientSex = new Set();
+        let patientName = new Set();
+
         for (let key of Object.keys(series)) {
-            console.log(key);
+            const seriesObject = series[key];
+            patientId = new Set([...patientId, ...seriesObject.patientID]);
+            patientBirthDate = new Set([...patientBirthDate, ...seriesObject.patientBirthDate]);
+            patientSex = new Set([...patientSex, ...seriesObject.patientSex]);
+            patientName = new Set([...patientName, ...seriesObject.patientName]);
         }
 
-        const result = [];
-        result.push(...this.getStudyAndUploadSlotEvaluationResults());
-        result.push(...this.seriesEvaluationResults);
-        return result;
+        const results = [];
+
+        this.evaluatePatientIdConsistency(patientId, results);
+
+        this.evaluatePatientBirthDateConsistency(patientBirthDate, results);
+
+        this.evaluatePatientGenderConsistency(patientSex, results);
+
+        this.evaluatePatientNameConsistency(patientName, results);
+
+        this.evaluatePatientGenderMatchesUploadSlot(patientSex, results);
+
+        return results;
+
+    }
+
+    evaluatePatientNameConsistency(patientName, results) {
+        if (patientName.size > 1) {
+            results.push(new EvaluationResultItem(
+                SanityCheckResult.INCONSISTENT,
+                SanityCheckTypes.PATIENT_NAME_IS_CONSISTENT,
+                `Patient name is inconsistent: ${[...patientName].join(' / ')}`,
+                SanityCheckSeverity.WARNING
+            ));
+        }
+    }
+
+    evaluatePatientGenderConsistency(patientSex, results) {
+        if (patientSex.size > 1) {
+            results.push(new EvaluationResultItem(
+                SanityCheckResult.INCONSISTENT,
+                SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT,
+                `Patient gender is inconsistent: ${[...patientSex].join(' / ')}`,
+                SanityCheckSeverity.WARNING
+            ));
+        }
+    }
+
+    evaluatePatientBirthDateConsistency(patientBirthDate, results) {
+        if (patientBirthDate.size > 1) {
+            results.push(new EvaluationResultItem(
+                SanityCheckResult.INCONSISTENT,
+                SanityCheckTypes.PATIENT_BIRTH_DATE_IS_CONSISTENT,
+                `Patient birth date is inconsistent: ${[...patientBirthDate].join(' / ')}`,
+                SanityCheckSeverity.WARNING
+            ));
+        }
+    }
+
+    evaluatePatientIdConsistency(patientId, results) {
+        if (patientId.size > 1) {
+            results.push(new EvaluationResultItem(
+                SanityCheckResult.INCONSISTENT,
+                SanityCheckTypes.PATIENT_ID_IS_CONSISTENT,
+                `PatientId is inconsistent: ${[...patientId].join(' / ')}`,
+                SanityCheckSeverity.WARNING
+            ));
+        }
+    }
+
+    evaluatePatientGenderMatchesUploadSlot(patientSex, results) {
+
+        if (this.uploadSlotDefinition.gender === null) {
+            return;
+        }
+
+        if (this.uploadSlotDefinition.gender.toString().toUpperCase === DicomGenderEnum.O) {
+            // replacement value
+            return;
+        }
+
+
+        if (patientSex.size === 1) {
+
+            if (patientSex.has("")) {
+                // not defined -> return
+                return;
+            }
+
+            if (patientSex.has(DicomGenderEnum.O.toString())) {
+                // replacement -> return
+                return;
+            }
+
+            if (patientSex.has(DicomGenderEnum.O.toString().toLowerCase())) {
+                // replacement -> return
+                return;
+            }
+
+            if (patientSex.has(this.uploadSlotDefinition.gender.toString().toUpperCase()) ||
+                patientSex.has(this.uploadSlotDefinition.gender.toString().toLowerCase())
+            ) {
+                // matches -> return
+                return;
+            }
+
+        } else {
+            // gender is already inconsitent
+            if (patientSex.has(this.uploadSlotDefinition.gender.toString().toUpperCase()) ||
+                patientSex.has(this.uploadSlotDefinition.gender.toString().toLowerCase())
+            ) {
+                // one parameter matches -> warning
+                results.push(new EvaluationResultItem(
+                    SanityCheckResult.ONE_MATCHES,
+                    SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT,
+                    `Gender is inconsistent and one value matches the upload slot definition. ${[...patientSex].join(' / ')} - ${this.uploadSlotDefinition.gender}`,
+                    SanityCheckSeverity.WARNING
+                ));
+                return;
+            }
+        }
+
+        // nothing matched - seems there is  a conflict
+        results.push(new EvaluationResultItem(
+            SanityCheckResult.CONFLICT,
+            SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT,
+            `Gender does not match the upload slot definition. ${[...patientSex].join(' / ')} - ${this.uploadSlotDefinition.gender}`,
+            SanityCheckSeverity.ERROR,
+        ));
 
     }
 

@@ -153,6 +153,7 @@ export default class DicomParsingMenu extends Component {
                 <SanityCheckResultsPanel
                     display={this.state.showSanityCheckResultsPanel}
                     closeListener={this.toggleSanityCheckResultsPanel}
+                    sanityCheckConfiguration={this.props.sanityCheckConfiguration}
                     sanityCheckResults={this.props.sanityCheckResults}
                 />
 

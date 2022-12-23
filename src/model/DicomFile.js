@@ -702,7 +702,13 @@ export default class DicomFile {
     }
 
     getDicomSeriesObject() {
-        return new DicomSeries(this.getSeriesInstanceUID(), this.getSeriesDate(), this.getSeriesDescription(), this.getModality(), this.getStudyInstanceUID(), this.parsedParameters);
+        const patientData = {
+            patientID: this.getPatientID(),
+            patientName: this.getPatientName(),
+            patientBirthDate: this.getPatientBirthDate(),
+            patientSex: this.getPatientSex(),
+        }
+        return new DicomSeries(this.getSeriesInstanceUID(), this.getSeriesDate(), this.getSeriesDescription(), this.getModality(), this.getStudyInstanceUID(), this.parsedParameters, patientData);
     }
 
     getDicomInstanceObject() {

@@ -80,7 +80,9 @@ export default class DicomStudy {
             this.series[seriesObject.seriesInstanceUID] = seriesObject;
             return seriesObject;
         } else {
-            return this.series[seriesObject.seriesInstanceUID];
+            const existingSeries = this.series[seriesObject.seriesInstanceUID];
+            existingSeries.addSeries(seriesObject);
+            return existingSeries;
         }
     }
 

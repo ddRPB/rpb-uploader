@@ -79,11 +79,11 @@ export default class SanityCheckResultsPanel extends Component {
 
                 >
                     <Column className="text-sm" field="key" header="" />
-                    <Column className="text-sm" field="title" header="title" />
-                    <Column className="text-sm" field="category" header="category" />
-                    <Column className="text-sm" field="message" header="message" />
-                    <Column className="text-sm" field="severity" header="severity" />
-                    <Column className="text-sm" field="ignore" header="ignore" />
+                    {/* <Column className="text-sm" field="title" header="title" /> */}
+                    <Column className="text-sm" field="category" header="Type" />
+                    <Column className="text-sm" field="message" header="Message" />
+                    <Column className="text-sm" field="severity" header="Severity" />
+                    {/* <Column className="text-sm" field="ignore" header="ignore" /> */}
                 </DataTable>
 
                 <ScrollTop />

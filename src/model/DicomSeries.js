@@ -28,13 +28,27 @@ export default class DicomSeries {
     deIdentifiedSeriesInstanceUID = null;
     uploadVerified = false;
 
-    constructor(seriesInstanceUID, seriesDate, seriesDescription, modality, studyInstanceUID, parameters) {
-        this.seriesInstanceUID = seriesInstanceUID
-        this.seriesDate = seriesDate
-        this.seriesDescription = seriesDescription
-        this.modality = modality
-        this.studyInstanceUID = studyInstanceUID
-        this.parameters = parameters
+    constructor(seriesInstanceUID, seriesDate, seriesDescription, modality, studyInstanceUID, parameters, patientData) {
+        this.seriesInstanceUID = seriesInstanceUID;
+        this.seriesDate = seriesDate;
+        this.seriesDescription = seriesDescription;
+        this.modality = modality;
+        this.studyInstanceUID = studyInstanceUID;
+        this.parameters = parameters;
+
+        this.patientID = new Set([patientData.patientID]);
+        this.patientBirthDate = new Set([patientData.patientBirthDate]);
+        this.patientSex = new Set([patientData.patientSex]);
+        this.patientName = new Set([patientData.patientName]);
+
+    }
+
+    addSeries(seriesObject) {
+        this.patientID = new Set([...this.patientID, ...seriesObject.patientID]);
+        this.patientBirthDate = new Set([...this.patientBirthDate, ...seriesObject.patientBirthDate]);
+        this.patientSex = new Set([...this.patientSex, ...seriesObject.patientSex]);
+        this.patientName = new Set([...this.patientName, ...seriesObject.patientName]);
+
     }
 
     getSeriesInstanceUID() {
