@@ -124,6 +124,7 @@ class Uploader extends Component {
 
     createDefaultSanityCheckConfiguration() {
         return {
+            replacementDates: ['19000101'],
             [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: true,
         };
     }

@@ -12,7 +12,9 @@ import SanityCheckHelper from '../../../../util/verification/SanityCheckHelper';
 
 describe('SanityCheckHelper update sanitity check results, based on series data', () => {
 
-    const sanityCheckConfiguration = {};
+    const sanityCheckConfiguration = {
+        replacementDates: ['19000101'],
+    };
     const studyInstanceUID = 'dummyStudyInstanceUID';
     const seriesInstanceUID = 'dummySeriesInstanceUID';
     const studyDate = '20020202';
@@ -66,7 +68,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
             sanityCheckHelper.getUploadSlotEvaluationResults();
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], {});
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
 
             expect(result.length).toBe(0);
         })
@@ -106,7 +108,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
             sanityCheckHelper.getUploadSlotEvaluationResults();
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], {});
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
 
             expect(result.length).toBe(0);
         })
@@ -146,7 +148,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
             sanityCheckHelper.getUploadSlotEvaluationResults();
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], {});
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
 
             expect(result.length).toBe(0);
         })
@@ -186,7 +188,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
             sanityCheckHelper.getUploadSlotEvaluationResults();
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], {});
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
 
             expect(result.length).toBe(0);
         })
@@ -242,7 +244,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
             sanityCheckHelper.getUploadSlotEvaluationResults();
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries, secondDicomSeries], {});
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries, secondDicomSeries], sanityCheckConfiguration);
 
             expect(result.length).toBe(2);
             expect(result[1]).toMatchObject(
@@ -290,7 +292,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
             sanityCheckHelper.getUploadSlotEvaluationResults();
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries], {});
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries], sanityCheckConfiguration);
 
             expect(result.length).toBe(1);
             expect(result[0]).toMatchObject(
@@ -356,7 +358,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
             sanityCheckHelper.getUploadSlotEvaluationResults();
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries, secondDicomSeries], {});
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries, secondDicomSeries], sanityCheckConfiguration);
 
             expect(result.length).toBe(2);
             expect(result[1]).toMatchObject(
@@ -369,6 +371,399 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             );
         })
 
+    });
+
+    describe('Date of birth', () => {
+        let dicomStudy;
+        let uploadSlot;
+        let sanityCheckHelper;
+
+        test('Upload Slot DOB is null', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                patientBirthDate,
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': null,
+                'yob': null,
+                'gender': null
+            };
+
+            const dicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19800101',
+                    patientSex: DicomGenderEnum.F,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
+
+            expect(result.length).toBe(0);
+
+        })
+
+        test('Upload Slot DOB is replacement date', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                patientBirthDate,
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': '1900-01-01',
+                'yob': null,
+                'gender': null
+            };
+
+            const dicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19800101',
+                    patientSex: DicomGenderEnum.F,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
+
+            expect(result.length).toBe(0);
+
+        })
+
+        test('Date of birth is not defined in series', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                '19700101',
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': '1980-02-02',
+                'yob': null,
+                'gender': null
+            };
+
+            const dicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '',
+                    patientSex: DicomGenderEnum.F,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
+
+            expect(result.length).toBe(0);
+        })
+
+        test('Series date of birth is a replacement', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                '19700101',
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': '1980-02-02',
+                'yob': null,
+                'gender': null
+            };
+
+            const dicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19000101',
+                    patientSex: DicomGenderEnum.F,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
+
+            expect(result.length).toBe(0);
+
+        })
+
+        test('Series date of birth matches upload slot definition', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                "19700101",
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': '1980-02-02',
+                'yob': null,
+                'gender': null
+            };
+
+            const dicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19800202',
+                    patientSex: DicomGenderEnum.F,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfiguration);
+
+            expect(result.length).toBe(0);
+
+        })
+
+        test('One of the study dates of birth matches upload slot definition', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                "19700101",
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': '1980-02-02',
+                'yob': null,
+                'gender': null
+            };
+
+            const firstDicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19800202',
+                    patientSex: DicomGenderEnum.O,
+                    patientName: patientName
+                }
+
+            );
+
+            const secondDicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19700101',
+                    patientSex: DicomGenderEnum.O,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries, secondDicomSeries], sanityCheckConfiguration);
+
+
+            expect(result.length).toBe(2);
+            expect(result[1]).toMatchObject(
+                new EvaluationResultItem(
+                    SanityCheckResult.ONE_MATCHES,
+                    SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                    `One of the series birth dates matches upload slot definition`,
+                    SanityCheckSeverity.WARNING,
+                )
+            );
+
+        })
+
+        test('Series date of birth does not match the upload slot definition', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                "19700101",
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': '1980-02-02',
+                'yob': null,
+                'gender': null
+            };
+
+            const firstDicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19700101',
+                    patientSex: DicomGenderEnum.O,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries], sanityCheckConfiguration);
+
+
+            expect(result.length).toBe(1);
+            expect(result[0]).toMatchObject(
+                new EvaluationResultItem(
+                    SanityCheckResult.CONFLICT,
+                    SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                    `Series date of birth property does not match the upload slot definition`,
+                    SanityCheckSeverity.ERROR,
+                )
+            );
+
+        })
+
+        test('No one of the series dates of birth matches upload slot definition', () => {
+            dicomStudy = new DicomStudy(
+                studyInstanceUID,
+                studyDate,
+                studyDescription,
+                patientID,
+                patientName,
+                "19700101",
+                patientSex
+            );
+
+            uploadSlot = {
+                'dob': '1980-02-02',
+                'yob': null,
+                'gender': null
+            };
+
+            const firstDicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19800101',
+                    patientSex: DicomGenderEnum.O,
+                    patientName: patientName
+                }
+
+            );
+
+            const secondDicomSeries = new DicomSeries(
+                seriesInstanceUID,
+                seriesDate,
+                seriesDescription,
+                modality,
+                studyInstanceUID,
+                null,
+                {
+                    patientID: patientID,
+                    patientBirthDate: '19700101',
+                    patientSex: DicomGenderEnum.O,
+                    patientName: patientName
+                }
+
+            );
+
+            sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
+            sanityCheckHelper.getUploadSlotEvaluationResults();
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries, secondDicomSeries], sanityCheckConfiguration);
+
+
+            expect(result.length).toBe(2);
+            expect(result[1]).toMatchObject(
+                new EvaluationResultItem(
+                    SanityCheckResult.CONFLICT,
+                    SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                    `Series date of birth property does not match the upload slot definition`,
+                    SanityCheckSeverity.ERROR,
+                )
+            );
+
+        })
 
     });
-})
+
+});

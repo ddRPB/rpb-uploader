@@ -31,7 +31,9 @@ import SanityCheckHelper from '../../../../util/verification/SanityCheckHelper';
 describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEvaluationResults" method',
     () => {
 
-        const sanityCheckConfiguration = {};
+        const sanityCheckConfiguration = {
+            replacementDates: ['19000101'],
+        };
         const studyInstanceUID = 'dummyStudyInstanceUID';
         const studyDate = 'dummyStudyDate';
         const studyDescription = 'dummyStudyDescription';

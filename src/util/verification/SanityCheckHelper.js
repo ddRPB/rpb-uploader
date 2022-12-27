@@ -164,71 +164,6 @@ export default class SanityCheckHelper {
 
     }
 
-    evaluateUploadSlotGender() {
-        if (this.studyObject.patientSex.size === 1 && this.studyObject.patientSex.has("")) {
-            this.log.info(
-                `patientSex is not defined in study property`,
-                {},
-                {
-                    studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
-                    result: SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                }
-            );
-            return;
-        }
-
-        if (this.studyObject.patientSex.size === 1 && this.studyObject.patientSex.has(DicomGenderEnum.O)) {
-            this.log.info(
-                `patientSex in study property is a replacement value`,
-                {},
-                {
-                    studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
-                    result: SanityCheckResult.REPLACEMENT,
-                }
-            );
-            return;
-        }
-
-        if (this.studyObject.patientSex.has(
-            this.uploadSlotDefinition.gender.toString().toUpperCase()
-        ) || this.studyObject.patientSex.has(
-            this.uploadSlotDefinition.gender.toString().toLowerCase()
-        )
-        ) {
-            if (this.studyObject.patientSex.size === 1) {
-                this.log.trace(
-                    `Study property gender matches the upload slot definition`,
-                    {},
-                    {
-                        studyInstanceUID: this.studyObject.studyInstanceUID,
-                        category: SanityCheckCategory.uploadSlot,
-                        result: SanityCheckResult.MATCHES,
-                    }
-                );
-                return;
-            } else {
-                this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                    SanityCheckResult.ONE_MATCHES,
-                    SanityCheckCategory.uploadSlot,
-                    `One gender property matches the upload slot definition`,
-                    SanityCheckSeverity.WARNING,
-                ));
-                return;
-            }
-
-        }
-
-        this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-            SanityCheckResult.CONFLICT,
-            SanityCheckCategory.uploadSlot,
-            `Gender property does not match the upload slot definition`,
-            SanityCheckSeverity.ERROR,
-        ));
-
-    }
-
     evaluateUploadSlotDoB() {
         const replacementDates = ['19000101'];
         const uploadSlotDoB = this.uploadSlotDefinition.dob;
@@ -426,6 +361,8 @@ export default class SanityCheckHelper {
 
         this.evaluatePatientGenderMatchesUploadSlot(patientSex, results);
 
+        this.evaluatePatientBirthDateMatchesUploadSlot(patientBirthDate, results);
+
         return results;
 
     }
@@ -534,6 +471,76 @@ export default class SanityCheckHelper {
             SanityCheckSeverity.ERROR,
         ));
 
+    }
+
+    evaluatePatientBirthDateMatchesUploadSlot(birthDate, result) {
+
+        if (this.uploadSlotDefinition.dob === null) {
+            return;
+        }
+
+        if (this.uploadSlotDefinition.dob === "") {
+            return;
+        }
+
+        const uploadSlotDoB = this.uploadSlotDefinition.dob;
+        const uploadSlotDoBDate = convertToDicomDateFormatedString(uploadSlotDoB);
+
+        if (this.sanityCheckConfiguration.replacementDates != undefined) {
+            const replacementDates = this.sanityCheckConfiguration.replacementDates;
+
+            if (replacementDates.includes(uploadSlotDoBDate)) {
+                // is replacement
+                return;
+            }
+        }
+
+        if (birthDate.size === 1) {
+            const singleBirthdate = [...birthDate][0];
+
+            if (birthDate.has("")) {
+                return;
+            }
+
+            if (this.sanityCheckConfiguration.replacementDates != undefined) {
+                const replacementDates = this.sanityCheckConfiguration.replacementDates;
+
+                if (replacementDates.includes(singleBirthdate)) {
+                    // is replacement
+                    return;
+                }
+            }
+
+            if (uploadSlotDoBDate === singleBirthdate) {
+                // matches
+                return;
+            }
+        } else {
+            // two or more birth dates
+            if (birthDate.has(uploadSlotDoBDate)) {
+                result.push(
+                    new EvaluationResultItem(
+                        SanityCheckResult.ONE_MATCHES,
+                        SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                        `One of the series birth dates matches upload slot definition`,
+                        SanityCheckSeverity.WARNING,
+                    )
+                );
+                return;
+            }
+
+        }
+
+        result.push(
+            new EvaluationResultItem(
+                SanityCheckResult.CONFLICT,
+                SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                `Series date of birth property does not match the upload slot definition`,
+                SanityCheckSeverity.ERROR,
+            )
+        );
+
+        return;
     }
 
     getEvaluationResult() {
