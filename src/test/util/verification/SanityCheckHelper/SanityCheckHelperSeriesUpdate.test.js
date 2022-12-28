@@ -641,7 +641,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 new EvaluationResultItem(
                     SanityCheckResult.ONE_MATCHES,
                     SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
-                    `One of the series birth dates matches upload slot definition`,
+                    `One of the birth dates matches upload slot definition`,
                     SanityCheckSeverity.WARNING,
                 )
             );
@@ -691,7 +691,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 new EvaluationResultItem(
                     SanityCheckResult.CONFLICT,
                     SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
-                    `Series date of birth property does not match the upload slot definition`,
+                    `Date of birth property does not match the upload slot definition`,
                     SanityCheckSeverity.ERROR,
                 )
             );
@@ -757,7 +757,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 new EvaluationResultItem(
                     SanityCheckResult.CONFLICT,
                     SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
-                    `Series date of birth property does not match the upload slot definition`,
+                    `Date of birth property does not match the upload slot definition`,
                     SanityCheckSeverity.ERROR,
                 )
             );

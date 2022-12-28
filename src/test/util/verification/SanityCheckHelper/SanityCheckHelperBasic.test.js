@@ -420,8 +420,8 @@ describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEv
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.ONE_MATCHES,
-                        SanityCheckCategory.uploadSlot,
-                        `One of the study birth dates matches upload slot definition`,
+                        SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                        `One of the birth dates matches upload slot definition`,
                         SanityCheckSeverity.WARNING,
                     )
                 );
@@ -452,8 +452,8 @@ describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEv
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.CONFLICT,
-                        SanityCheckCategory.uploadSlot,
-                        `Study date of birth property does not match the upload slot definition`,
+                        SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                        `Date of birth property does not match the upload slot definition`,
                         SanityCheckSeverity.ERROR,
                     )
                 );
@@ -495,8 +495,8 @@ describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEv
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.CONFLICT,
-                        SanityCheckCategory.uploadSlot,
-                        `Study date of birth property does not match the upload slot definition`,
+                        SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
+                        `Date of birth property does not match the upload slot definition`,
                         SanityCheckSeverity.ERROR,
                     )
                 );

@@ -144,7 +144,9 @@ export default class SanityCheckHelper {
                 }
             );
         } else {
-            this.evaluateUploadSlotDoB();
+            const studySubjectDobSet = this.studyObject.patientBirthDate;
+            this.evaluatePatientBirthDateMatchesUploadSlot(studySubjectDobSet, this.uploadSlotEvaluationResults);
+            // this.evaluateUploadSlotDoB();
         }
 
         if (this.uploadSlotDefinition.yob === null) {
@@ -161,88 +163,6 @@ export default class SanityCheckHelper {
             this.evaluateUploadSlotYoB();
         }
 
-
-    }
-
-    evaluateUploadSlotDoB() {
-        const replacementDates = ['19000101'];
-        const uploadSlotDoB = this.uploadSlotDefinition.dob;
-        const studySubjectDobSet = this.studyObject.patientBirthDate;
-        const uploadSlotDoBDate = convertToDicomDateFormatedString(uploadSlotDoB);
-
-
-        if (replacementDates.includes(uploadSlotDoBDate)) {
-            // is replacement
-            this.log.info(
-                `Date of Birth upload slot parameter is a replacement date and cannot be used for sanity check`,
-                {},
-                {
-                    studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
-                    result: SanityCheckResult.REPLACEMENT,
-                }
-            );
-            return;
-        }
-
-        if (this.studyObject.patientBirthDate.size === 1 && this.studyObject.patientBirthDate.has("")) {
-            this.log.info(
-                `Date of birth is not defined in study property`,
-                {},
-                {
-                    studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
-                    result: SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                }
-            );
-            return;
-        }
-
-        if (this.studyObject.patientBirthDate.size === 1) {
-            const studyDob = Array.from(this.studyObject.patientBirthDate)[0];
-            if (replacementDates.includes(studyDob)) {
-                // is replacement
-                this.log.info(
-                    `Study date of birth a replacement date. It cannot be used for sanity checks`,
-                    {},
-                    {
-                        studyInstanceUID: this.studyObject.studyInstanceUID,
-                        category: SanityCheckCategory.uploadSlot,
-                        result: SanityCheckResult.REPLACEMENT,
-                    });
-                return;
-            }
-
-            if (studyDob === uploadSlotDoBDate) {
-                this.log.info(
-                    `Study date matches upload slot definition`,
-                    {},
-                    {
-                        studyInstanceUID: this.studyObject.studyInstanceUID,
-                        category: SanityCheckCategory.uploadSlot,
-                        result: SanityCheckResult.MATCHES,
-                    });
-                return;
-            }
-
-        } else {
-            if (studySubjectDobSet.has(uploadSlotDoBDate)) {
-                this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                    SanityCheckResult.ONE_MATCHES,
-                    SanityCheckCategory.uploadSlot,
-                    `One of the study birth dates matches upload slot definition`,
-                    SanityCheckSeverity.WARNING,
-                ));
-                return;
-            }
-        }
-
-        this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-            SanityCheckResult.CONFLICT,
-            SanityCheckCategory.uploadSlot,
-            `Study date of birth property does not match the upload slot definition`,
-            SanityCheckSeverity.ERROR,
-        ));
 
     }
 
@@ -522,7 +442,7 @@ export default class SanityCheckHelper {
                     new EvaluationResultItem(
                         SanityCheckResult.ONE_MATCHES,
                         SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
-                        `One of the series birth dates matches upload slot definition`,
+                        `One of the birth dates matches upload slot definition`,
                         SanityCheckSeverity.WARNING,
                     )
                 );
@@ -535,7 +455,7 @@ export default class SanityCheckHelper {
             new EvaluationResultItem(
                 SanityCheckResult.CONFLICT,
                 SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
-                `Series date of birth property does not match the upload slot definition`,
+                `Date of birth property does not match the upload slot definition`,
                 SanityCheckSeverity.ERROR,
             )
         );
