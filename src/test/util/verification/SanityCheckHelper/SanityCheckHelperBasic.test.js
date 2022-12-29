@@ -33,6 +33,16 @@ describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEv
 
         const sanityCheckConfiguration = {
             replacementDates: ['19000101'],
+            replacementGenderValues: [DicomGenderEnum.O],
+            [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: true,
+            [SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_ID_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_NAME_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
         };
         const studyInstanceUID = 'dummyStudyInstanceUID';
         const studyDate = 'dummyStudyDate';
@@ -213,6 +223,33 @@ describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEv
                         SanityCheckSeverity.ERROR,
                     )
                 );
+            })
+
+            test('Study parameter does not match the upload slot parameter, but the sanity check configuration parameter is false', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    patientBirthDate,
+                    DicomGenderEnum.F
+                );
+
+                uploadSlot = {
+                    'dob': null,
+                    'yob': null,
+                    'gender': DicomGenderEnum.M
+                };
+
+                const sanityCheckConfigurationTwo = { ...sanityCheckConfiguration };
+                sanityCheckConfigurationTwo[[SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]] = false;
+
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfigurationTwo);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
             })
 
             test('No one of the two different Study parameters matches the upload slot parameter', () => {
@@ -460,6 +497,33 @@ describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEv
 
             })
 
+            test('Study date of birth does not match the upload slot definition, but sanity check configuration parameter is false', () => {
+                dicomStudy = new DicomStudy(
+                    studyInstanceUID,
+                    studyDate,
+                    studyDescription,
+                    patientID,
+                    patientName,
+                    "19750505",
+                    patientSex
+                );
+
+                uploadSlot = {
+                    'dob': '1980-02-02',
+                    'yob': null,
+                    'gender': null
+                };
+
+                const sanityCheckConfigurationTwo = { ...sanityCheckConfiguration };
+                sanityCheckConfigurationTwo[[SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]] = false;
+
+                sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfigurationTwo);
+                let result = sanityCheckHelper.getUploadSlotEvaluationResults();
+
+                expect(result.length).toBe(0);
+
+            })
+
             test('No one study date of birth does not match the upload slot definition', () => {
                 dicomStudy = new DicomStudy(
                     studyInstanceUID,
@@ -641,8 +705,8 @@ describe('SanityCheckHelper - Basic tests using constructor and "getUploadSlotEv
                 expect(result[0]).toMatchObject(
                     new EvaluationResultItem(
                         SanityCheckResult.ONE_MATCHES,
-                        SanityCheckCategory.uploadSlot,
-                        `One of the study birth years matches upload slot definition`,
+                        SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT,
+                        `One of the birth dates matches upload slot definition`,
                         SanityCheckSeverity.WARNING,
                     )
                 );

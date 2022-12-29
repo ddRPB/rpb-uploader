@@ -155,6 +155,7 @@ export default class DicomParsingMenu extends Component {
                     closeListener={this.toggleSanityCheckResultsPanel}
                     sanityCheckConfiguration={this.props.sanityCheckConfiguration}
                     sanityCheckResults={this.props.sanityCheckResults}
+                    updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
                 />
 
             </React.Fragment >

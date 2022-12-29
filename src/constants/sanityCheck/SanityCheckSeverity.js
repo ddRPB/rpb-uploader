@@ -19,7 +19,7 @@
 
 
 module.exports = Object.freeze({
-    INFO: 'info',
-    WARNING: 'warning',
-    ERROR: 'error',
+    INFO: 'Info',
+    WARNING: 'Warning',
+    ERROR: 'Error',
 })

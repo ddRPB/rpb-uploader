@@ -20,20 +20,20 @@
 // React
 import React, { Component } from 'react';
 // Primereact
+import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { ScrollTop } from 'primereact/scrolltop';
-import { ProgressBar } from 'primereact/progressbar';
+import styledComponents from 'styled-components';
 
 export default class SanityCheckResultsPanel extends Component {
 
-    //sanityCheckResults
-
     createRows = () => {
-        const evaluationResultItems = this.props.sanityCheckResults;
-        let rows = []
-        evaluationResultItems.forEach((evaluationResultItem, index) => {
+        const sanityCheckResults = this.props.sanityCheckResults;
+        const rows = []
+
+        sanityCheckResults.forEach((evaluationResultItem, index) => {
             rows.push({
                 key: index + 1,
                 title: evaluationResultItem.title,
@@ -43,7 +43,37 @@ export default class SanityCheckResultsPanel extends Component {
                 ignore: evaluationResultItem.ignore
             })
         })
+
         return rows
+    }
+
+    /**
+     * Sets the parameter to false in the sanitycheck configuration and triggers the update of
+     * the sanity check results for the uploader.
+     */
+    updateSanityCheckConfigurationParameterToFalse(category) {
+        const sanityCheckConfiguration = this.props.sanityCheckConfiguration;
+        const updatedSanityCheckConfiguration = { ...sanityCheckConfiguration, [category]: false };
+        this.props.updateSanityCheckConfiguration(updatedSanityCheckConfiguration);
+    }
+
+    detailsActionTemplate(node, column) {
+        const key = column.rowIndex;
+        const sanityCheckConfiguration = this.props.sanityCheckConfiguration;
+        const StyledButton = styledComponents(Button)`{ width: 135px }`;
+
+        if (sanityCheckConfiguration[[node.category]] === true) { // button is active if configuration for that category is set to true
+            return <div>
+                <StyledButton
+                    type="button"
+                    label={'Disable ' + node.severity}
+                    className="p-button-sm"
+                    onClick={(e) => this.updateSanityCheckConfigurationParameterToFalse(node.category)}
+                >
+                </StyledButton>
+            </div>
+        }
+        return null;
     }
 
 
@@ -80,9 +110,10 @@ export default class SanityCheckResultsPanel extends Component {
                 >
                     <Column className="text-sm" field="key" header="" />
                     {/* <Column className="text-sm" field="title" header="title" /> */}
-                    <Column className="text-sm" field="category" header="Type" />
                     <Column className="text-sm" field="message" header="Message" />
-                    <Column className="text-sm" field="severity" header="Severity" />
+                    {/* <Column className="text-sm" field="category" header="Type" /> */}
+                    <Column className="text-sm" columnKey="Disable" header="Commands" body={this.detailsActionTemplate.bind(this)} />
+                    {/* <Column className="text-sm" field="severity" header="Severity" /> */}
                     {/* <Column className="text-sm" field="ignore" header="ignore" /> */}
                 </DataTable>
 

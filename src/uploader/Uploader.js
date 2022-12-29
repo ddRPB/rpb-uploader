@@ -23,6 +23,7 @@ import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
 import { Component, Fragment } from 'react';
 import { toast } from 'react-toastify';
+import DicomGenderEnum from '../constants/dicomValueEnums/DicomGenderEnum';
 import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
@@ -125,7 +126,16 @@ class Uploader extends Component {
     createDefaultSanityCheckConfiguration() {
         return {
             replacementDates: ['19000101'],
+            replacementGenderValues: [DicomGenderEnum.O],
             [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: true,
+            [SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_ID_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_NAME_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
         };
     }
 
@@ -146,6 +156,7 @@ class Uploader extends Component {
         this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
         this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
         this.setStudyIsLinked = this.setStudyIsLinked.bind(this);
+        this.updateSanityCheckConfiguration = this.updateSanityCheckConfiguration.bind(this);
         this.generateLogFile = this.generateLogFile.bind(this);
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
         this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
@@ -299,7 +310,7 @@ class Uploader extends Component {
     }
 
     /**
-     * some parameters can`t be transfered within the URL - 
+     * Some parameters can`t be transfered within the URL - 
      * they will be requested from the RPB portal if the session is alive.
      */
     async getServerUploadParameter() {
@@ -418,6 +429,25 @@ class Uploader extends Component {
         this.setState({ studyIsLinked: value });
     }
 
+    /***
+     * Updates the sanity check configuration and the resulting sanity check results
+     */
+    updateSanityCheckConfiguration(sanityCheckConfiguration) {
+        this.setState({ sanityCheckConfiguration: sanityCheckConfiguration });
+
+        const selectedSeries = this.dicomUploadPackage.getSelectedSeries();
+        let sanityCheckResults = [];
+
+        if (selectedSeries.size > 0) {
+            sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(this.dicomUploadPackage.getSelectedSeries(), sanityCheckConfiguration);
+        } else { // no series selected yet -> use the selected study
+            this.sanityCheckHelper = new SanityCheckHelper(this.state.selectedStudy, this.createUploadSlotParameterObject(), sanityCheckConfiguration, this.log);
+            sanityCheckResults = this.sanityCheckHelper.getStudyAndUploadSlotEvaluationResults()
+        }
+
+        this.setState({ sanityCheckResults: sanityCheckResults });
+    }
+
     /**
      * Redirects the browser window to the landing page of the portal
      */
@@ -489,21 +519,8 @@ class Uploader extends Component {
         this.dicomUploadPackage.setStudyInstanceUID(selectedStudyUID);
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
 
-
-
-        this.setState(
-            {
-                sanityCheckConfiguration: { [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: false, },
-            }
-        );
-
         const sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(selectedSeriesObjects, this.state.sanityCheckConfiguration);
-
-        this.setState(
-            {
-                sanityCheckResults: sanityCheckResults
-            }
-        );
+        this.setState({ sanityCheckResults: sanityCheckResults });
 
 
         this.log.trace(
@@ -1012,6 +1029,7 @@ class Uploader extends Component {
                         ignoredFilesDetails={this.state.ignoredFilesDetails}
                         sanityCheckResults={this.state.sanityCheckResults}
                         sanityCheckConfiguration={this.state.sanityCheckConfiguration}
+                        updateSanityCheckConfiguration={this.updateSanityCheckConfiguration}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
                         resetAll={this.resetAll}

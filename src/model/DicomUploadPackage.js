@@ -112,6 +112,10 @@ export default class DicomUploadPackage {
         }
     }
 
+    getSelectedSeries() {
+        return this.selectedSeriesObjects;
+    }
+
     setSelectedSeries(selectedSeriesObjects) {
         this.selectedSeriesObjects = selectedSeriesObjects;
         this.updateSelectedFilesArray(selectedSeriesObjects);

@@ -19,7 +19,6 @@
 
 import DicomGenderEnum from "../../constants/dicomValueEnums/DicomGenderEnum";
 import LogLevels from "../../constants/LogLevels";
-import SanityCheckCategory from "../../constants/sanityCheck/SanityCheckCategory";
 import SanityCheckResult from "../../constants/sanityCheck/SanityCheckResult";
 import SanityCheckSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
 import SanityCheckTypes from "../../constants/sanityCheck/SanityCheckTypes";
@@ -42,7 +41,7 @@ export default class SanityCheckHelper {
     constructor(studyObject, uploadSlotDefinition, sanityCheckConfiguration, log = new Logger(LogLevels.FATAL)) {
         this.studyObject = studyObject;
         this.uploadSlotDefinition = uploadSlotDefinition;
-        this.sanityCheckConfiguration = sanityCheckConfiguration;
+        this.sanityCheckConfiguration = { ...this.createDefaultSanityCheckConfiguration(), ...sanityCheckConfiguration };
         this.log = log;
 
         this.studyEvaluationResults = [];
@@ -71,14 +70,42 @@ export default class SanityCheckHelper {
         }
     }
 
+    /**
+     * Creates a sanity check configuration to ensure that all necessary properties constist a value:
+     *      */
+    createDefaultSanityCheckConfiguration() {
+        return {
+            replacementDates: ['19000101'],
+            replacementGenderValues: [DicomGenderEnum.O],
+            [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: true,
+            [SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_ID_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_NAME_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
+        };
+    }
+
+    /**
+     * Returns the evaluation results for the study properties
+     */
     getStudyEvaluationResults() {
         return this.studyEvaluationResults;
     }
 
+    /**
+     * Returns the evaluation results for the study properties in relation to the upload slot parameter
+     */
     getUploadSlotEvaluationResults() {
         return this.uploadSlotEvaluationResults;
     }
 
+    /**
+     * Returns the combined evaluation of the study properties and upload slot parameters
+     */
     getStudyAndUploadSlotEvaluationResults() {
         const result = [];
         result.push(... this.studyEvaluationResults);
@@ -86,36 +113,47 @@ export default class SanityCheckHelper {
         return result;
     }
 
+    /**
+     * Returns the results of the series evaluation.
+     */
+    getSeriesEvaluationResult() {
+        return this.seriesEvaluationResults;
+    }
+
+    /***
+     * Verifies if specific study properties are consistent in all files
+     */
     evaluateStudyFilePropertiesAreConsistent() {
 
-        if (this.studyObject.studyDate.size > 1) {
+        if (this.studyObject.studyDate.size > 1 && this.sanityCheckConfiguration[[SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]] === true) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategory.study,
+                SanityCheckTypes.STUDY_DATE_IS_CONSISTENT,
                 `The files of that study have inconsistent study dates - ${[...this.studyObject.studyDate].join(' / ')}`,
                 SanityCheckSeverity.WARNING,
             ));
         }
 
-        if (this.studyObject.studyDescription.size > 1) {
+        if (this.studyObject.studyDescription.size > 1 && this.sanityCheckConfiguration[[SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT]] === true) {
             this.studyEvaluationResults.push(new EvaluationResultItem(
                 'DicomStudy file properties inconsistent',
-                SanityCheckCategory.study,
+                SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT,
                 `The files of that study have inconsistent study description - ${[...this.studyObject.studyDescription].join(' / ')}`,
                 SanityCheckSeverity.WARNING,
             ));
         }
 
         this.evaluatePatientIdConsistency(this.studyObject.patientID, this.studyEvaluationResults);
-
         this.evaluatePatientBirthDateConsistency(this.studyObject.patientBirthDate, this.studyEvaluationResults);
-
         this.evaluatePatientGenderConsistency(this.studyObject.patientSex, this.studyEvaluationResults);
-
         this.evaluatePatientNameConsistency(this.studyObject.patientName, this.studyEvaluationResults);
 
     }
 
+    /**
+     * The upload slot definition describes specific requirements, for instance: the gender of the patient.
+     * This function evaluates the study properties, based on that criteria.
+     */
     evaluateUploadSlotdefinition() {
         if (this.uploadSlotDefinition.gender === null) {
             this.log.info(
@@ -123,13 +161,12 @@ export default class SanityCheckHelper {
                 {},
                 {
                     studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
+                    category: SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT,
                     result: SanityCheckResult.NOT_DEFINED_IN_UPLOADSLOT,
                 }
             );
 
         } else {
-            // this.evaluateUploadSlotGender();
             this.evaluatePatientGenderMatchesUploadSlot(this.studyObject.patientSex, this.uploadSlotEvaluationResults);
         }
 
@@ -139,14 +176,13 @@ export default class SanityCheckHelper {
                 {},
                 {
                     studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
+                    category: SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT,
                     result: SanityCheckResult.NOT_DEFINED_IN_UPLOADSLOT,
                 }
             );
         } else {
             const studySubjectDobSet = this.studyObject.patientBirthDate;
             this.evaluatePatientBirthDateMatchesUploadSlot(studySubjectDobSet, this.uploadSlotEvaluationResults);
-            // this.evaluateUploadSlotDoB();
         }
 
         if (this.uploadSlotDefinition.yob === null) {
@@ -155,106 +191,23 @@ export default class SanityCheckHelper {
                 {},
                 {
                     studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
+                    category: SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT,
                     result: SanityCheckResult.NOT_DEFINED_IN_UPLOADSLOT,
                 }
             );
         } else {
-            this.evaluateUploadSlotYoB();
+            const studySubjectDobSet = this.studyObject.patientBirthDate;
+            this.evaluatePatientBirthYearMatchesUploadSlot(studySubjectDobSet, this.uploadSlotEvaluationResults);
         }
-
 
     }
 
-    evaluateUploadSlotYoB() {
-        const replacementYear = ['1900'];
-        const uploadSlotYoB = this.uploadSlotDefinition.yob;
-        const studySubjectDoBArray = [...this.studyObject.patientBirthDate];
-
-        const studySubjectYobSet = studySubjectDoBArray.map(
-            (item) => {
-                if (item != "") {
-                    return convertDicomDateStringToYear(item);
-                }
-            });
-
-        if (replacementYear.includes(uploadSlotYoB)) {
-            // is replacement
-            this.log.info(
-                `Year of birth upload slot parameter is a replacement date and cannot be used for sanity check`,
-                {},
-                {
-                    studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
-                    result: SanityCheckResult.REPLACEMENT,
-                }
-            );
-            return;
-        }
-
-        if (this.studyObject.patientBirthDate.size === 1 && this.studyObject.patientBirthDate.has("")) {
-            this.log.info(
-                `Date of birth is not defined in study property`,
-                {},
-                {
-                    studyInstanceUID: this.studyObject.studyInstanceUID,
-                    category: SanityCheckCategory.uploadSlot,
-                    result: SanityCheckResult.NOT_DEFINED_IN_STUDYPROPERTY,
-                }
-            );
-            return;
-        }
-
-        if (this.studyObject.patientBirthDate.size === 1) {
-            const studyYob = convertDicomDateStringToYear(Array.from(this.studyObject.patientBirthDate)[0]);
-            if (replacementYear.includes(studyYob)) {
-                // is replacement
-                this.log.info(
-                    `Study year of birth a replacement. It cannot be used for sanity checks`,
-                    {},
-                    {
-                        studyInstanceUID: this.studyObject.studyInstanceUID,
-                        category: SanityCheckCategory.uploadSlot,
-                        result: SanityCheckResult.REPLACEMENT,
-                    });
-                return;
-            }
-
-            if (studyYob === uploadSlotYoB) {
-                this.log.info(
-                    `Study year of birth matches upload slot definition`,
-                    {},
-                    {
-                        studyInstanceUID: this.studyObject.studyInstanceUID,
-                        category: SanityCheckCategory.uploadSlot,
-                        result: SanityCheckResult.MATCHES,
-                    });
-                return;
-            }
-        } else {
-            if (studySubjectYobSet.includes(uploadSlotYoB)) {
-                this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-                    SanityCheckResult.ONE_MATCHES,
-                    SanityCheckCategory.uploadSlot,
-                    `One of the study birth years matches upload slot definition`,
-                    SanityCheckSeverity.WARNING,
-                ));
-                return;
-            }
-        }
-
-        this.uploadSlotEvaluationResults.push(new EvaluationResultItem(
-            SanityCheckResult.CONFLICT,
-            SanityCheckCategory.uploadSlot,
-            `Study year of birth property does not match the upload slot definition`,
-            SanityCheckSeverity.ERROR,
-        ));
-
-        return;
-    }
-
+    /**
+     * The first analysis after creating the instance is based on the selected DICOM study. 
+     * This function allows to update the results, based on the selected series and the current sanity check configuration.
+     */
     updateWithSeriesAnalysis(series, sanityCheckConfiguration) {
-        this.sanityCheckConfiguration = sanityCheckConfiguration;
+        this.sanityCheckConfiguration = { ...this.createDefaultSanityCheckConfiguration(), ...sanityCheckConfiguration };
 
         let patientId = new Set();
         let patientBirthDate = new Set();
@@ -283,11 +236,18 @@ export default class SanityCheckHelper {
 
         this.evaluatePatientBirthDateMatchesUploadSlot(patientBirthDate, results);
 
+        this.evaluatePatientBirthYearMatchesUploadSlot(patientBirthDate, results);
+
+        this.seriesEvaluationResults = results;
         return results;
 
     }
 
     evaluatePatientNameConsistency(patientName, results) {
+        if (this.sanityCheckConfiguration[[SanityCheckTypes.PATIENT_NAME_IS_CONSISTENT]] != true) {
+            return;
+        }
+
         if (patientName.size > 1) {
             results.push(new EvaluationResultItem(
                 SanityCheckResult.INCONSISTENT,
@@ -299,7 +259,11 @@ export default class SanityCheckHelper {
     }
 
     evaluatePatientGenderConsistency(patientSex, results) {
-        if (patientSex.size > 1) {
+        if (this.sanityCheckConfiguration[[SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT]] != true) {
+            return;
+        }
+
+        if (patientSex.size > 1 && this.sanityCheckConfiguration['PATIENT_GENDER_IS_CONSISTENT'] === true) {
             results.push(new EvaluationResultItem(
                 SanityCheckResult.INCONSISTENT,
                 SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT,
@@ -310,6 +274,10 @@ export default class SanityCheckHelper {
     }
 
     evaluatePatientBirthDateConsistency(patientBirthDate, results) {
+        if (this.sanityCheckConfiguration[[SanityCheckTypes.PATIENT_BIRTH_DATE_IS_CONSISTENT]] != true) {
+            return;
+        }
+
         if (patientBirthDate.size > 1) {
             results.push(new EvaluationResultItem(
                 SanityCheckResult.INCONSISTENT,
@@ -321,6 +289,10 @@ export default class SanityCheckHelper {
     }
 
     evaluatePatientIdConsistency(patientId, results) {
+        if (this.sanityCheckConfiguration[[SanityCheckTypes.PATIENT_ID_IS_CONSISTENT]] != true) {
+            return;
+        }
+
         if (patientId.size > 1) {
             results.push(new EvaluationResultItem(
                 SanityCheckResult.INCONSISTENT,
@@ -333,6 +305,10 @@ export default class SanityCheckHelper {
 
     evaluatePatientGenderMatchesUploadSlot(patientSex, results) {
 
+        if (this.sanityCheckConfiguration['PATIENT_GENDER_MATCHES_UPLOADSLOT'] != true) {
+            return;
+        }
+
         if (this.uploadSlotDefinition.gender === null) {
             return;
         }
@@ -342,8 +318,7 @@ export default class SanityCheckHelper {
             return;
         }
 
-
-        if (patientSex.size === 1) {
+        if (patientSex.size === 1) { // consistent parameter
 
             if (patientSex.has("")) {
                 // not defined -> return
@@ -368,7 +343,7 @@ export default class SanityCheckHelper {
             }
 
         } else {
-            // gender is already inconsitent
+            // gender is inconsitent -> verify if one parameter matches the criteria
             if (patientSex.has(this.uploadSlotDefinition.gender.toString().toUpperCase()) ||
                 patientSex.has(this.uploadSlotDefinition.gender.toString().toLowerCase())
             ) {
@@ -383,7 +358,7 @@ export default class SanityCheckHelper {
             }
         }
 
-        // nothing matched - seems there is  a conflict
+        // nothing matched - seems there is a conflict
         results.push(new EvaluationResultItem(
             SanityCheckResult.CONFLICT,
             SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT,
@@ -394,6 +369,10 @@ export default class SanityCheckHelper {
     }
 
     evaluatePatientBirthDateMatchesUploadSlot(birthDate, result) {
+
+        if (this.sanityCheckConfiguration[[SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]] != true) {
+            return;
+        }
 
         if (this.uploadSlotDefinition.dob === null) {
             return;
@@ -415,10 +394,11 @@ export default class SanityCheckHelper {
             }
         }
 
-        if (birthDate.size === 1) {
+        if (birthDate.size === 1) {// consistent parameter
             const singleBirthdate = [...birthDate][0];
 
             if (birthDate.has("")) {
+                // not defined -> return
                 return;
             }
 
@@ -463,7 +443,92 @@ export default class SanityCheckHelper {
         return;
     }
 
-    getEvaluationResult() {
-        return this.seriesEvaluationResults;
+    evaluatePatientBirthYearMatchesUploadSlot(birthDate, result) {
+        const uploadSlotYoB = this.uploadSlotDefinition.yob;
+        const studySubjectDoBArray = [...birthDate];
+
+        const studySubjectYobArray = studySubjectDoBArray.map(
+            (item) => {
+                if (item != "") {
+                    return convertDicomDateStringToYear(item);
+                } else {
+                    return "";
+                }
+            });
+
+        const replacementDatesArray = [];
+        if (this.sanityCheckConfiguration.replacementDates != undefined) {
+            replacementDatesArray.push(...this.sanityCheckConfiguration.replacementDates);
+        }
+
+        const replacementYears = replacementDatesArray.map(
+            (item) => {
+                if (item != "") {
+                    return convertDicomDateStringToYear(item);
+                }
+            });
+
+
+        if (this.sanityCheckConfiguration[[SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]] != true) {
+            return;
+        }
+
+        if (this.uploadSlotDefinition.yob === null) {
+            return;
+        }
+
+        if (this.uploadSlotDefinition.yob === "") {
+            return;
+        }
+
+        if (replacementYears.includes(uploadSlotYoB)) {
+            // is replacement
+            return;
+        }
+
+        if (studySubjectYobArray.length === 1) {
+            const singleBirthYear = [...studySubjectYobArray][0];
+
+            if (replacementYears.includes(singleBirthYear)) {
+                // is replacement
+                return;
+            }
+
+            if (uploadSlotYoB === singleBirthYear) {
+                // matches
+                return;
+            }
+
+            if (singleBirthYear === "") {
+                return;
+            }
+
+        } else {
+            // two or more birth dates
+            if (studySubjectYobArray.includes(uploadSlotYoB)) {
+                result.push(
+                    new EvaluationResultItem(
+                        SanityCheckResult.ONE_MATCHES,
+                        SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT,
+                        `One of the birth dates matches upload slot definition`,
+                        SanityCheckSeverity.WARNING,
+                    )
+                );
+                return;
+            }
+
+        }
+
+        result.push(
+            new EvaluationResultItem(
+                SanityCheckResult.CONFLICT,
+                SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT,
+                `Year of birth property does not match the upload slot definition`,
+                SanityCheckSeverity.ERROR,
+            )
+        );
+
+        return;
     }
+
 }
