@@ -59,6 +59,7 @@ class Uploader extends Component {
         ignoredFilesCount: 0,
         ignoredFilesDetails: [],
         sanityCheckResults: [],
+        sanityCheckResultsPerSeries: new Map(),
         isAnalysisDone: false,
         studyArray: [],
         sanityCheckConfiguration: this.createDefaultSanityCheckConfiguration(),
@@ -101,11 +102,6 @@ class Uploader extends Component {
 
         // configuration from the index.js
         this.config = this.props.config;
-
-        // default sanityCheckConfiguration
-        // this.setState(
-        //     { sanityCheckConfiguration: this.createDefaultSanityCheckConfiguration() }
-        // );
 
         // logger for the application
         this.log = this.props.log;
@@ -433,7 +429,7 @@ class Uploader extends Component {
      * Updates the sanity check configuration and the resulting sanity check results
      */
     updateSanityCheckConfiguration(sanityCheckConfiguration) {
-        this.setState({ sanityCheckConfiguration: sanityCheckConfiguration });
+        // this.setState({ sanityCheckConfiguration: sanityCheckConfiguration });
 
         const selectedSeries = this.dicomUploadPackage.getSelectedSeries();
         let sanityCheckResults = [];
@@ -445,7 +441,22 @@ class Uploader extends Component {
             sanityCheckResults = this.sanityCheckHelper.getStudyAndUploadSlotEvaluationResults()
         }
 
-        this.setState({ sanityCheckResults: sanityCheckResults });
+        const sanityCheckResultsPerSeries = new Map();
+        const series = this.state.selectedStudy.series;
+
+        if (series != undefined) {
+            for (let seriesUid in series) {
+                const singleSeries = series[seriesUid];
+                const result = this.sanityCheckHelper.updateWithSeriesAnalysis({ [seriesUid]: singleSeries }, sanityCheckConfiguration);
+                sanityCheckResultsPerSeries.set(seriesUid, result);
+            }
+        }
+
+        this.setState({
+            sanityCheckConfiguration: sanityCheckConfiguration,
+            sanityCheckResults: sanityCheckResults,
+            sanityCheckResultsPerSeries: sanityCheckResultsPerSeries,
+        });
     }
 
     /**
@@ -492,11 +503,23 @@ class Uploader extends Component {
 
         this.sanityCheckHelper = new SanityCheckHelper(e.value, this.createUploadSlotParameterObject(), this.state.sanityCheckConfiguration, this.log);
 
+        const series = e.value.series;
+        const sanityCheckResultsPerSeries = new Map();
+
+        if (series != undefined) {
+            for (let seriesUid in series) {
+                const singleSeries = series[seriesUid];
+                const result = this.sanityCheckHelper.updateWithSeriesAnalysis({ [seriesUid]: singleSeries }, this.state.sanityCheckConfiguration);
+                sanityCheckResultsPerSeries.set(seriesUid, result);
+            }
+        }
+
         this.setState({
             selectedStudy: { ...e.value },
             selectedNodeKeys: [],
             selectedDicomFiles: [],
             sanityCheckResults: this.sanityCheckHelper.getStudyAndUploadSlotEvaluationResults(),
+            sanityCheckResultsPerSeries: sanityCheckResultsPerSeries,
         });
     }
 
@@ -560,10 +583,10 @@ class Uploader extends Component {
      * Generates a log file and triggers a UIn dialog via browser that the user can save the file.
      */
     generateLogFile() {
-        let logs = this.log.getLogStore();
-        let currentDateTime = new Date();
+        const logs = this.log.getLogStore();
+        const currentDateTime = new Date();
 
-        let fileNameComponents = [
+        const fileNameComponents = [
             currentDateTime.getFullYear(),
             currentDateTime.getMonth(),
             currentDateTime.getDay(),
@@ -571,9 +594,9 @@ class Uploader extends Component {
             currentDateTime.getMinutes()
         ];
 
-        let fileName = fileNameComponents.join('-') + '-uploader-logs.json'
+        const fileName = fileNameComponents.join('-') + '-uploader-logs.json'
 
-        let content = JSON.stringify({
+        const content = JSON.stringify({
             date: currentDateTime.toISOString(),
             uploadSlot: {
                 siteIdentifier: this.props.siteIdentifier,
@@ -603,16 +626,16 @@ class Uploader extends Component {
 
         });
 
-        var blob1 = new Blob([content], { type: "application/json;charset=utf-8" });
+        const logFileBlob = new Blob([content], { type: "application/json;charset=utf-8" });
 
         //Check the Browser.
-        let isIE = false || !!document.documentMode;
+        const isIE = false || !!document.documentMode;
         if (isIE) {
-            window.navigator.msSaveBlob(blob1, fileName);
+            window.navigator.msSaveBlob(logFileBlob, fileName);
         } else {
-            let url = window.URL || window.webkitURL;
-            let link = url.createObjectURL(blob1);
-            let a = document.createElement("a");
+            const url = window.URL || window.webkitURL;
+            const link = url.createObjectURL(logFileBlob);
+            const a = document.createElement("a");
             a.download = fileName;
             a.href = link;
             document.body.appendChild(a);
@@ -907,7 +930,6 @@ class Uploader extends Component {
 
             }
 
-
             await dicomFile.readDicomFile()
 
             // DicomDir do no register file
@@ -1063,6 +1085,7 @@ class Uploader extends Component {
                                 seriesTree={"allRootTree"}
                                 selectNodes={this.selectNodes}
                                 selectedNodeKeys={this.state.selectedNodeKeys}
+                                sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
                             >
                             </TreeSelection>
                         </div>
@@ -1076,6 +1099,7 @@ class Uploader extends Component {
                                 seriesTree={"rtViewTree"}
                                 selectNodes={this.selectNodes}
                                 selectedNodeKeys={this.state.selectedNodeKeys}
+                                sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
                             >
                             </TreeSelection>
                         </div>

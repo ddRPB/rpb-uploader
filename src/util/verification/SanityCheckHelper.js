@@ -34,7 +34,6 @@ import EvaluationResultItem from "./EvaluationResultItem";
  */
 export default class SanityCheckHelper {
     studyEvaluationResults;
-    seriesEvaluationResults;
     uploadSlotEvaluationResults;
 
 
@@ -45,7 +44,6 @@ export default class SanityCheckHelper {
         this.log = log;
 
         this.studyEvaluationResults = [];
-        this.seriesEvaluationResults = [];
         this.uploadSlotEvaluationResults = [];
 
         if (this.studyObject != null) {
@@ -111,13 +109,6 @@ export default class SanityCheckHelper {
         result.push(... this.studyEvaluationResults);
         result.push(...this.uploadSlotEvaluationResults);
         return result;
-    }
-
-    /**
-     * Returns the results of the series evaluation.
-     */
-    getSeriesEvaluationResult() {
-        return this.seriesEvaluationResults;
     }
 
     /***
@@ -225,20 +216,14 @@ export default class SanityCheckHelper {
         const results = [];
 
         this.evaluatePatientIdConsistency(patientId, results);
-
         this.evaluatePatientBirthDateConsistency(patientBirthDate, results);
-
         this.evaluatePatientGenderConsistency(patientSex, results);
-
         this.evaluatePatientNameConsistency(patientName, results);
 
         this.evaluatePatientGenderMatchesUploadSlot(patientSex, results);
-
         this.evaluatePatientBirthDateMatchesUploadSlot(patientBirthDate, results);
-
         this.evaluatePatientBirthYearMatchesUploadSlot(patientBirthDate, results);
 
-        this.seriesEvaluationResults = results;
         return results;
 
     }

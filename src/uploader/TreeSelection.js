@@ -116,23 +116,50 @@ export class TreeSelection extends Component {
         let detailsOverlayPanel = React.createRef();
         let detailList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
 
+        const seriesUid = node.data.seriesInstanceUID;
+        const sanityCheckResults = this.props.sanityCheckResultsPerSeries.get(seriesUid);
+        let sanityCheckDetailList = sanityCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
+
+        const patientDetailsList = node.data.patientDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
         return <div>
-            {detailList.length === 0
+            {detailList.length === 0 && sanityCheckDetailList.length === 0
                 ? null
                 : <StyledButton
                     type="button"
                     label="Details"
-                    className="p-button-sm"
+                    className={sanityCheckResults.length === 0 ? "p-button-sm" : "p-button-sm p-button-warning"}
+                    icon={sanityCheckResults.length === 0 ? "" : "pi pi-exclamation-triangle"}
+                    iconPos="right"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
-                        <Card title="Details">
-                            {detailList}
-                        </Card>
+                        {sanityCheckResults.length === 0
+                            ? null
+                            : <Card
+                                title="Sanity Check Results"
+                                className="text-orange-500">
+                                {sanityCheckDetailList}
+                            </Card>
+                        }
+                        {detailList.length === 0
+                            ? null
+                            : <Card title="Details">
+                                {detailList}
+                            </Card>
+                        }
+                        {patientDetailsList.length === 0
+                            ? null
+                            : <Card title="Patient Details">
+                                {patientDetailsList}
+                            </Card>
+                        }
+
                     </OverlayPanel>
-                </StyledButton>}
+                </StyledButton>
+            }
         </div>
 
     }
