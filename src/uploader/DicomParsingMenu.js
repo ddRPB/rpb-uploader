@@ -22,12 +22,14 @@ import React, { Component } from 'react';
 // Primereact
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
+import { SplitButton } from 'primereact/splitbutton';
 import { Toolbar } from 'primereact/toolbar';
 // Styled Component
 import styledComponents from 'styled-components';
 // Custom GUI components
 import IgnoredFilesPanel from './IgnoredFilesPanel';
 import SanityCheckResultsPanel from './SanityCheckResultsPanel';
+import SettingsDialog from './SettingsDialog';
 
 /**
  * DicomParsingDetails component
@@ -36,7 +38,8 @@ export default class DicomParsingMenu extends Component {
 
     state = {
         showIgnoredFiles: false,
-        showSanityCheckResultsPanel: false
+        showSanityCheckResultsPanel: false,
+        showSettingsDialog: false,
     }
 
     toggleShowIgnoredFile = () => {
@@ -47,6 +50,29 @@ export default class DicomParsingMenu extends Component {
         this.setState((state) => { return { showSanityCheckResultsPanel: !state.showSanityCheckResultsPanel } })
     }
 
+    toggleSettingsDialog = () => {
+        this.setState((state) => { return { showSettingsDialog: !state.showSettingsDialog } })
+    }
+
+    createSplitButtonItems() {
+        return [
+            {
+                label: 'Setup',
+                icon: 'pi pi-sliders-h',
+                command: (e) => {
+                    this.toggleSettingsDialog();
+                }
+            },
+            {
+                label: 'Reset',
+                icon: 'pi pi-refresh',
+                command: (e) => {
+                    this.props.resetAll();
+                }
+            },
+        ];
+    }
+
 
     /**
      * Render the component
@@ -54,6 +80,7 @@ export default class DicomParsingMenu extends Component {
     render = () => {
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
+        const StyledSplitButton = styledComponents(SplitButton)`{ width: 135px }`;
 
         return (
             <React.Fragment>
@@ -61,7 +88,23 @@ export default class DicomParsingMenu extends Component {
                     model={[{}]}
                     left={
                         <React.Fragment>
-                            <StyledButton className={"pr-3 p-button-secondary"} label="Reset" icon="pi pi-refresh" iconPos="right" onClick={this.props.resetAll} />
+                            <StyledSplitButton label="Commands" className="p-button-secondary" model={this.createSplitButtonItems()} />
+                            {/* <StyledButton
+                                className={"pr-3 p-button-secondary"}
+                                label="Reset"
+                                icon="pi pi-refresh"
+                                iconPos="right"
+                                onClick={this.props.resetAll}
+
+                            />
+                            <StyledButton
+                                className={"pr-3 p-button-secondary"}
+                                label="Setup"
+                                icon="pi pi-sliders-h"
+                                iconPos="right"
+                                onClick={this.toggleSettingsDialog}
+
+                            /> */}
                             <StyledButton
                                 type="button"
                                 label="Loaded:"
@@ -155,6 +198,12 @@ export default class DicomParsingMenu extends Component {
                     closeListener={this.toggleSanityCheckResultsPanel}
                     sanityCheckConfiguration={this.props.sanityCheckConfiguration}
                     sanityCheckResults={this.props.sanityCheckResults}
+                    updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
+                />
+                <SettingsDialog
+                    display={this.state.showSettingsDialog}
+                    closeListener={this.toggleSettingsDialog}
+                    sanityCheckConfiguration={this.props.sanityCheckConfiguration}
                     updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
                 />
 
