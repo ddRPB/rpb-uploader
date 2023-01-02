@@ -434,9 +434,19 @@ class Uploader extends Component {
         const selectedSeries = this.dicomUploadPackage.getSelectedSeries();
         let sanityCheckResults = [];
 
+        this.setState({
+            sanityCheckConfiguration: sanityCheckConfiguration,
+        });
+
+        if (this.state.selectedStudy === null) {
+            return;
+        }
+
+
         if (selectedSeries.size > 0) {
             sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(this.dicomUploadPackage.getSelectedSeries(), sanityCheckConfiguration);
         } else { // no series selected yet -> use the selected study
+
             this.sanityCheckHelper = new SanityCheckHelper(this.state.selectedStudy, this.createUploadSlotParameterObject(), sanityCheckConfiguration, this.log);
             sanityCheckResults = this.sanityCheckHelper.getStudyAndUploadSlotEvaluationResults()
         }
@@ -453,7 +463,7 @@ class Uploader extends Component {
         }
 
         this.setState({
-            sanityCheckConfiguration: sanityCheckConfiguration,
+            // sanityCheckConfiguration: sanityCheckConfiguration,
             sanityCheckResults: sanityCheckResults,
             sanityCheckResultsPerSeries: sanityCheckResultsPerSeries,
         });
@@ -559,7 +569,7 @@ class Uploader extends Component {
     resetAll() {
         this.setState({ ...this.defaultState });
         this.dicomUploadDictionary = new DicomUploadDictionary();
-        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
+        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log, this.config);
         this.ignoredFilesArray = [];
         this.log.trace("Reset Uploader component", {}, {});
     }
