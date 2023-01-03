@@ -55,6 +55,10 @@ export default class TreeBuilder {
         node.data.patientDetails.push(this.getDetailsItem("Sex", patientSex));
         node.data.patientDetails.push(this.getDetailsItem("Birth Date", patientBirthdate));
 
+        node.data.deIdentificationStatus = [];
+        node.data.deIdentificationStatus.push(this.getDetailsItem("BurnedInAnnotation", seriesObject.burnedInAnnotation));
+        node.data.deIdentificationStatus.push(this.getDetailsItem("IdentityRemoved", seriesObject.identityRemoved));
+
         return node;
     }
 

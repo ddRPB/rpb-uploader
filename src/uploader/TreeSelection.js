@@ -111,9 +111,8 @@ export class TreeSelection extends Component {
 
     detailsActionTemplate(node, column) {
         let key = column.rowIndex;
-        if (node.data.detailsArray === undefined) return <div key={key}></div>;
-
         let detailsOverlayPanel = React.createRef();
+
         let detailList = [];
         if (node.data.detailsArray != undefined) {
             detailList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
@@ -124,6 +123,7 @@ export class TreeSelection extends Component {
         let sanityCheckDetailList = sanityCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
 
         const patientDetailsList = node.data.patientDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        const deIdentificationStatusList = node.data.deIdentificationStatus.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
@@ -157,6 +157,12 @@ export class TreeSelection extends Component {
                             ? null
                             : <Card title="Patient Details">
                                 {patientDetailsList}
+                            </Card>
+                        }
+                        {deIdentificationStatusList.length === 0
+                            ? null
+                            : <Card title="De-Identification Status">
+                                {deIdentificationStatusList}
                             </Card>
                         }
 

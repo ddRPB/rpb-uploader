@@ -119,6 +119,8 @@ export default class DicomFile {
         this.parsedParameters = new Map();
         this.parsedParameters.set('Modality', modality);
         this.parsedParameters.set('SeriesMetaParameter', [])
+        this.parsedParameters.set('BurnedInAnnotation', this.getBurnedInAnnotationTag());
+        this.parsedParameters.set('IdentityRemoved', this.getIdentityRemovedTag());
 
         switch (modality) {
             case "RTSTRUCT":
@@ -681,6 +683,14 @@ export default class DicomFile {
 
     getPatientBirthDate() {
         return this._getDicomTag('00100030')
+    }
+
+    getBurnedInAnnotationTag() {
+        return this._getDicomTag('00280301');
+    }
+
+    getIdentityRemovedTag() {
+        return this._getDicomTag('00120062');
     }
 
     isDicomDir() {

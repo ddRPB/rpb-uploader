@@ -41,6 +41,9 @@ export default class DicomSeries {
         this.patientSex = new Set([patientData.patientSex]);
         this.patientName = new Set([patientData.patientName]);
 
+        this.burnedInAnnotation = new Set([parameters.get('BurnedInAnnotation')]);
+        this.identityRemoved = new Set([parameters.get('IdentityRemoved')]);
+
     }
 
     addSeries(seriesObject) {
@@ -49,6 +52,8 @@ export default class DicomSeries {
         this.patientSex = new Set([...this.patientSex, ...seriesObject.patientSex]);
         this.patientName = new Set([...this.patientName, ...seriesObject.patientName]);
 
+        this.burnedInAnnotation = new Set([...this.burnedInAnnotation, ...seriesObject.burnedInAnnotation]);
+        this.identityRemoved = new Set([...this.identityRemoved, ...seriesObject.identityRemoved]);
     }
 
     getSeriesInstanceUID() {
