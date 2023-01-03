@@ -36,7 +36,16 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
     const patientSex = 'dummyPatientSex';
     const patientName = 'dummyPatientName';
     const patientBirthDate = '19000101';
-    const dummyUploadSlotBirthDate = '19000101';
+
+    const patientData = {};
+    patientData.patientID = patientID;
+    patientData.patientBirthDate = patientBirthDate;
+    patientData.patientSex = patientSex;
+    patientData.patientName = patientName;
+
+    const parameters = new Map();
+    parameters.set('BurnedInAnnotation', 'BurnedInAnnotation');
+    parameters.set('IdentityRemoved', 'IdentityRemoved');
 
     describe('Gender', () => {
         let dicomStudy;
@@ -66,7 +75,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -106,7 +115,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -146,7 +155,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -186,7 +195,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -226,7 +235,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -242,7 +251,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -290,7 +299,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -338,7 +347,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -385,7 +394,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -401,7 +410,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -456,7 +465,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -497,7 +506,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -538,7 +547,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '',
@@ -578,7 +587,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19000101',
@@ -619,7 +628,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
@@ -660,7 +669,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
@@ -676,7 +685,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
@@ -726,7 +735,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
@@ -776,7 +785,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -792,7 +801,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
@@ -849,7 +858,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -890,7 +899,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -931,7 +940,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '',
@@ -971,7 +980,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19000101',
@@ -1012,7 +1021,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
@@ -1053,7 +1062,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
@@ -1069,7 +1078,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
@@ -1119,7 +1128,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
@@ -1169,7 +1178,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
@@ -1185,7 +1194,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 seriesDescription,
                 modality,
                 studyInstanceUID,
-                null,
+                parameters,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',

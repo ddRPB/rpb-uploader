@@ -106,7 +106,7 @@ export default class SanityCheckHelper {
      */
     getStudyAndUploadSlotEvaluationResults() {
         const result = [];
-        result.push(... this.studyEvaluationResults);
+        result.push(...this.studyEvaluationResults);
         result.push(...this.uploadSlotEvaluationResults);
         return result;
     }
