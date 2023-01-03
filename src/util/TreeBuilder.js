@@ -44,7 +44,7 @@ export default class TreeBuilder {
         node.data.studyInstanceUID = seriesObject.getStudyInstanceUID();
         node.data.instancesSize = seriesObject.getInstancesSize();
 
-        const patientBirthdate = seriesObject.patientBirthdate;
+        const patientBirthdate = seriesObject.patientBirthDate;
         const patientID = seriesObject.patientID;
         const patientName = seriesObject.patientName;
         const patientSex = seriesObject.patientSex;

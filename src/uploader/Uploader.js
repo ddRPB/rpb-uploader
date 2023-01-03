@@ -510,6 +510,10 @@ class Uploader extends Component {
      * Will be called in the DicomStudySelection component if a study has been selected.
      */
     selectStudy(e) {
+        if (e.value === null) {
+            // can happen if the user clicks several times on the UI dialog -> return to avoid null pointer exception
+            return;
+        }
 
         this.sanityCheckHelper = new SanityCheckHelper(e.value, this.createUploadSlotParameterObject(), this.state.sanityCheckConfiguration, this.log);
 

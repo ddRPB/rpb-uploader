@@ -114,7 +114,10 @@ export class TreeSelection extends Component {
         if (node.data.detailsArray === undefined) return <div key={key}></div>;
 
         let detailsOverlayPanel = React.createRef();
-        let detailList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        let detailList = [];
+        if (node.data.detailsArray != undefined) {
+            detailList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        }
 
         const seriesUid = node.data.seriesInstanceUID;
         const sanityCheckResults = this.props.sanityCheckResultsPerSeries.get(seriesUid);
