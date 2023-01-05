@@ -199,12 +199,19 @@ export default class DicomParsingMenu extends Component {
                     sanityCheckConfiguration={this.props.sanityCheckConfiguration}
                     sanityCheckResults={this.props.sanityCheckResults}
                     updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
+                    deIdentificationCheckResults={this.props.deIdentificationCheckResults}
+                    deIdentificationCheckResultsPerSeries={this.props.deIdentificationCheckResultsPerSeries}
+                    deIdentificationCheckConfiguration={this.props.deIdentificationCheckConfiguration}
+                    updateDeIdentificationCheckConfiguration={this.props.updateDeIdentificationCheckConfiguration}
                 />
+
                 <SettingsDialog
                     display={this.state.showSettingsDialog}
                     closeListener={this.toggleSettingsDialog}
                     sanityCheckConfiguration={this.props.sanityCheckConfiguration}
                     updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
+                    deIdentificationCheckConfiguration={this.props.deIdentificationCheckConfiguration}
+                    updateDeIdentificationCheckConfiguration={this.props.updateDeIdentificationCheckConfiguration}
                 />
 
             </React.Fragment >

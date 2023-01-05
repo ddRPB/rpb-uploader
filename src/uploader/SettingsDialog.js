@@ -20,7 +20,6 @@
 // React
 import React, { Component } from 'react';
 // Primereact
-import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
@@ -28,6 +27,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import { TabPanel, TabView } from 'primereact/tabview';
 import styledComponents from 'styled-components';
 import SanityCheckTypesUINames from './../constants/sanityCheck/SanityCheckTypeUINames';
+import { ScrollPanel } from 'primereact/scrollpanel';
 
 export default class SettingsDialog extends Component {
 
@@ -60,6 +60,16 @@ export default class SettingsDialog extends Component {
         return Array.from(configs)
     }
 
+    buildDeIdentificationCheckRows() {
+        let configs = []
+        for (let configKey of Object.keys(this.props.deIdentificationCheckConfiguration)) {
+            const config = {};
+            config.name = configKey;
+            config.value = this.props.deIdentificationCheckConfiguration[configKey];
+            configs.push({ ...config })
+        }
+        return Array.from(configs)
+    }
 
     /**
      * Sets the parameter to false in the sanitycheck configuration and triggers the update of
@@ -71,15 +81,31 @@ export default class SettingsDialog extends Component {
         this.props.updateSanityCheckConfiguration(updatedSanityCheckConfiguration);
     }
 
-    detailsActionTemplate(node, column) {
+    updateDeIdentificationCheckConfigurationParameter(e, nodeName) {
+        const deIdentificationCheckConfiguration = this.props.deIdentificationCheckConfiguration;
+        const updatedDeIdentificationCheckConfiguration = { ...deIdentificationCheckConfiguration, [nodeName]: e.value };
+        this.props.updateDeIdentificationCheckConfiguration(updatedDeIdentificationCheckConfiguration);
+    }
+
+    sanityConfigurationCheckSwitchActionTemplate(node, column) {
         const key = column.rowIndex;
-        const sanityCheckConfiguration = this.props.sanityCheckConfiguration;
-        const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
         return <div>
             <InputSwitch
                 checked={node.value}
                 onChange={(e) => this.updateSanityCheckConfigurationParameter(e, node.name)}
+            />
+        </div>
+
+    }
+
+    deIdentificationConfigurationSwitchActionTemplate(node, column) {
+        const key = column.rowIndex;
+
+        return <div>
+            <InputSwitch
+                checked={node.value}
+                onChange={(e) => this.updateDeIdentificationCheckConfigurationParameter(e, node.name)}
             />
         </div>
 
@@ -115,6 +141,12 @@ export default class SettingsDialog extends Component {
             </div>
         );
 
+        const deIdentificationCheckConfigurationTableHeader = (
+            <div className="table-header">
+                De-Identification Check Configuration Parameter
+            </div>
+        );
+
 
         const StyledDataTablediv = styledComponents.div`.p-datatable .p-datatable-tbody tr td {padding: 5px 5px; }`;
 
@@ -125,7 +157,10 @@ export default class SettingsDialog extends Component {
                 onHide={this.props.closeListener}
                 style={{ width: '50vw', height: '50vw' }}
             >
-                <TabView>
+
+                <TabView
+                    scrollable="true"
+                >
                     <TabPanel header="Sanity Check Configuration">
                         <StyledDataTablediv>
                             <DataTable
@@ -135,7 +170,7 @@ export default class SettingsDialog extends Component {
                             >
                                 {/* <Column field="name" header="Parameter" className="text-sm" sortable /> */}
                                 <Column field="realName" header="Parameter" className="text-sm" sortable />
-                                <Column className="text-sm" columnKey="value" header="Status" body={this.detailsActionTemplate.bind(this)} />
+                                <Column className="text-sm" columnKey="value" header="Status" body={this.sanityConfigurationCheckSwitchActionTemplate.bind(this)} />
                             </DataTable>
                         </StyledDataTablediv>
 
@@ -149,6 +184,19 @@ export default class SettingsDialog extends Component {
                             >
                                 <Column field="name" header="Parameter" className="text-sm" sortable />
                                 <Column field="value" header="Value" className="text-sm" />
+
+                            </DataTable>
+                        </StyledDataTablediv>
+                    </TabPanel>
+                    <TabPanel header="De-Identification Check Configuration">
+                        <StyledDataTablediv>
+                            <DataTable
+                                value={this.buildDeIdentificationCheckRows()}
+                                dataKey="name"
+                                header={deIdentificationCheckConfigurationTableHeader}
+                            >
+                                <Column field="name" header="Parameter" className="text-sm" sortable />
+                                <Column className="text-sm" columnKey="value" header="Status" body={this.deIdentificationConfigurationSwitchActionTemplate.bind(this)} />
 
                             </DataTable>
                         </StyledDataTablediv>

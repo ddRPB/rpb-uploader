@@ -113,14 +113,18 @@ export class TreeSelection extends Component {
         let key = column.rowIndex;
         let detailsOverlayPanel = React.createRef();
 
-        let detailList = [];
+        let seriesDetailsList = [];
         if (node.data.detailsArray != undefined) {
-            detailList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+            seriesDetailsList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
         }
 
         const seriesUid = node.data.seriesInstanceUID;
+
         const sanityCheckResults = this.props.sanityCheckResultsPerSeries.get(seriesUid);
-        let sanityCheckDetailList = sanityCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
+        const sanityCheckDetailList = sanityCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
+
+        const deIdentificationCheckResults = this.props.deIdentificationCheckResultsPerSeries.get(seriesUid);
+        const deIdentificationCheckDetailList = deIdentificationCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
 
         const patientDetailsList = node.data.patientDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
         const deIdentificationStatusList = node.data.deIdentificationStatus.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
@@ -128,13 +132,13 @@ export class TreeSelection extends Component {
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
         return <div>
-            {detailList.length === 0 && sanityCheckDetailList.length === 0
+            {seriesDetailsList.length === 0 && sanityCheckDetailList.length === 0
                 ? null
                 : <StyledButton
                     type="button"
                     label="Details"
-                    className={sanityCheckResults.length === 0 ? "p-button-sm" : "p-button-sm p-button-warning"}
-                    icon={sanityCheckResults.length === 0 ? "" : "pi pi-exclamation-triangle"}
+                    className={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 ? "p-button-sm" : "p-button-sm p-button-warning"}
+                    icon={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 ? "" : "pi pi-exclamation-triangle"}
                     iconPos="right"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
@@ -147,10 +151,18 @@ export class TreeSelection extends Component {
                                 {sanityCheckDetailList}
                             </Card>
                         }
-                        {detailList.length === 0
+                        {deIdentificationCheckDetailList.length === 0
+                            ? null
+                            : <Card
+                                title="De-Identification Check Results"
+                                className="text-orange-500">
+                                {deIdentificationCheckDetailList}
+                            </Card>
+                        }
+                        {seriesDetailsList.length === 0
                             ? null
                             : <Card title="Details">
-                                {detailList}
+                                {seriesDetailsList}
                             </Card>
                         }
                         {patientDetailsList.length === 0

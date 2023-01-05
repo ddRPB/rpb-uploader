@@ -29,11 +29,29 @@ import styledComponents from 'styled-components';
 
 export default class SanityCheckResultsPanel extends Component {
 
-    createRows = () => {
+    createSanityCheckResultRows = () => {
         const sanityCheckResults = this.props.sanityCheckResults;
         const rows = []
 
         sanityCheckResults.forEach((evaluationResultItem, index) => {
+            rows.push({
+                key: index + 1,
+                title: evaluationResultItem.title,
+                category: evaluationResultItem.category,
+                message: evaluationResultItem.message,
+                severity: evaluationResultItem.severity,
+                ignore: evaluationResultItem.ignore
+            })
+        })
+
+        return rows
+    }
+
+    createDeIdentificationCheckResultRows = () => {
+        const deIdentificationCheckResults = this.props.deIdentificationCheckResults;
+        const rows = []
+
+        deIdentificationCheckResults.forEach((evaluationResultItem, index) => {
             rows.push({
                 key: index + 1,
                 title: evaluationResultItem.title,
@@ -57,7 +75,13 @@ export default class SanityCheckResultsPanel extends Component {
         this.props.updateSanityCheckConfiguration(updatedSanityCheckConfiguration);
     }
 
-    detailsActionTemplate(node, column) {
+    updateDeIdentificationCheckConfigurationParameterToFalse(category) {
+        const deIdentificationCheckConfiguration = this.props.deIdentificationCheckConfiguration;
+        const updatedDeIdentificationCheckConfiguration = { ...deIdentificationCheckConfiguration, [category]: false };
+        this.props.updateDeIdentificationCheckConfiguration(updatedDeIdentificationCheckConfiguration);
+    }
+
+    sanityCheckResultCommandsActionTemplate(node, column) {
         const key = column.rowIndex;
         const sanityCheckConfiguration = this.props.sanityCheckConfiguration;
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
@@ -69,6 +93,25 @@ export default class SanityCheckResultsPanel extends Component {
                     label={'Disable ' + node.severity}
                     className="p-button-sm"
                     onClick={(e) => this.updateSanityCheckConfigurationParameterToFalse(node.category)}
+                >
+                </StyledButton>
+            </div>
+        }
+        return null;
+    }
+
+    deIdentificationCheckResultCommandsActionTemplate(node, column) {
+        const key = column.rowIndex;
+        const deIdentificationCheckConfiguration = this.props.deIdentificationCheckConfiguration;
+        const StyledButton = styledComponents(Button)`{ width: 135px }`;
+
+        if (deIdentificationCheckConfiguration[[node.category]] === true) { // button is active if configuration for that category is set to true
+            return <div>
+                <StyledButton
+                    type="button"
+                    label={'Disable ' + node.severity}
+                    className="p-button-sm"
+                    onClick={(e) => this.updateDeIdentificationCheckConfigurationParameterToFalse(node.category)}
                 >
                 </StyledButton>
             </div>
@@ -101,7 +144,7 @@ export default class SanityCheckResultsPanel extends Component {
                 style={{ width: '50vw' }}
             >
                 <DataTable
-                    value={this.createRows()}
+                    value={this.createSanityCheckResultRows()}
                     paginator responsiveLayout="scroll"
                     paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                     paginatorClassName="text-sm"
@@ -109,12 +152,21 @@ export default class SanityCheckResultsPanel extends Component {
 
                 >
                     <Column className="text-sm" field="key" header="" />
-                    {/* <Column className="text-sm" field="title" header="title" /> */}
                     <Column className="text-sm" field="message" header="Message" />
-                    {/* <Column className="text-sm" field="category" header="Type" /> */}
-                    <Column className="text-sm" columnKey="Disable" header="Commands" body={this.detailsActionTemplate.bind(this)} />
-                    {/* <Column className="text-sm" field="severity" header="Severity" /> */}
-                    {/* <Column className="text-sm" field="ignore" header="ignore" /> */}
+                    <Column className="text-sm" columnKey="Disable" header="Commands" body={this.sanityCheckResultCommandsActionTemplate.bind(this)} />
+                </DataTable>
+
+                <DataTable
+                    value={this.createDeIdentificationCheckResultRows()}
+                    paginator responsiveLayout="scroll"
+                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                    paginatorClassName="text-sm"
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" rows={10} rowsPerPageOptions={[10, 20, 50]}
+
+                >
+                    <Column className="text-sm" field="key" header="" />
+                    <Column className="text-sm" field="message" header="Message" />
+                    <Column className="text-sm" columnKey="Disable" header="Commands" body={this.deIdentificationCheckResultCommandsActionTemplate.bind(this)} />
                 </DataTable>
 
                 <ScrollTop />
