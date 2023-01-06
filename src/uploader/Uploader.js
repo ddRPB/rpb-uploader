@@ -1188,6 +1188,7 @@ class Uploader extends Component {
                                 selectNodes={this.selectNodes}
                                 selectedNodeKeys={this.state.selectedNodeKeys}
                                 sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
+                                deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
                             >
                             </TreeSelection>
                         </div>
