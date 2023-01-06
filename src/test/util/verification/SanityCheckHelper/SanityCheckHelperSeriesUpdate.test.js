@@ -37,6 +37,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
     const patientName = 'dummyPatientName';
     const patientBirthDate = '19000101';
 
+    const seriesDetails = {
+        seriesInstanceUID,
+        seriesDate,
+        seriesDescription,
+        modality,
+        studyInstanceUID,
+    };
+
     const patientData = {};
     patientData.patientID = patientID;
     patientData.patientBirthDate = patientBirthDate;
@@ -46,6 +54,8 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
     const parameters = new Map();
     parameters.set('BurnedInAnnotation', 'BurnedInAnnotation');
     parameters.set('IdentityRemoved', 'IdentityRemoved');
+
+    const availableDicomTags = new Map();
 
     describe('Gender', () => {
         let dicomStudy;
@@ -69,19 +79,18 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+
+
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -110,18 +119,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -150,18 +156,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: '',
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags
 
             );
 
@@ -190,18 +193,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags
 
             );
 
@@ -230,34 +230,27 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
-
+                },
+                parameters,
+                availableDicomTags,
             );
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.M,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -294,18 +287,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -342,18 +332,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -389,34 +376,28 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -460,19 +441,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
-
+                },
+                parameters,
+                availableDicomTags,
             );
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
@@ -501,18 +478,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -542,18 +516,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -582,18 +553,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19000101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -623,18 +591,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -664,34 +629,28 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -730,18 +689,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -780,34 +736,28 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -853,18 +803,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -894,18 +841,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -935,18 +879,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -975,18 +916,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19000101',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -1016,18 +954,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const dicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
                     patientSex: DicomGenderEnum.F,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -1057,34 +992,28 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800202',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -1123,18 +1052,15 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
@@ -1173,34 +1099,28 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             };
 
             const firstDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19800101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parameters,
+                seriesDetails,
                 {
                     patientID: patientID,
                     patientBirthDate: '19700101',
                     patientSex: DicomGenderEnum.O,
                     patientName: patientName
-                }
+                },
+                parameters,
+                availableDicomTags,
 
             );
 

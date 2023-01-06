@@ -95,6 +95,15 @@ export default class DicomFile {
         }
     }
 
+    _dicomTagIsDefined(tag) {
+        const element = this.dataSet.elements['x' + tag]
+        if (element !== undefined && element.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     async readDicomFile() {
         const reader = await this.__pFileReader(this.fileObject);
 
@@ -116,11 +125,15 @@ export default class DicomFile {
         this.seriesInstanceUID = this.getSeriesInstanceUID()
 
         const modality = this.getModality();
+
         this.parsedParameters = new Map();
         this.parsedParameters.set('Modality', modality);
         this.parsedParameters.set('SeriesMetaParameter', [])
         this.parsedParameters.set('BurnedInAnnotation', this.getBurnedInAnnotationTag());
         this.parsedParameters.set('IdentityRemoved', this.getIdentityRemovedTag());
+
+        this.availableDicomTags = new Map();
+        this.availableDicomTags.set('EncryptedAttributesSequence', this._dicomTagIsDefined('04000500'));
 
         switch (modality) {
             case "RTSTRUCT":
@@ -712,13 +725,25 @@ export default class DicomFile {
     }
 
     getDicomSeriesObject() {
+
         const patientData = {
             patientID: this.getPatientID(),
             patientName: this.getPatientName(),
             patientBirthDate: this.getPatientBirthDate(),
             patientSex: this.getPatientSex(),
         }
-        return new DicomSeries(this.getSeriesInstanceUID(), this.getSeriesDate(), this.getSeriesDescription(), this.getModality(), this.getStudyInstanceUID(), this.parsedParameters, patientData);
+
+        const seriesDetails = {
+            seriesInstanceUID: this.getSeriesInstanceUID(),
+            seriesDate: this.getSeriesDate(),
+            seriesDescription: this.getSeriesDescription(),
+            modality: this.getModality(),
+            studyInstanceUID: this.getStudyInstanceUID(),
+
+        }
+
+        // return new DicomSeries(this.getSeriesInstanceUID(), this.getSeriesDate(), this.getSeriesDescription(), this.getModality(), this.getStudyInstanceUID(), this.parsedParameters, patientData);
+        return new DicomSeries(seriesDetails, patientData, this.parsedParameters, this.availableDicomTags);
     }
 
     getDicomInstanceObject() {

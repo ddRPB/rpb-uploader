@@ -44,6 +44,15 @@ describe('DeIdentificationCheckHelper', () => {
         patientData.patientSex = patientSex;
         patientData.patientName = patientName;
 
+        const seriesDetails = {
+            seriesInstanceUID,
+            seriesDate,
+            seriesDescription,
+            modality,
+            studyInstanceUID,
+        }
+
+        const availableDicomTags = new Map();
 
         const parameters = new Map();
         parameters.set('BurnedInAnnotation', new Set(''));
@@ -51,20 +60,15 @@ describe('DeIdentificationCheckHelper', () => {
 
 
         const firstDicomSeries = new DicomSeries(
-            seriesInstanceUID,
-            seriesDate,
-            seriesDescription,
-            modality,
-            studyInstanceUID,
-            parameters,
+            seriesDetails,
             patientData,
+            parameters,
+            availableDicomTags
         );
 
         const deIdentificationCheckConfiguration = {
             [DeIdentificationCheckTypes.BURNED_IN_ANNOTATION_IS_YES]: true,
             [DeIdentificationCheckTypes.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES]: true,
-
-
         }
 
         test('Burned In Annotation is not set', () => {
@@ -77,13 +81,10 @@ describe('DeIdentificationCheckHelper', () => {
             parametersTwo.set('BurnedInAnnotation', new Set(['NO']));
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parametersTwo,
+                seriesDetails,
                 patientData,
+                parameters,
+                availableDicomTags,
             );
 
             const result = deIdentificationCheckHelper.evaluateSeries({ seriesInstanceUID: secondDicomSeries }, deIdentificationCheckConfiguration);
@@ -95,13 +96,10 @@ describe('DeIdentificationCheckHelper', () => {
             parametersTwo.set('BurnedInAnnotation', 'YES');
 
             const secondDicomSeries = new DicomSeries(
-                seriesInstanceUID,
-                seriesDate,
-                seriesDescription,
-                modality,
-                studyInstanceUID,
-                parametersTwo,
+                seriesDetails,
                 patientData,
+                parametersTwo,
+                availableDicomTags,
             );
 
             const result = deIdentificationCheckHelper.evaluateSeries({ seriesInstanceUID: secondDicomSeries }, deIdentificationCheckConfiguration);
