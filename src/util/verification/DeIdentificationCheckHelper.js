@@ -17,8 +17,10 @@
  * 
  */
 
+import DeIdentificationCheckMessages from "../../constants/deIdentificationConfigurationCheck/DeIdentificationCheckMessages";
 import DeIdentificationCheckTypes from "../../constants/deIdentificationConfigurationCheck/DeIdentificationCheckTypes";
 import DeIdentificationConfigurationCheckResults from "../../constants/deIdentificationConfigurationCheck/DeIdentificationConfigurationCheckResults";
+import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
 import LogLevels from "../../constants/LogLevels";
 import SanityCheckSeverity from "../../constants/sanityCheck/SanityCheckSeverity";
 import Logger from "../logging/Logger";
@@ -32,8 +34,8 @@ import EvaluationResultItem from "./EvaluationResultItem";
  */
 export default class DeIdentificationCheckHelper {
 
-    constructor(uploadSlotDefinition, log = new Logger(LogLevels.FATAL)) {
-        this.uploadSlotDefinition = uploadSlotDefinition;
+    constructor(config = { deIdentificationProfileOption: [] }, log = new Logger(LogLevels.FATAL)) {
+        this.config = config;
         this.log = log;
     }
 
@@ -47,17 +49,33 @@ export default class DeIdentificationCheckHelper {
 
         // collecting parameter in sets - because all selected DicomSeries will be handled togehter
         let burnedInAnnotation = new Set();
+        let identityRemoved = new Set();
+        let hasEncryptedAttributes = false;
 
         for (let key of Object.keys(series)) {
             const seriesObject = series[key];
             const seriesBurnedInAnnotation = seriesObject.burnedInAnnotation;
+            const seriesIdentityRemoved = seriesObject.identityRemoved;
             burnedInAnnotation = new Set([...burnedInAnnotation, ...seriesBurnedInAnnotation]);
+            identityRemoved = new Set([...identityRemoved, ...seriesIdentityRemoved]);
+
+            const availableDicomTags = seriesObject.availableDicomTags;
+            // true is dominant
+            hasEncryptedAttributes = (hasEncryptedAttributes || availableDicomTags.get('EncryptedAttributesSequence'));
 
         }
 
         // start evaluating if configuration parameter is true
         if (deIdentificationCheckConfiguration[DeIdentificationCheckTypes.BURNED_IN_ANNOTATION_IS_YES] === true) {
             this.verifyBurnedInAnnotation(burnedInAnnotation, results);
+        }
+
+        if (deIdentificationCheckConfiguration[DeIdentificationCheckTypes.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES] === true) {
+            this.verifyEncryptedDateInPropertiesIfPatientIdentityWillBeRemoved(
+                identityRemoved,
+                hasEncryptedAttributes,
+                results,
+            );
         }
 
         return results;
@@ -67,11 +85,31 @@ export default class DeIdentificationCheckHelper {
     verifyBurnedInAnnotation(burnedInAnnotation, results) {
         if (burnedInAnnotation.has('YES')) {
             results.push(new EvaluationResultItem(
-                DeIdentificationCheckTypes.BURNED_IN_ANNOTATION_IS_YES,
+                DeIdentificationCheckMessages.BURNED_IN_ANNOTATION_IS_YES,
                 DeIdentificationConfigurationCheckResults.BURNED_IN_ANNOTATION_IS_YES,
                 `Burned In Annotation tag is "YES" -> image contains burned in annotation - the uploader canot clean that`,
                 SanityCheckSeverity.WARNING
             ));
         }
+    }
+
+    verifyEncryptedDateInPropertiesIfPatientIdentityWillBeRemoved(
+        identityRemoved,
+        hasEncryptedAttributes,
+        results,
+    ) {
+        // Currenty, we simply just always removing the identity and within the RPB Profile the encrypted sequence will be removed
+
+        if (hasEncryptedAttributes === true && this.config.deIdentificationProfileOption.includes(DeIdentificationProfiles.RPB_PROFILE)) {
+            results.push(new EvaluationResultItem(
+                DeIdentificationCheckMessages.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES,
+                DeIdentificationConfigurationCheckResults.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES,
+                `Encrypted Attributes will be removed, because there is no need to store it in the RPB infrastructure.`,
+                SanityCheckSeverity.WARNING
+            ));
+        }
+
+
+        return;
     }
 }

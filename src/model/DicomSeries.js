@@ -58,6 +58,8 @@ export default class DicomSeries {
 
         this.burnedInAnnotation = new Set([...this.burnedInAnnotation, ...seriesObject.burnedInAnnotation]);
         this.identityRemoved = new Set([...this.identityRemoved, ...seriesObject.identityRemoved]);
+
+
     }
 
     getSeriesInstanceUID() {

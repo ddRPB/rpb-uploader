@@ -496,7 +496,7 @@ class Uploader extends Component {
             return;
         }
 
-        const deIdentificationCheckHelper = new DeIdentificationCheckHelper();
+        const deIdentificationCheckHelper = new DeIdentificationCheckHelper(this.config, this.log);
         const deIdentificationCheckResultsPerSeries = new Map();
         let deIdentificationCheckResults = [];
 
@@ -572,7 +572,7 @@ class Uploader extends Component {
         const sanityCheckResultsPerSeries = new Map();
 
         const deIdentificationCheckResultsPerSeries = new Map();
-        const deIdentificationCheckHelper = new DeIdentificationCheckHelper();
+        const deIdentificationCheckHelper = new DeIdentificationCheckHelper(this.config, this.log);
         const deIdentificationCheckResults = deIdentificationCheckHelper.evaluateSeries(series, this.state.deIdentificationCheckConfiguration)
 
         if (series != undefined) {
@@ -619,7 +619,7 @@ class Uploader extends Component {
 
         const sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(selectedSeriesObjects, this.state.sanityCheckConfiguration);
 
-        const deIdentificationCheckHelper = new DeIdentificationCheckHelper();
+        const deIdentificationCheckHelper = new DeIdentificationCheckHelper(this.config, this.log);
         const deIdentificationCheckResults = deIdentificationCheckHelper.evaluateSeries(selectedSeriesObjects, this.state.deIdentificationCheckConfiguration);
 
         this.setState({
