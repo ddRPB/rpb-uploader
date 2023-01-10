@@ -35,12 +35,12 @@ export default class SanityCheckResultsPanel extends Component {
 
         sanityCheckResults.forEach((evaluationResultItem, index) => {
             rows.push({
-                key: index + 1,
                 title: evaluationResultItem.title,
                 category: evaluationResultItem.category,
                 message: evaluationResultItem.message,
                 severity: evaluationResultItem.severity,
-                ignore: evaluationResultItem.ignore
+                ignore: evaluationResultItem.ignore,
+                type: 'sanity-check',
             })
         })
 
@@ -53,16 +53,22 @@ export default class SanityCheckResultsPanel extends Component {
 
         deIdentificationCheckResults.forEach((evaluationResultItem, index) => {
             rows.push({
-                key: index + 1,
                 title: evaluationResultItem.title,
                 category: evaluationResultItem.category,
                 message: evaluationResultItem.message,
                 severity: evaluationResultItem.severity,
-                ignore: evaluationResultItem.ignore
+                ignore: evaluationResultItem.ignore,
+                type: 'de-identification-check',
             })
         })
 
         return rows
+    }
+
+    createCombinedRows() {
+        const sanityCheckResultRows = this.createSanityCheckResultRows();
+        const deIdentificationResultRows = this.createDeIdentificationCheckResultRows();
+        return sanityCheckResultRows.concat(deIdentificationResultRows);
     }
 
     /**
@@ -119,6 +125,17 @@ export default class SanityCheckResultsPanel extends Component {
         return null;
     }
 
+    /**
+     * Provides the action template, based on the type
+     */
+    getCommandActionTemplate(node, column) {
+        if (node.type === 'sanity-check') {
+            return this.sanityCheckResultCommandsActionTemplate(node, column);
+        } else {
+            return this.deIdentificationCheckResultCommandsActionTemplate(node, column);
+        }
+    }
+
 
     /**
         * Render header
@@ -141,34 +158,15 @@ export default class SanityCheckResultsPanel extends Component {
                 header={this.renderHeader()}
                 visible={this.props.display}
                 onHide={this.props.closeListener}
-                style={{ width: '50vw' }}
+                style={{ width: '50vw', height: '50vw' }}
             >
                 <DataTable
-                    value={this.createSanityCheckResultRows()}
-                    paginator responsiveLayout="scroll"
-                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                    paginatorClassName="text-sm"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" rows={10} rowsPerPageOptions={[10, 20, 50]}
-
+                    size="small"
+                    value={this.createCombinedRows()}
                 >
-                    <Column className="text-sm" field="key" header="" />
-                    <Column className="text-sm" field="message" header="Message" />
-                    <Column className="text-sm" columnKey="Disable" header="Commands" body={this.sanityCheckResultCommandsActionTemplate.bind(this)} />
+                    <Column className="text-sm" field="message" sortable header="Message" />
+                    <Column className="text-sm" columnKey="Disable" header="Commands" body={this.getCommandActionTemplate.bind(this)} />
                 </DataTable>
-
-                <DataTable
-                    value={this.createDeIdentificationCheckResultRows()}
-                    paginator responsiveLayout="scroll"
-                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                    paginatorClassName="text-sm"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" rows={10} rowsPerPageOptions={[10, 20, 50]}
-
-                >
-                    <Column className="text-sm" field="key" header="" />
-                    <Column className="text-sm" field="message" header="Message" />
-                    <Column className="text-sm" columnKey="Disable" header="Commands" body={this.deIdentificationCheckResultCommandsActionTemplate.bind(this)} />
-                </DataTable>
-
                 <ScrollTop />
             </Dialog>
         )

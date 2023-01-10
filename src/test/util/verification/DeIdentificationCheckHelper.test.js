@@ -17,6 +17,7 @@
  * 
  */
 
+import DeIdentificationCheckMessages from "../../../constants/deIdentificationConfigurationCheck/DeIdentificationCheckMessages";
 import DeIdentificationCheckTypes from "../../../constants/deIdentificationConfigurationCheck/DeIdentificationCheckTypes";
 import DeIdentificationProfiles from "../../../constants/DeIdentificationProfiles";
 import Modalities from '../../../constants/Modalities';
@@ -117,7 +118,7 @@ describe('DeIdentificationCheckHelper', () => {
 
             const result = deIdentificationCheckHelper.evaluateSeries({ seriesInstanceUID: secondDicomSeries }, deIdentificationCheckConfiguration);
             expect(result.length).toBe(1);
-            expect(result[0].title).toBe(DeIdentificationCheckTypes.BURNED_IN_ANNOTATION_IS_YES);
+            expect(result[0].title).toBe(DeIdentificationCheckMessages.BURNED_IN_ANNOTATION_IS_YES);
         });
     });
 
@@ -143,7 +144,7 @@ describe('DeIdentificationCheckHelper', () => {
 
             const result = deIdentificationCheckHelper.evaluateSeries({ seriesInstanceUID: secondDicomSeries }, deIdentificationCheckConfiguration);
             expect(result.length).toBe(1);
-            expect(result[0].title).toBe(DeIdentificationCheckTypes.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES);
+            expect(result[0].title).toBe(DeIdentificationCheckMessages.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES);
         })
     });
 

@@ -20,14 +20,15 @@
 // React
 import React, { Component } from 'react';
 // Primereact
+import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { InputSwitch } from 'primereact/inputswitch';
+import { Menu } from 'primereact/menu';
 import { TabPanel, TabView } from 'primereact/tabview';
 import styledComponents from 'styled-components';
 import SanityCheckTypesUINames from './../constants/sanityCheck/SanityCheckTypeUINames';
-import { ScrollPanel } from 'primereact/scrollpanel';
 
 export default class SettingsDialog extends Component {
 
@@ -38,20 +39,6 @@ export default class SettingsDialog extends Component {
                 const config = {};
                 config.name = configKey;
                 config.realName = SanityCheckTypesUINames[configKey];
-                config.value = this.props.sanityCheckConfiguration[configKey];
-                configs.push({ ...config })
-            }
-
-        }
-        return Array.from(configs)
-    }
-
-    buildReplacementValuesRows() {
-        let configs = []
-        for (let configKey of Object.keys(this.props.sanityCheckConfiguration)) {
-            if (configKey.toString().startsWith('replacement')) {
-                const config = {};
-                config.name = configKey;
                 config.value = this.props.sanityCheckConfiguration[configKey];
                 configs.push({ ...config })
             }
@@ -123,19 +110,19 @@ export default class SettingsDialog extends Component {
         )
     }
 
+    resetAll() {
+        this.props.resetAll();
+    }
+
 
     /**
     * Render the component
     */
     render = () => {
 
-        const sanityCheckConfigurationParameterTableHeader = (
-            <div className="table-header">
-                Sanity Check Configuration Parameter
-            </div>
-        );
+        const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
-        const replacementValuesTableHeader = (
+        const sanityCheckConfigurationParameterTableHeader = (
             <div className="table-header">
                 Sanity Check Configuration Parameter
             </div>
@@ -147,6 +134,13 @@ export default class SettingsDialog extends Component {
             </div>
         );
 
+        const factoryTabItems = [
+            {
+                label: "Reset",
+                icon: "pi pi-refresh",
+                iconPos: "right",
+                command: () => { this.resetAll(); }
+            }]
 
         const StyledDataTablediv = styledComponents.div`.p-datatable .p-datatable-tbody tr td {padding: 5px 5px; }`;
 
@@ -158,10 +152,11 @@ export default class SettingsDialog extends Component {
                 style={{ width: '50vw', height: '50vw' }}
             >
 
+
                 <TabView
                     scrollable="true"
                 >
-                    <TabPanel header="Sanity Check Configuration">
+                    <TabPanel header="Sanity Check">
                         <StyledDataTablediv>
                             <DataTable
                                 value={this.buildSanityConfigurationCheckRows()}
@@ -175,20 +170,8 @@ export default class SettingsDialog extends Component {
                         </StyledDataTablediv>
 
                     </TabPanel>
-                    <TabPanel header="ReplacementValues">
-                        <StyledDataTablediv>
-                            <DataTable
-                                value={this.buildReplacementValuesRows()}
-                                dataKey="name"
-                                header={replacementValuesTableHeader}
-                            >
-                                <Column field="name" header="Parameter" className="text-sm" sortable />
-                                <Column field="value" header="Value" className="text-sm" />
 
-                            </DataTable>
-                        </StyledDataTablediv>
-                    </TabPanel>
-                    <TabPanel header="De-Identification Check Configuration">
+                    <TabPanel header="De-Identification Check">
                         <StyledDataTablediv>
                             <DataTable
                                 value={this.buildDeIdentificationCheckRows()}
@@ -201,6 +184,17 @@ export default class SettingsDialog extends Component {
                             </DataTable>
                         </StyledDataTablediv>
                     </TabPanel>
+                    <TabPanel header="Factory">
+                        <Menu model={factoryTabItems} />
+                        {/* <StyledButton
+                            className={"pr-3 p-button-secondary"}
+                            label="Reset"
+                            icon="pi pi-refresh"
+                            iconPos="right"
+                            onClick={this.props.resetAll}
+                        /> */}
+                    </TabPanel>
+
                 </TabView>
 
             </Dialog>

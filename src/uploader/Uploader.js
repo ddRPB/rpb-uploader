@@ -128,8 +128,8 @@ class Uploader extends Component {
         return {
             replacementDates: ['19000101'],
             replacementGenderValues: [DicomGenderEnum.O],
-            [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: true,
-            [SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT]: true,
+            [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: false,
+            [SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT]: false,
             [SanityCheckTypes.PATIENT_ID_IS_CONSISTENT]: true,
             [SanityCheckTypes.PATIENT_BIRTH_DATE_IS_CONSISTENT]: true,
             [SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT]: true,
@@ -143,7 +143,7 @@ class Uploader extends Component {
     createDefaultDeIdentificationCheckConfiguration() {
         return {
             [DeIdentificationCheckTypes.BURNED_IN_ANNOTATION_IS_YES]: true,
-            [DeIdentificationCheckTypes.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES]: true,
+            [DeIdentificationCheckTypes.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES]: false,
 
         }
     }

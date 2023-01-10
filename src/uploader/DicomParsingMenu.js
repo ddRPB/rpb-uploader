@@ -22,7 +22,6 @@ import React, { Component } from 'react';
 // Primereact
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
-import { SplitButton } from 'primereact/splitbutton';
 import { Toolbar } from 'primereact/toolbar';
 // Styled Component
 import styledComponents from 'styled-components';
@@ -73,6 +72,9 @@ export default class DicomParsingMenu extends Component {
         ];
     }
 
+    resetAll() {
+        this.props.resetAll();
+    }
 
     /**
      * Render the component
@@ -80,31 +82,21 @@ export default class DicomParsingMenu extends Component {
     render = () => {
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
-        const StyledSplitButton = styledComponents(SplitButton)`{ width: 135px }`;
 
         return (
             <React.Fragment>
+
                 <Toolbar
                     model={[{}]}
                     left={
                         <React.Fragment>
-                            <StyledSplitButton label="Commands" className="p-button-secondary" model={this.createSplitButtonItems()} />
-                            {/* <StyledButton
-                                className={"pr-3 p-button-secondary"}
-                                label="Reset"
-                                icon="pi pi-refresh"
-                                iconPos="right"
-                                onClick={this.props.resetAll}
-
-                            />
                             <StyledButton
                                 className={"pr-3 p-button-secondary"}
                                 label="Setup"
                                 icon="pi pi-sliders-h"
                                 iconPos="right"
                                 onClick={this.toggleSettingsDialog}
-
-                            /> */}
+                            />
                             <StyledButton
                                 type="button"
                                 label="Loaded:"
@@ -169,7 +161,7 @@ export default class DicomParsingMenu extends Component {
                                 icon="pi pi-exclamation-triangle"
                                 iconPos="right"
                                 className='p-button-warning'
-                                hidden={this.props.sanityCheckResults.length === 0}
+                                hidden={this.props.sanityCheckResults.length === 0 && this.props.deIdentificationCheckResults.length === 0}
                             />
                             <StyledButton
                                 label="Upload"
@@ -178,7 +170,9 @@ export default class DicomParsingMenu extends Component {
                                 icon="pi pi-cloud-upload"
                                 iconPos="right"
                                 className='p-button-success'
-                                hidden={this.props.uploadApiKey === null}
+                                hidden={
+                                    this.props.uploadApiKey === null || this.props.sanityCheckResults.length > 0 || this.props.deIdentificationCheckResults.length > 0
+                                }
                             />
                         </React.Fragment>
 
@@ -212,6 +206,7 @@ export default class DicomParsingMenu extends Component {
                     updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
                     deIdentificationCheckConfiguration={this.props.deIdentificationCheckConfiguration}
                     updateDeIdentificationCheckConfiguration={this.props.updateDeIdentificationCheckConfiguration}
+                    resetAll={this.props.resetAll}
                 />
 
             </React.Fragment >
