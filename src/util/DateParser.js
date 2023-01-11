@@ -69,7 +69,7 @@ function parseDicomFormattedDates(dateString) {
     const dicomFormattedDateRegex = /(?<year>[0-9]{4})(?<month>[0-9]{2})(?<day>[0-9]{2})/
 
     if (dateString.match(dicomFormattedDateRegex) === null) {
-        throw `Can not read \'${dateString}\' as date. Expect \'yyyyMMdd\' format.`
+        throw `Can not read \'${dateString}\' as date. Expect \'yyyyMMdd\' format.`;
     }
 
     const convertDate = dateString =>
@@ -79,5 +79,44 @@ function parseDicomFormattedDates(dateString) {
 
 }
 
-export { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates };
+function convertToDicomDateFormatedString(dateString) {
+    if (dateString === undefined || dateString === null) {
+        throw `Can not read \'${dateString}\' as date.`;
+    }
+
+    if (dateString === '') {
+        throw `Can not read \'${dateString}\' as date.`;
+    }
+
+    const dicomFormattedDateRegex = /(?<year>[0-9]{4})(?<month>[0-9]{2})(?<day>[0-9]{2})/;
+    if (dateString.match(dicomFormattedDateRegex) != null) {
+        return dateString;
+    }
+
+    const ocFormattedDateRegex = /(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/
+    if (dateString.toString().match(ocFormattedDateRegex) != null) {
+        return dateString.replace(ocFormattedDateRegex, "$<year>$<month>$<day>");
+    }
+
+    const rpbFormattedDateRegex = /(?<day>[0-9]{2}).(?<month>[0-9]{2}).(?<year>[0-9]{4})/
+    if (dateString.toString().match(rpbFormattedDateRegex) != null) {
+        return dateString.replace(rpbFormattedDateRegex, "$<year>$<month>$<day>");
+    }
+
+}
+
+function convertDicomDateStringToYear(dateString) {
+    if (dateString === undefined || dateString === null) {
+        throw `Can not read \'${dateString}\' as DICOM date.`;
+    }
+
+    const dicomFormattedDateRegex = /(?<year>[0-9]{4})(?<month>[0-9]{2})(?<day>[0-9]{2})/;
+    if (dateString.match(dicomFormattedDateRegex) != null) {
+        return dateString.replace(dicomFormattedDateRegex, "$<year>");
+    }
+
+    throw `Can not read \'${dateString}\' as DICOM date.`;
+}
+
+export { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates, convertToDicomDateFormatedString, convertDicomDateStringToYear };
 

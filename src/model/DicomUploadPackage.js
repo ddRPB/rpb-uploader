@@ -34,7 +34,7 @@ export default class DicomUploadPackage {
     /**
      * Facade to handle the upload data and the different steps during the upload process.
      */
-    constructor(uploadSlot, logger, config) {
+    constructor(uploadSlot, logger = new Logger(LogLevels.FATAL), config = { chunkSize: 5, deIdentificationProfileOption: [] }) {
 
         this.setUploadSlotProperty(uploadSlot);
 
@@ -63,8 +63,6 @@ export default class DicomUploadPackage {
         this.deIdentificationConfiguration = configFactory.getConfiguration();
 
         this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);
-
-
 
         this.bindFunctionsToContext();
 
@@ -110,6 +108,10 @@ export default class DicomUploadPackage {
         } else {
             this.uploadSlot = {};
         }
+    }
+
+    getSelectedSeries() {
+        return this.selectedSeriesObjects;
     }
 
     setSelectedSeries(selectedSeriesObjects) {

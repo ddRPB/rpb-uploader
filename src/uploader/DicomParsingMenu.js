@@ -27,6 +27,8 @@ import { Toolbar } from 'primereact/toolbar';
 import styledComponents from 'styled-components';
 // Custom GUI components
 import IgnoredFilesPanel from './IgnoredFilesPanel';
+import SanityCheckResultsPanel from './SanityCheckResultsPanel';
+import SettingsDialog from './SettingsDialog';
 
 /**
  * DicomParsingDetails component
@@ -34,11 +36,44 @@ import IgnoredFilesPanel from './IgnoredFilesPanel';
 export default class DicomParsingMenu extends Component {
 
     state = {
-        showIgnoredFiles: false
+        showIgnoredFiles: false,
+        showSanityCheckResultsPanel: false,
+        showSettingsDialog: false,
     }
 
     toggleShowIgnoredFile = () => {
         this.setState((state) => { return { showIgnoredFiles: !state.showIgnoredFiles } })
+    }
+
+    toggleSanityCheckResultsPanel = () => {
+        this.setState((state) => { return { showSanityCheckResultsPanel: !state.showSanityCheckResultsPanel } })
+    }
+
+    toggleSettingsDialog = () => {
+        this.setState((state) => { return { showSettingsDialog: !state.showSettingsDialog } })
+    }
+
+    createSplitButtonItems() {
+        return [
+            {
+                label: 'Setup',
+                icon: 'pi pi-sliders-h',
+                command: (e) => {
+                    this.toggleSettingsDialog();
+                }
+            },
+            {
+                label: 'Reset',
+                icon: 'pi pi-refresh',
+                command: (e) => {
+                    this.props.resetAll();
+                }
+            },
+        ];
+    }
+
+    resetAll() {
+        this.props.resetAll();
     }
 
     /**
@@ -50,11 +85,18 @@ export default class DicomParsingMenu extends Component {
 
         return (
             <React.Fragment>
+
                 <Toolbar
                     model={[{}]}
                     left={
                         <React.Fragment>
-                            <StyledButton className={"pr-3 p-button-secondary"} label="Reset" icon="pi pi-refresh" iconPos="right" onClick={this.props.resetAll} />
+                            <StyledButton
+                                className={"pr-3 p-button-secondary"}
+                                label="Setup"
+                                icon="pi pi-sliders-h"
+                                iconPos="right"
+                                onClick={this.toggleSettingsDialog}
+                            />
                             <StyledButton
                                 type="button"
                                 label="Loaded:"
@@ -80,7 +122,8 @@ export default class DicomParsingMenu extends Component {
                             </StyledButton>
                             <StyledButton
                                 type="button"
-                                label="Ignored:" className={this.props.ignoredFilesCount === 0 ? "p-button-outlined p-button-warning" : "p-button-warning"} style={{ "width": "135px" }}
+                                label="Ignored:"
+                                className={this.props.ignoredFilesCount === 0 ? "p-button-outlined p-button-warning" : "p-button-warning"} style={{ "width": "135px" }}
                                 onClick={this.toggleShowIgnoredFile}
                             >
                                 <Badge
@@ -91,17 +134,19 @@ export default class DicomParsingMenu extends Component {
                             <StyledButton
                                 type="button"
                                 label="Selected:"
-                                className={"p-button-outlined p-button-secondary"}
-                                disabled={true}
+                                className="p-button-outlined p-button-secondary"
+                                onClick={this.toggleSanityCheckResultsPanel}
+
                             >
                                 <Badge
                                     className="text-900"
                                     value={this.props.selectedDicomFiles.length}
                                 />
+
                             </StyledButton>
                         </React.Fragment>}
                     right={
-                        <React.Fragment>
+                        < React.Fragment >
                             <StyledButton
                                 label="Connect"
                                 onClick={this.props.getServerUploadParameter}
@@ -111,25 +156,57 @@ export default class DicomParsingMenu extends Component {
                                 hidden={this.props.uploadApiKey != null}
                             />
                             <StyledButton
+                                label="Issues"
+                                onClick={this.toggleSanityCheckResultsPanel}
+                                icon="pi pi-exclamation-triangle"
+                                iconPos="right"
+                                className='p-button-warning'
+                                hidden={this.props.sanityCheckResults.length === 0 && this.props.deIdentificationCheckResults.length === 0}
+                            />
+                            <StyledButton
                                 label="Upload"
                                 disabled={Object.keys(this.props.selectedNodeKeys).length === 0}
                                 onClick={this.props.submitUploadPackage}
                                 icon="pi pi-cloud-upload"
                                 iconPos="right"
                                 className='p-button-success'
-                                hidden={this.props.uploadApiKey === null}
+                                hidden={
+                                    this.props.uploadApiKey === null || this.props.sanityCheckResults.length > 0 || this.props.deIdentificationCheckResults.length > 0
+                                }
                             />
                         </React.Fragment>
 
                     }
                 >
-                </Toolbar>
+                </Toolbar >
                 <IgnoredFilesPanel
                     display={this.state.showIgnoredFiles}
                     closeListener={this.toggleShowIgnoredFile}
                     isParsingFiles={this.props.isParsingFiles}
                     ignoredFilesCount={this.props.ignoredFilesCount}
                     ignoredFilesDetails={this.props.ignoredFilesDetails}
+                />
+
+                <SanityCheckResultsPanel
+                    display={this.state.showSanityCheckResultsPanel}
+                    closeListener={this.toggleSanityCheckResultsPanel}
+                    sanityCheckConfiguration={this.props.sanityCheckConfiguration}
+                    sanityCheckResults={this.props.sanityCheckResults}
+                    updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
+                    deIdentificationCheckResults={this.props.deIdentificationCheckResults}
+                    deIdentificationCheckResultsPerSeries={this.props.deIdentificationCheckResultsPerSeries}
+                    deIdentificationCheckConfiguration={this.props.deIdentificationCheckConfiguration}
+                    updateDeIdentificationCheckConfiguration={this.props.updateDeIdentificationCheckConfiguration}
+                />
+
+                <SettingsDialog
+                    display={this.state.showSettingsDialog}
+                    closeListener={this.toggleSettingsDialog}
+                    sanityCheckConfiguration={this.props.sanityCheckConfiguration}
+                    updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
+                    deIdentificationCheckConfiguration={this.props.deIdentificationCheckConfiguration}
+                    updateDeIdentificationCheckConfiguration={this.props.updateDeIdentificationCheckConfiguration}
+                    resetAll={this.props.resetAll}
                 />
 
             </React.Fragment >

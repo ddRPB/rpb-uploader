@@ -33,7 +33,9 @@ export default class DicomUploadDictionary {
             this.data[studyObject.studyInstanceUID] = studyObject;
             return studyObject;
         } else {
-            return this.data[studyObject.studyInstanceUID];
+            const existingStudy = this.data[studyObject.studyInstanceUID];
+            existingStudy.addStudy(studyObject);
+            return existingStudy;
         }
     }
 

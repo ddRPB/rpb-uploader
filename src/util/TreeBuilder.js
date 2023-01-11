@@ -44,6 +44,21 @@ export default class TreeBuilder {
         node.data.studyInstanceUID = seriesObject.getStudyInstanceUID();
         node.data.instancesSize = seriesObject.getInstancesSize();
 
+        const patientBirthdate = seriesObject.patientBirthDate;
+        const patientID = seriesObject.patientID;
+        const patientName = seriesObject.patientName;
+        const patientSex = seriesObject.patientSex;
+
+        node.data.patientDetails = [];
+        node.data.patientDetails.push(this.getDetailsItem("ID", patientID));
+        node.data.patientDetails.push(this.getDetailsItem("Name", patientName));
+        node.data.patientDetails.push(this.getDetailsItem("Sex", patientSex));
+        node.data.patientDetails.push(this.getDetailsItem("Birth Date", patientBirthdate));
+
+        node.data.deIdentificationStatus = [];
+        node.data.deIdentificationStatus.push(this.getDetailsItem("BurnedInAnnotation", seriesObject.burnedInAnnotation));
+        node.data.deIdentificationStatus.push(this.getDetailsItem("IdentityRemoved", seriesObject.identityRemoved));
+
         return node;
     }
 
@@ -191,7 +206,8 @@ export default class TreeBuilder {
         for (let studyObject of this.dicomStudyArray) {
             let series = studyObject.getSeriesArray();
             for (let seriesObject of series) {
-                let modality = seriesObject.modality;
+                const modality = seriesObject.modality;
+
                 switch (modality) {
                     case "RTSTRUCT":
                         const struct = this.getBasicSeriesNode(seriesObject);

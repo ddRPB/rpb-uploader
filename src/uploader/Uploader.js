@@ -23,11 +23,16 @@ import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
 import { Component, Fragment } from 'react';
 import { toast } from 'react-toastify';
+import DicomGenderEnum from '../constants/dicomValueEnums/DicomGenderEnum';
 import DicomFile from '../model/DicomFile';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import DicomUidService from '../util/deidentification/DicomUidService';
 import TreeBuilder from '../util/TreeBuilder';
+import DeIdentificationCheckHelper from '../util/verification/DeIdentificationCheckHelper';
+import SanityCheckHelper from '../util/verification/SanityCheckHelper';
+import DeIdentificationCheckTypes from './../constants/deIdentificationConfigurationCheck/DeIdentificationCheckTypes';
+import SanityCheckTypes from './../constants/sanityCheck/SanityCheckTypes';
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
@@ -55,8 +60,14 @@ class Uploader extends Component {
         zipProgress: 0,
         ignoredFilesCount: 0,
         ignoredFilesDetails: [],
+        sanityCheckResults: [],
+        sanityCheckResultsPerSeries: new Map(),
+        sanityCheckConfiguration: this.createDefaultSanityCheckConfiguration(),
         isAnalysisDone: false,
         studyArray: [],
+        deIdentificationCheckResults: [],
+        deIdentificationCheckResultsPerSeries: new Map(),
+        deIdentificationCheckConfiguration: this.createDefaultDeIdentificationCheckConfiguration(),
         selectedNodeKeys: [],
         selectedDicomFiles: [],
         selectedStudy: null,
@@ -96,6 +107,7 @@ class Uploader extends Component {
 
         // configuration from the index.js
         this.config = this.props.config;
+
         // logger for the application
         this.log = this.props.log;
 
@@ -110,6 +122,30 @@ class Uploader extends Component {
         this.verifyPropsAndDownloadServerUploadParameter();
 
         this.ignoredFilesArray = [];
+    }
+
+    createDefaultSanityCheckConfiguration() {
+        return {
+            replacementDates: ['19000101'],
+            replacementGenderValues: [DicomGenderEnum.O],
+            [SanityCheckTypes.STUDY_DATE_IS_CONSISTENT]: false,
+            [SanityCheckTypes.STUDY_DESCRIPTION_IS_CONSISTENT]: false,
+            [SanityCheckTypes.PATIENT_ID_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_NAME_IS_CONSISTENT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
+            [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
+        };
+    }
+
+    createDefaultDeIdentificationCheckConfiguration() {
+        return {
+            [DeIdentificationCheckTypes.BURNED_IN_ANNOTATION_IS_YES]: true,
+            [DeIdentificationCheckTypes.ENCRYPTED_DATA_CHECK_IF_PATIENT_IDENTITY_REMOVED_IS_YES]: false,
+
+        }
     }
 
     /**
@@ -129,6 +165,8 @@ class Uploader extends Component {
         this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
         this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
         this.setStudyIsLinked = this.setStudyIsLinked.bind(this);
+        this.updateSanityCheckConfiguration = this.updateSanityCheckConfiguration.bind(this);
+        this.updateDeIdentificationCheckConfiguration = this.updateDeIdentificationCheckConfiguration.bind(this);
         this.generateLogFile = this.generateLogFile.bind(this);
         this.retrySubmitUploadPackage = this.retrySubmitUploadPackage.bind(this);
         this.getServerUploadParameter = this.getServerUploadParameter.bind(this);
@@ -282,7 +320,7 @@ class Uploader extends Component {
     }
 
     /**
-     * some parameters can`t be transfered within the URL - 
+     * Some parameters can`t be transfered within the URL - 
      * they will be requested from the RPB portal if the session is alive.
      */
     async getServerUploadParameter() {
@@ -401,6 +439,87 @@ class Uploader extends Component {
         this.setState({ studyIsLinked: value });
     }
 
+    /***
+     * Updates the sanity check configuration and the resulting sanity check results
+     */
+    updateSanityCheckConfiguration(sanityCheckConfiguration) {
+        // this.setState({ sanityCheckConfiguration: sanityCheckConfiguration });
+
+        const selectedSeries = this.dicomUploadPackage.getSelectedSeries();
+        let sanityCheckResults = [];
+
+        this.setState({
+            sanityCheckConfiguration: sanityCheckConfiguration,
+        });
+
+        if (this.state.selectedStudy === null) {
+            return;
+        }
+
+
+        if (selectedSeries.size > 0) {
+            sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(this.dicomUploadPackage.getSelectedSeries(), sanityCheckConfiguration);
+        } else { // no series selected yet -> use the selected study
+
+            this.sanityCheckHelper = new SanityCheckHelper(this.state.selectedStudy, this.createUploadSlotParameterObject(), sanityCheckConfiguration, this.log);
+            sanityCheckResults = this.sanityCheckHelper.getStudyAndUploadSlotEvaluationResults()
+        }
+
+        const sanityCheckResultsPerSeries = new Map();
+        const series = this.state.selectedStudy.series;
+
+        if (series != undefined) {
+            for (let seriesUid in series) {
+                const singleSeries = series[seriesUid];
+                const result = this.sanityCheckHelper.updateWithSeriesAnalysis({ [seriesUid]: singleSeries }, sanityCheckConfiguration);
+                sanityCheckResultsPerSeries.set(seriesUid, result);
+            }
+        }
+
+        this.setState({
+            // sanityCheckConfiguration: sanityCheckConfiguration,
+            sanityCheckResults: sanityCheckResults,
+            sanityCheckResultsPerSeries: sanityCheckResultsPerSeries,
+        });
+    }
+
+    /**
+     * Updates the de-identification-check configuration and the results of the check with respect to  the changed configuration.
+     */
+    updateDeIdentificationCheckConfiguration(deIdentificationCheckConfiguration) {
+
+        this.setState({
+            deIdentificationCheckConfiguration: deIdentificationCheckConfiguration,
+        });
+
+        if (this.state.selectedStudy === null) {
+            return;
+        }
+
+        const deIdentificationCheckHelper = new DeIdentificationCheckHelper(this.config, this.log);
+        const deIdentificationCheckResultsPerSeries = new Map();
+        let deIdentificationCheckResults = [];
+
+        const selectedSeries = this.dicomUploadPackage.getSelectedSeries();
+        if (selectedSeries.size > 0) {
+            deIdentificationCheckResults = deIdentificationCheckHelper.evaluateSeries(selectedSeries, deIdentificationCheckConfiguration);
+
+        } else {
+            deIdentificationCheckResults = deIdentificationCheckHelper.evaluateSeries(this.state.selectedStudy.series, deIdentificationCheckConfiguration);
+        }
+
+        for (let seriesUid in this.state.selectedStudy.series) {
+            const singleSeries = this.state.selectedStudy.series[seriesUid];
+            const deIdentificationCheckResult = deIdentificationCheckHelper.evaluateSeries({ [seriesUid]: singleSeries }, deIdentificationCheckConfiguration);
+            deIdentificationCheckResultsPerSeries.set(seriesUid, deIdentificationCheckResult);
+        }
+
+        this.setState({
+            deIdentificationCheckResults: deIdentificationCheckResults,
+            deIdentificationCheckResultsPerSeries: deIdentificationCheckResultsPerSeries,
+        })
+    }
+
     /**
      * Redirects the browser window to the landing page of the portal
      */
@@ -442,7 +561,41 @@ class Uploader extends Component {
      * Will be called in the DicomStudySelection component if a study has been selected.
      */
     selectStudy(e) {
-        this.setState({ selectedStudy: { ...e.value }, selectedNodeKeys: [], selectedDicomFiles: 0 });
+        if (e.value === null) {
+            // can happen if the user clicks several times on the UI dialog -> return to avoid null pointer exception
+            return;
+        }
+
+        this.sanityCheckHelper = new SanityCheckHelper(e.value, this.createUploadSlotParameterObject(), this.state.sanityCheckConfiguration, this.log);
+
+        const series = e.value.series;
+        const sanityCheckResultsPerSeries = new Map();
+
+        const deIdentificationCheckResultsPerSeries = new Map();
+        const deIdentificationCheckHelper = new DeIdentificationCheckHelper(this.config, this.log);
+        const deIdentificationCheckResults = deIdentificationCheckHelper.evaluateSeries(series, this.state.deIdentificationCheckConfiguration)
+
+        if (series != undefined) {
+            for (let seriesUid in series) {
+                const singleSeries = series[seriesUid];
+
+                const sanityCheckResult = this.sanityCheckHelper.updateWithSeriesAnalysis({ [seriesUid]: singleSeries }, this.state.sanityCheckConfiguration);
+                sanityCheckResultsPerSeries.set(seriesUid, sanityCheckResult);
+
+                const deIdentificationCheckResult = deIdentificationCheckHelper.evaluateSeries({ [seriesUid]: singleSeries }, this.state.deIdentificationCheckConfiguration);
+                deIdentificationCheckResultsPerSeries.set(seriesUid, deIdentificationCheckResult);
+            }
+        }
+
+        this.setState({
+            selectedStudy: { ...e.value },
+            selectedNodeKeys: [],
+            selectedDicomFiles: [],
+            sanityCheckResults: this.sanityCheckHelper.getStudyAndUploadSlotEvaluationResults(),
+            sanityCheckResultsPerSeries: sanityCheckResultsPerSeries,
+            deIdentificationCheckResults: deIdentificationCheckResults,
+            deIdentificationCheckResultsPerSeries: deIdentificationCheckResultsPerSeries,
+        });
     }
 
     /**
@@ -464,6 +617,18 @@ class Uploader extends Component {
         this.dicomUploadPackage.setStudyInstanceUID(selectedStudyUID);
         this.dicomUploadPackage.setSelectedSeries(selectedSeriesObjects);
 
+        const sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(selectedSeriesObjects, this.state.sanityCheckConfiguration);
+
+        const deIdentificationCheckHelper = new DeIdentificationCheckHelper(this.config, this.log);
+        const deIdentificationCheckResults = deIdentificationCheckHelper.evaluateSeries(selectedSeriesObjects, this.state.deIdentificationCheckConfiguration);
+
+        this.setState({
+            sanityCheckResults: sanityCheckResults,
+            deIdentificationCheckResults: deIdentificationCheckResults,
+        });
+
+
+
         this.log.trace(
             "Update DicomUploadPackage with selected nodes",
             {},
@@ -477,7 +642,7 @@ class Uploader extends Component {
     resetAll() {
         this.setState({ ...this.defaultState });
         this.dicomUploadDictionary = new DicomUploadDictionary();
-        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject());
+        this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log, this.config);
         this.ignoredFilesArray = [];
         this.log.trace("Reset Uploader component", {}, {});
     }
@@ -501,10 +666,10 @@ class Uploader extends Component {
      * Generates a log file and triggers a UIn dialog via browser that the user can save the file.
      */
     generateLogFile() {
-        let logs = this.log.getLogStore();
-        let currentDateTime = new Date();
+        const logs = this.log.getLogStore();
+        const currentDateTime = new Date();
 
-        let fileNameComponents = [
+        const fileNameComponents = [
             currentDateTime.getFullYear(),
             currentDateTime.getMonth(),
             currentDateTime.getDay(),
@@ -512,9 +677,9 @@ class Uploader extends Component {
             currentDateTime.getMinutes()
         ];
 
-        let fileName = fileNameComponents.join('-') + '-uploader-logs.json'
+        const fileName = fileNameComponents.join('-') + '-uploader-logs.json'
 
-        let content = JSON.stringify({
+        const content = JSON.stringify({
             date: currentDateTime.toISOString(),
             uploadSlot: {
                 siteIdentifier: this.props.siteIdentifier,
@@ -544,16 +709,16 @@ class Uploader extends Component {
 
         });
 
-        var blob1 = new Blob([content], { type: "application/json;charset=utf-8" });
+        const logFileBlob = new Blob([content], { type: "application/json;charset=utf-8" });
 
         //Check the Browser.
-        let isIE = false || !!document.documentMode;
+        const isIE = false || !!document.documentMode;
         if (isIE) {
-            window.navigator.msSaveBlob(blob1, fileName);
+            window.navigator.msSaveBlob(logFileBlob, fileName);
         } else {
-            let url = window.URL || window.webkitURL;
-            let link = url.createObjectURL(blob1);
-            let a = document.createElement("a");
+            const url = window.URL || window.webkitURL;
+            const link = url.createObjectURL(logFileBlob);
+            const a = document.createElement("a");
             a.download = fileName;
             a.href = link;
             document.body.appendChild(a);
@@ -848,7 +1013,6 @@ class Uploader extends Component {
 
             }
 
-
             await dicomFile.readDicomFile()
 
             // DicomDir do no register file
@@ -968,6 +1132,13 @@ class Uploader extends Component {
                         fileParsed={this.state.fileParsed}
                         ignoredFilesCount={this.state.ignoredFilesCount}
                         ignoredFilesDetails={this.state.ignoredFilesDetails}
+                        sanityCheckResults={this.state.sanityCheckResults}
+                        sanityCheckConfiguration={this.state.sanityCheckConfiguration}
+                        deIdentificationCheckResults={this.state.deIdentificationCheckResults}
+                        deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
+                        updateSanityCheckConfiguration={this.updateSanityCheckConfiguration}
+                        deIdentificationCheckConfiguration={this.state.deIdentificationCheckConfiguration}
+                        updateDeIdentificationCheckConfiguration={this.updateDeIdentificationCheckConfiguration}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
                         resetAll={this.resetAll}
@@ -983,6 +1154,7 @@ class Uploader extends Component {
                             studies={this.state.studyArray}
                             selectStudy={this.selectStudy}
                             selectedStudy={this.state.selectedStudy}
+                            uploadSlot={this.createUploadSlotParameterObject()}
                         />
                     </div>
 
@@ -1000,6 +1172,8 @@ class Uploader extends Component {
                                 seriesTree={"allRootTree"}
                                 selectNodes={this.selectNodes}
                                 selectedNodeKeys={this.state.selectedNodeKeys}
+                                sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
+                                deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
                             >
                             </TreeSelection>
                         </div>
@@ -1013,14 +1187,14 @@ class Uploader extends Component {
                                 seriesTree={"rtViewTree"}
                                 selectNodes={this.selectNodes}
                                 selectedNodeKeys={this.state.selectedNodeKeys}
+                                sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
+                                deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
                             >
                             </TreeSelection>
                         </div>
                     </div>
 
                     <ScrollTop />
-
-
 
                 </BlockUI>
 
