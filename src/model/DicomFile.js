@@ -135,6 +135,8 @@ export default class DicomFile {
         this.availableDicomTags = new Map();
         this.availableDicomTags.set('EncryptedAttributesSequence', this._dicomTagIsDefined('04000500'));
 
+        this.referencedSopInstanceUids = new Set();
+
         switch (modality) {
             case "RTSTRUCT":
                 this.parseRtStructProperties(this.dataSet.elements, this.parsedParameters);
@@ -324,6 +326,7 @@ export default class DicomFile {
 
                                                     contourMap.set("ReferencedSOPClassUID", this._getString(contourSequenceItem.dataSet.elements['x00081150']));
                                                     contourMap.set("ReferencedSOPInstanceUID", this._getString(contourSequenceItem.dataSet.elements['x00081155']));
+                                                    this.referencedSopInstanceUids.add(this._getString(contourSequenceItem.dataSet.elements['x00081155']));
 
                                                 }
                                             }
@@ -416,6 +419,7 @@ export default class DicomFile {
 
                         referencedStructureSetMap.set("ReferencedSOPClassUID", this._getString(referencedStructureSetItem.dataSet.elements['x00081150']));
                         referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedStructureSetItem.dataSet.elements['x00081155']));
+                        this.referencedSopInstanceUids.add(this._getString(referencedStructureSetItem.dataSet.elements['x00081155']));
                     }
                     break;
                 case "x300e0002":
@@ -493,6 +497,7 @@ export default class DicomFile {
 
                         referencedStructureSetMap.set("ReferencedSOPClassUID", this._getString(referencedRTPlanItem.dataSet.elements['x00081150']));
                         referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedRTPlanItem.dataSet.elements['x00081155']));
+                        this.referencedSopInstanceUids.add(this._getString(referencedRTPlanItem.dataSet.elements['x00081155']));
                     }
 
                     break;
@@ -565,6 +570,7 @@ export default class DicomFile {
 
                         referencedStructureSetMap.set("ReferencedSOPClassUID", this._getString(referencedRTPlanItem.dataSet.elements['x00081150']));
                         referencedStructureSetMap.set("ReferencedSOPInstanceUID", this._getString(referencedRTPlanItem.dataSet.elements['x00081155']));
+                        this.referencedSopInstanceUids.add(this._getString(referencedRTPlanItem.dataSet.elements['x00081155']));
                     }
 
                     break;
@@ -747,7 +753,13 @@ export default class DicomFile {
     }
 
     getDicomInstanceObject() {
-        return new DicomInstance(this.fileObject, this.getSOPInstanceUID())
+        const fileObjectDetails = {
+            sopInstanceUID: this.getSOPInstanceUID(),
+            referencedSopInstanceUids: this.referencedSopInstanceUids,
+        };
+
+        return new DicomInstance(this.fileObject, fileObjectDetails);
+
     }
 
 }
