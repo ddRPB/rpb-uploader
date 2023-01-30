@@ -18,7 +18,6 @@
  * 
  */
 
-import TreeNode from "../model/TreeNode";
 import TreeNodeFactory from "./treeHelper/TreeNodeFactory";
 
 export default class TreeBuilder {
@@ -106,7 +105,9 @@ export default class TreeBuilder {
                         this.rtPlans[refSOPUID].children.push(rTImage);
                         rTImage.addParentNode(this.rtPlans[refSOPUID]);
                     }
-                };
+                } else {
+                    // add to root
+                }
             }
         }
 
@@ -173,9 +174,60 @@ export default class TreeBuilder {
     buildVirtualNodesTree() {
         const seriesBasedTree = this.buildRTNodesTree();
 
+        const rTStructsAfterFirstSplit = [];
+        const rtPlansAfterFirstSplit = [];
+
+        for (let rtStructId in this.rTStructs) {
+            const rTStruct = this.rTStructs[rtStructId];
+            rTStructsAfterFirstSplit.push(...rTStruct.splitIfNodeHasTwoParents());
+        }
+
+        for (let rtPlanId in this.rtPlans) {
+            const rTPlan = this.rtPlans[rtPlanId];
+            rtPlansAfterFirstSplit.push(...rTPlan.splitIfNodeHasTwoParents());
+        }
+
         for (let doseId in this.rTDoses) {
             const rTDose = this.rTDoses[doseId];
+            rTDose.splitIfNodeHasTwoParents();
         }
+
+        for (let imageId in this.rTImages) {
+            const rTImage = this.rTImages[imageId];
+            rTImage.splitIfNodeHasTwoParents();
+        }
+
+        //
+
+        for (let rTStruct of rTStructsAfterFirstSplit) {
+            const parent = rTStruct.getParent();
+            const newNodes = rTStruct.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
+            if (newNodes.length > 1) {
+                parent.removeChildrenNode(rTStruct);
+                parent.children.push(...newNodes);
+            }
+        }
+
+        for (let rTPlan of rtPlansAfterFirstSplit) {
+            const parent = rTPlan.getParent();
+            const newNodes = rTPlan.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
+            if (newNodes.length > 1) {
+                parent.removeChildrenNode(rTPlan);
+                parent.children.push(...newNodes);
+            }
+        }
+
+        for (let ctId in this.cTs) {
+            const ctSeries = this.cTs[ctId];
+            const parent = ctSeries.getParent();
+            const newNodes = ctSeries.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
+            if (newNodes.length > 1) {
+                parent.removeChildrenNode(ctSeries);
+                parent.children.push(...newNodes);
+            }
+        }
+
+
 
         return seriesBasedTree;
     }

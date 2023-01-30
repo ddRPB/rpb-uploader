@@ -42,6 +42,7 @@ export default class TreeNodeFactory {
         treeNode.key = dicomSeries.getSeriesInstanceUID();
         treeNode.data.modality = dicomSeries.modality;
         treeNode.data.seriesInstanceUID = dicomSeries.getSeriesInstanceUID();
+        treeNode.seriesInstanceUID = dicomSeries.getSeriesInstanceUID();
         treeNode.data.seriesDate = dicomSeries.getSeriesDate();
         treeNode.data.seriesDescription = dicomSeries.getSeriesDescription();
         treeNode.data.SOPInstanceUID = dicomSeries.parameters.get("SOPInstanceUID");

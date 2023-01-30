@@ -952,7 +952,7 @@ class Uploader extends Component {
 
                 const treeBuilder = new TreeBuilder([studyObject]);
                 studyObject.key = studyObject.studyInstanceUID;
-                studyObject.rtViewTree = treeBuilder.build();
+                studyObject.rtViewTree = treeBuilder.buildRTNodesTree();
                 studyObject.allRootTree = treeBuilder.buildAllNodesChildrenOfRoot();
 
             }
