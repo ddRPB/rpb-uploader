@@ -21,12 +21,37 @@
 import TreeNodeFactory from "./treeHelper/TreeNodeFactory";
 
 export default class TreeBuilder {
-    rTStructs = {};
-    rtPlans = {};
-    rTDoses = {};
-    rTImages = {};
-    cTs = {};
-    otherSeries = {};
+    allRootChildrenNodes = {
+        rTStructs: {},
+        rtPlans: {},
+        rTDoses: {},
+        rTImages: {},
+        cTs: {},
+        otherSeries: {},
+        root: [],
+    };
+
+
+    rtViewNodes = {
+        rTStructs: {},
+        rtPlans: {},
+        rTDoses: {},
+        rTImages: {},
+        cTs: {},
+        otherSeries: {},
+        root: [],
+    };
+
+    rtViewVirtualSeriesNodes = {
+        rTStructs: {},
+        rtPlans: {},
+        rTDoses: {},
+        rTImages: {},
+        cTs: {},
+        otherSeries: {},
+        virtualSeriesNodes: new Map(),
+
+    };
 
     factory = new TreeNodeFactory();
 
@@ -44,39 +69,39 @@ export default class TreeBuilder {
      */
 
     buildAllNodesChildrenOfRoot() {
-        this.buildSeriesNodesMaps();
+        this.buildSeriesNodesMaps(this.allRootChildrenNodes);
 
         let result = {}
         result.root = [];
 
-        for (let otherSeriesId in this.otherSeries) {
-            const otherSeries = this.otherSeries[otherSeriesId];
+        for (let otherSeriesId in this.allRootChildrenNodes.otherSeries) {
+            const otherSeries = this.allRootChildrenNodes.otherSeries[otherSeriesId];
             result.root.push(otherSeries);
         }
 
-        for (let ctId in this.cTs) {
-            const ctSeries = this.cTs[ctId];
+        for (let ctId in this.allRootChildrenNodes.cTs) {
+            const ctSeries = this.allRootChildrenNodes.cTs[ctId];
             result.root.push(ctSeries);
         }
 
-        for (let rtStructId in this.rTStructs) {
-            const rTStruct = this.rTStructs[rtStructId];
+        for (let rtStructId in this.allRootChildrenNodes.rTStructs) {
+            const rTStruct = this.allRootChildrenNodes.rTStructs[rtStructId];
             result.root.push(rTStruct);
         }
 
-        for (let rtPlanId in this.rtPlans) {
-            const rTPlan = this.rtPlans[rtPlanId];
+        for (let rtPlanId in this.allRootChildrenNodes.rtPlans) {
+            const rTPlan = this.allRootChildrenNodes.rtPlans[rtPlanId];
             result.root.push(rTPlan);
         }
 
 
-        for (let imageId in this.rTImages) {
-            const rTImage = this.rTImages[imageId];
+        for (let imageId in this.allRootChildrenNodes.rTImages) {
+            const rTImage = this.allRootChildrenNodes.rTImages[imageId];
             result.root.push(rTImage);
         }
 
-        for (let doseId in this.rTDoses) {
-            const rTDose = this.rTDoses[doseId];
+        for (let doseId in this.allRootChildrenNodes.rTDoses) {
+            const rTDose = this.allRootChildrenNodes.rTDoses[doseId];
             result.root.push(rTDose);
         }
 
@@ -84,127 +109,169 @@ export default class TreeBuilder {
 
     }
 
-    buildRTNodesTree() {
-        this.buildSeriesNodesMaps();
+    buildRTNodesTree(base = this.rtViewNodes) {
+        this.buildSeriesNodesMaps(base);
 
-        this.result = {}
-        this.result.root = [];
+        let result = {
+            root: []
+        };
 
-        for (let ctId in this.cTs) {
-            const ctSeries = this.cTs[ctId];
-            this.result.root.push(ctSeries);
+        for (let ctId in base.cTs) {
+            const ctSeries = base.cTs[ctId];
+            result.root.push(ctSeries);
         }
 
-        for (let imageId in this.rTImages) {
-            const rTImage = this.rTImages[imageId];
+        for (let imageId in base.rTImages) {
+            const rTImage = base.rTImages[imageId];
             const refSequence = rTImage["ReferencedRTPlanSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                if ((this.rtPlans[refSOPUID]) !== undefined) {
-                    if (this.rtPlans[refSOPUID].children !== undefined) {
-                        this.rtPlans[refSOPUID].children.push(rTImage);
-                        rTImage.addParentNode(this.rtPlans[refSOPUID]);
+                if ((base.rtPlans[refSOPUID]) !== undefined) {
+                    if (base.rtPlans[refSOPUID].children !== undefined) {
+                        base.rtPlans[refSOPUID].children.push(rTImage);
+                        rTImage.addParentNode(base.rtPlans[refSOPUID]);
                     }
                 } else {
-                    // add to root
+                    result.root.push(rTImage);
                 }
             }
         }
 
-        for (let doseId in this.rTDoses) {
-            const rTDose = this.rTDoses[doseId];
+        for (let doseId in base.rTDoses) {
+            const rTDose = base.rTDoses[doseId];
             const refSequence = rTDose["ReferencedRTPlanSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                if ((this.rtPlans[refSOPUID]) !== undefined) {
-                    if (this.rtPlans[refSOPUID].children !== undefined) {
-                        this.rtPlans[refSOPUID].children.push(rTDose);
-                        rTDose.addParentNode(this.rtPlans[refSOPUID]);
+                if ((base.rtPlans[refSOPUID]) !== undefined) {
+                    if (base.rtPlans[refSOPUID].children !== undefined) {
+                        base.rtPlans[refSOPUID].children.push(rTDose);
+                        rTDose.addParentNode(base.rtPlans[refSOPUID]);
                     }
-                };
+                } else {
+                    result.root.push(rTDose);
+                }
             }
 
         }
 
-        for (let rtPlanId in this.rtPlans) {
-            const rTPlan = this.rtPlans[rtPlanId];
+        for (let rtPlanId in base.rtPlans) {
+            const rTPlan = base.rtPlans[rtPlanId];
             const refSequence = rTPlan["ReferencedStructureSetSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                if ((this.rTStructs[refSOPUID]) !== undefined) {
-                    if (this.rTStructs[refSOPUID].children !== undefined) {
-                        this.rTStructs[refSOPUID].children.push(rTPlan);
-                        rTPlan.addParentNode(this.rTStructs[refSOPUID]);
+                if ((base.rTStructs[refSOPUID]) !== undefined) {
+                    if (base.rTStructs[refSOPUID].children !== undefined) {
+                        base.rTStructs[refSOPUID].children.push(rTPlan);
+                        rTPlan.addParentNode(base.rTStructs[refSOPUID]);
                     }
-                };
+                } else {
+                    result.root.push(rTPlan);
+                }
             }
         }
 
-        for (let rtStructId in this.rTStructs) {
-            const rTStruct = this.rTStructs[rtStructId];
+        for (let rtStructId in base.rTStructs) {
+            const rTStruct = base.rTStructs[rtStructId];
             const refSequence = rTStruct["ReferencedFrameOfReferenceSequence"];
             for (let frameOfReferenceItem of refSequence) {
                 if (frameOfReferenceItem.get("RTReferencedStudySequence") !== undefined) {
                     for (let reference of frameOfReferenceItem.get("RTReferencedStudySequence")) {
                         const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                        if ((this.cTs[refSOPUID]) !== undefined) {
-                            if (this.cTs[refSOPUID].children !== undefined) {
-                                this.cTs[refSOPUID].children.push(rTStruct);
-                                rTStruct.addParentNode(this.cTs[refSOPUID]);
+                        if ((base.cTs[refSOPUID]) !== undefined) {
+                            if (base.cTs[refSOPUID].children !== undefined) {
+                                base.cTs[refSOPUID].children.push(rTStruct);
+                                rTStruct.addParentNode(base.cTs[refSOPUID]);
                             }
                         } else {
                             for (let contourImage of reference.get("ContourImageSequence")) {
-                                if ((this.cTs[contourImage.get("SeriesInstanceUID")]) !== undefined) {
-                                    if (this.cTs[contourImage.get("SeriesInstanceUID")].children !== undefined) {
-                                        this.cTs[contourImage.get("SeriesInstanceUID")].children.push(rTStruct);
-                                        rTStruct.addParentNode(this.cTs[contourImage.get("SeriesInstanceUID")]);
+                                if ((base.cTs[contourImage.get("SeriesInstanceUID")]) !== undefined) {
+                                    if (base.cTs[contourImage.get("SeriesInstanceUID")].children !== undefined) {
+                                        base.cTs[contourImage.get("SeriesInstanceUID")].children.push(rTStruct);
+                                        rTStruct.addParentNode(base.cTs[contourImage.get("SeriesInstanceUID")]);
                                     }
                                 }
                             }
 
+                        }
+
+                        if (rTStruct.parentNodes.length === 0) {
+                            result.root.push(rTStruct);
                         }
                     }
                 }
             }
         }
 
-        return this.result;
+        return result;
+    }
+
+    removeNodeFromRoot(rootNodeArray, key) {
+        const newRootNodeArray = [];
+
+        for (let node of rootNodeArray) {
+            if (node.key != key) {
+                newRootNodeArray.push(node);
+            }
+        }
+
+        return newRootNodeArray;
+
     }
 
     buildVirtualNodesTree() {
-        const seriesBasedTree = this.buildRTNodesTree();
+        const seriesBasedTree = this.buildRTNodesTree(this.rtViewVirtualSeriesNodes);
+        const newVirtualNodes = [];
 
         const rTStructsAfterFirstSplit = [];
         const rtPlansAfterFirstSplit = [];
 
-        for (let rtStructId in this.rTStructs) {
-            const rTStruct = this.rTStructs[rtStructId];
-            rTStructsAfterFirstSplit.push(...rTStruct.splitIfNodeHasTwoParents());
+        for (let rtStructId in this.rtViewVirtualSeriesNodes.rTStructs) {
+            const rTStruct = this.rtViewVirtualSeriesNodes.rTStructs[rtStructId];
+            const resultNodes = rTStruct.splitIfNodeHasTwoParents();
+            rTStructsAfterFirstSplit.push(...resultNodes);
+            if (resultNodes.length > 1) {
+                newVirtualNodes.push(...resultNodes);
+            }
         }
 
-        for (let rtPlanId in this.rtPlans) {
-            const rTPlan = this.rtPlans[rtPlanId];
-            rtPlansAfterFirstSplit.push(...rTPlan.splitIfNodeHasTwoParents());
+        for (let rtPlanId in this.rtViewVirtualSeriesNodes.rtPlans) {
+            const rTPlan = this.rtViewVirtualSeriesNodes.rtPlans[rtPlanId];
+            const resultNodes = rTPlan.splitIfNodeHasTwoParents();
+            rtPlansAfterFirstSplit.push(...resultNodes);
+            if (resultNodes.length > 1) {
+                newVirtualNodes.push(...resultNodes);
+            }
         }
 
-        for (let doseId in this.rTDoses) {
-            const rTDose = this.rTDoses[doseId];
-            rTDose.splitIfNodeHasTwoParents();
+        for (let doseId in this.rtViewVirtualSeriesNodes.rTDoses) {
+            const rTDose = this.rtViewVirtualSeriesNodes.rTDoses[doseId];
+            const resultNodes = rTDose.splitIfNodeHasTwoParents();
+            if (resultNodes.length > 1) {
+                newVirtualNodes.push(...resultNodes);
+            }
         }
 
-        for (let imageId in this.rTImages) {
-            const rTImage = this.rTImages[imageId];
-            rTImage.splitIfNodeHasTwoParents();
+        for (let imageId in this.rtViewVirtualSeriesNodes.rTImages) {
+            const rTImage = this.rtViewVirtualSeriesNodes.rTImages[imageId];
+            const resultNodes = rTImage.splitIfNodeHasTwoParents();
+            if (resultNodes.length > 1) {
+                newVirtualNodes.push(...resultNodes);
+            }
         }
 
-        //
 
         for (let rTStruct of rTStructsAfterFirstSplit) {
             const parent = rTStruct.getParent();
             const newNodes = rTStruct.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
             if (newNodes.length > 1) {
-                parent.removeChildrenNode(rTStruct);
-                parent.children.push(...newNodes);
+                newVirtualNodes.push(...newNodes);
+                if (parent != null) {
+                    parent.removeChildrenNode(rTStruct);
+                    parent.children.push(...newNodes);
+                } else {
+                    seriesBasedTree.root = this.removeNodeFromRoot(seriesBasedTree.root, rTStruct.key);
+                    seriesBasedTree.root.push(...newNodes);
+                }
             }
         }
 
@@ -212,24 +279,34 @@ export default class TreeBuilder {
             const parent = rTPlan.getParent();
             const newNodes = rTPlan.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
             if (newNodes.length > 1) {
-                parent.removeChildrenNode(rTPlan);
-                parent.children.push(...newNodes);
+                newVirtualNodes.push(...newNodes);
+                if (parent != null) {
+                    parent.removeChildrenNode(rTPlan);
+                    parent.children.push(...newNodes);
+                } else {
+                    seriesBasedTree.root = this.removeNodeFromRoot(seriesBasedTree.root, rTPlan.key);
+                    seriesBasedTree.root.push(...newNodes);
+                }
             }
         }
 
-        for (let ctId in this.cTs) {
-            const ctSeries = this.cTs[ctId];
+        for (let ctId in this.rtViewVirtualSeriesNodes.cTs) {
+            const ctSeries = this.rtViewVirtualSeriesNodes.cTs[ctId];
             const parent = ctSeries.getParent();
             const newNodes = ctSeries.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
+            newVirtualNodes.push(...newNodes);
             if (newNodes.length > 1) {
-                parent.removeChildrenNode(ctSeries);
-                parent.children.push(...newNodes);
+                seriesBasedTree.root = this.removeNodeFromRoot(seriesBasedTree.root, ctSeries.key);
+                seriesBasedTree.root.push(...newNodes);
+                // parent.removeChildrenNode(ctSeries);
+                // parent.children.push(...newNodes);
             }
         }
 
-
-
-        return seriesBasedTree;
+        return {
+            seriesBasedTree,
+            newVirtualNodes
+        };
     }
 
 
@@ -237,13 +314,13 @@ export default class TreeBuilder {
      * DicomSeries will converted into Tree nodes and sorted into maps with respect to their modality.
      * This steps prepares creating a tree that visualizes the relationship between RT series.
      */
-    buildSeriesNodesMaps() {
-        this.rTStructs = {};
-        this.rtPlans = {};
-        this.rTDoses = {};
-        this.rTImages = {};
-        this.cTs = {};
-        this.otherSeries = {};
+    buildSeriesNodesMaps(base = this.allRootChildrenNodes) {
+        base.rTStructs = {};
+        base.rtPlans = {};
+        base.rTDoses = {};
+        base.rTImages = {};
+        base.cTs = {};
+        base.otherSeries = {};
         this.isReferencedFromMap = new Map();
 
 
@@ -254,22 +331,22 @@ export default class TreeBuilder {
 
                 switch (modality) {
                     case "RTSTRUCT":
-                        this.rTStructs[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.rTStructs[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
                         break;
                     case "RTPLAN":
-                        this.rtPlans[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.rtPlans[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
                         break;
                     case "RTDOSE":
-                        this.rTDoses[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.rTDoses[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
                         break
                     case "RTIMAGE":
-                        this.rTImages[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.rTImages[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
                         break;
                     case "CT":
-                        this.cTs[seriesObject.parameters.get("SeriesInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.cTs[seriesObject.parameters.get("SeriesInstanceUID")] = this.getTreeNode(seriesObject);
                         break;
                     default:
-                        this.otherSeries[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.otherSeries[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
                 }
 
             }
