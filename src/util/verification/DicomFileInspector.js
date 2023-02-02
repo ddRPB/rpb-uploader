@@ -50,16 +50,11 @@ export default class DicomFileInspector {
     }
 
     async analyzeFile() {
-        try {
-            const reader = await this.__pFileReader(this.fileObject.fileObject);
-            const arrayBuffer = reader.result;
+        const reader = await this.__pFileReader(this.fileObject.fileObject);
+        const arrayBuffer = reader.result;
 
-            const parsingResult = this.readDicomFile(arrayBuffer);
-            return parsingResult;
-        } catch (e) {
-            this.log.trace("DicomFileInspector.analyzeFile failed : " + e.toString());
-        }
-
+        const parsingResult = this.readDicomFile(arrayBuffer);
+        return parsingResult;
     }
 
     getUids() {
@@ -91,6 +86,7 @@ export default class DicomFileInspector {
             dataSet = DicomMessage.readFile(arrayBuffer);
         } catch (e) {
             this.log.trace("DicomFileInspector.readDicomFile.readFile failed: " + e.toString());
+            throw new Error("DicomFileInspector.readDicomFile.readFile failed: " + e.toString(), e);
         }
         try {
             let parsingResultMeta = this.parseDicomData(dataSet.meta);
