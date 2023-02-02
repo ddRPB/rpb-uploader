@@ -25,6 +25,7 @@ import { Component, Fragment } from 'react';
 import { toast } from 'react-toastify';
 import DicomGenderEnum from '../constants/dicomValueEnums/DicomGenderEnum';
 import DicomFile from '../model/DicomFile';
+import DicomSeries from '../model/DicomSeries';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
 import DicomUidService from '../util/deidentification/DicomUidService';
@@ -605,13 +606,31 @@ class Uploader extends Component {
     updateDicomUploadPackage(selectedNodesArray) {
         const selectedStudyUID = this.state.selectedStudy.studyInstanceUID;
 
-        const selectedStudy = { ...this.state.selectedStudy.series };
+        const selectedStudyAllSeriesMap = { ...this.state.selectedStudy.series };
+        const selectedStudyNewVirtualNodesMap = this.state.selectedStudy.newVirtualNodes;
         const selectedSeriesObjects = {};
 
         for (let uid in selectedNodesArray) {
-            const selectedSeries = selectedStudy[uid];
-            if (selectedSeries != null) {
+            const selectedSeries = selectedStudyAllSeriesMap[uid];
+            if (selectedSeries != undefined) {
                 selectedSeriesObjects[uid] = selectedSeries;
+            } else {
+                const virtualNode = selectedStudyNewVirtualNodesMap.get(uid);
+                const originalSeriesInstanceUID = virtualNode.data.seriesInstanceUID;
+                const originalSeries = selectedStudyAllSeriesMap[originalSeriesInstanceUID];
+                const instances = originalSeries.getInstancesByUIDArray(virtualNode.sopInstancesUIDs);
+
+                let virtualSeriesObject = selectedSeriesObjects[uid];
+
+                if (virtualSeriesObject === undefined) {
+                    const newVirtualSeriesObject = Object.create(Object.getPrototypeOf(originalSeries));
+                    virtualSeriesObject = Object.assign(newVirtualSeriesObject, originalSeries);
+                    virtualSeriesObject.instances = {};
+                }
+
+                virtualSeriesObject.addInstances(instances);
+                selectedSeriesObjects[originalSeriesInstanceUID] = virtualSeriesObject;
+
             }
         }
 

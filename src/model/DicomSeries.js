@@ -107,6 +107,16 @@ export default class DicomSeries {
         }
     }
 
+    addInstances(dicomInstancesArray) {
+        dicomInstancesArray.forEach((item) => {
+            try {
+                this.addInstance(item);
+            } catch (error) {
+                // do nothing
+            }
+        });
+    }
+
     instanceExists(sopInstanceUID) {
         let knownInstancesUID = Object.keys(this.instances);
         return knownInstancesUID.includes(sopInstanceUID);
@@ -114,6 +124,14 @@ export default class DicomSeries {
 
     getInstance(instanceUID) {
         return this.instances[instanceUID]
+    }
+
+    getInstancesByUIDArray(instanceUIDArray) {
+        const result = [];
+        instanceUIDArray.forEach((UID) => {
+            result.push(this.getInstance(UID));
+        })
+        return result;
     }
 
     getInstances() {

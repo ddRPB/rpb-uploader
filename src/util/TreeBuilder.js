@@ -220,7 +220,7 @@ export default class TreeBuilder {
 
     buildVirtualNodesTree() {
         const seriesBasedTree = this.buildRTNodesTree(this.rtViewVirtualSeriesNodes);
-        const newVirtualNodes = [];
+        const newVirtualNodesArray = [];
 
         const rTStructsAfterFirstSplit = [];
         const rtPlansAfterFirstSplit = [];
@@ -230,7 +230,7 @@ export default class TreeBuilder {
             const resultNodes = rTStruct.splitIfNodeHasTwoParents();
             rTStructsAfterFirstSplit.push(...resultNodes);
             if (resultNodes.length > 1) {
-                newVirtualNodes.push(...resultNodes);
+                newVirtualNodesArray.push(...resultNodes);
             }
         }
 
@@ -239,7 +239,7 @@ export default class TreeBuilder {
             const resultNodes = rTPlan.splitIfNodeHasTwoParents();
             rtPlansAfterFirstSplit.push(...resultNodes);
             if (resultNodes.length > 1) {
-                newVirtualNodes.push(...resultNodes);
+                newVirtualNodesArray.push(...resultNodes);
             }
         }
 
@@ -247,7 +247,7 @@ export default class TreeBuilder {
             const rTDose = this.rtViewVirtualSeriesNodes.rTDoses[doseId];
             const resultNodes = rTDose.splitIfNodeHasTwoParents();
             if (resultNodes.length > 1) {
-                newVirtualNodes.push(...resultNodes);
+                newVirtualNodesArray.push(...resultNodes);
             }
         }
 
@@ -255,7 +255,7 @@ export default class TreeBuilder {
             const rTImage = this.rtViewVirtualSeriesNodes.rTImages[imageId];
             const resultNodes = rTImage.splitIfNodeHasTwoParents();
             if (resultNodes.length > 1) {
-                newVirtualNodes.push(...resultNodes);
+                newVirtualNodesArray.push(...resultNodes);
             }
         }
 
@@ -264,7 +264,7 @@ export default class TreeBuilder {
             const parent = rTStruct.getParent();
             const newNodes = rTStruct.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
             if (newNodes.length > 1) {
-                newVirtualNodes.push(...newNodes);
+                newVirtualNodesArray.push(...newNodes);
                 if (parent != null) {
                     parent.removeChildrenNode(rTStruct);
                     parent.children.push(...newNodes);
@@ -279,7 +279,7 @@ export default class TreeBuilder {
             const parent = rTPlan.getParent();
             const newNodes = rTPlan.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
             if (newNodes.length > 1) {
-                newVirtualNodes.push(...newNodes);
+                newVirtualNodesArray.push(...newNodes);
                 if (parent != null) {
                     parent.removeChildrenNode(rTPlan);
                     parent.children.push(...newNodes);
@@ -294,7 +294,7 @@ export default class TreeBuilder {
             const ctSeries = this.rtViewVirtualSeriesNodes.cTs[ctId];
             const parent = ctSeries.getParent();
             const newNodes = ctSeries.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
-            newVirtualNodes.push(...newNodes);
+            newVirtualNodesArray.push(...newNodes);
             if (newNodes.length > 1) {
                 seriesBasedTree.root = this.removeNodeFromRoot(seriesBasedTree.root, ctSeries.key);
                 seriesBasedTree.root.push(...newNodes);
@@ -303,9 +303,16 @@ export default class TreeBuilder {
             }
         }
 
+        const newVirtualNodesMap = new Map();
+        newVirtualNodesArray.forEach((item) => {
+            if (item.isVirtual === true) {
+                newVirtualNodesMap.set(item.key, item);
+            }
+        });
+
         return {
             seriesBasedTree,
-            newVirtualNodes
+            newVirtualNodes: newVirtualNodesMap
         };
     }
 
