@@ -290,19 +290,6 @@ export default class TreeBuilder {
             }
         }
 
-        for (let ctId in this.rtViewVirtualSeriesNodes.cTs) {
-            const ctSeries = this.rtViewVirtualSeriesNodes.cTs[ctId];
-            const parent = ctSeries.getParent();
-            const newNodes = ctSeries.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
-            newVirtualNodesArray.push(...newNodes);
-            if (newNodes.length > 1) {
-                seriesBasedTree.root = this.removeNodeFromRoot(seriesBasedTree.root, ctSeries.key);
-                seriesBasedTree.root.push(...newNodes);
-                // parent.removeChildrenNode(ctSeries);
-                // parent.children.push(...newNodes);
-            }
-        }
-
         const newVirtualNodesMap = new Map();
         newVirtualNodesArray.forEach((item) => {
             if (item.isVirtual === true) {
