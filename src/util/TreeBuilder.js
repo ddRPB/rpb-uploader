@@ -23,9 +23,13 @@ import TreeNodeFactory from "./treeHelper/TreeNodeFactory";
 export default class TreeBuilder {
     allRootChildrenNodes = {
         rTStructs: {},
+        rTStructArray: [],
         rtPlans: {},
+        rtPlanArray: [],
         rTDoses: {},
+        rTDoseArray: [],
         rTImages: {},
+        rTImageArray: [],
         cTs: {},
         otherSeries: {},
         root: [],
@@ -34,9 +38,13 @@ export default class TreeBuilder {
 
     rtViewNodes = {
         rTStructs: {},
+        rTStructArray: [],
         rtPlans: {},
+        rtPlanArray: [],
         rTDoses: {},
+        rTDoseArray: [],
         rTImages: {},
+        rTImageArray: [],
         cTs: {},
         otherSeries: {},
         root: [],
@@ -44,9 +52,13 @@ export default class TreeBuilder {
 
     rtViewVirtualSeriesNodes = {
         rTStructs: {},
+        rTStructArray: [],
         rtPlans: {},
+        rtPlansArray: [],
         rTDoses: {},
+        rTDoseArray: [],
         rTImages: {},
+        rTImageArray: [],
         cTs: {},
         otherSeries: {},
         virtualSeriesNodes: new Map(),
@@ -84,24 +96,20 @@ export default class TreeBuilder {
             result.root.push(ctSeries);
         }
 
-        for (let rtStructId in this.allRootChildrenNodes.rTStructs) {
-            const rTStruct = this.allRootChildrenNodes.rTStructs[rtStructId];
+        for (let rTStruct of this.allRootChildrenNodes.rTStructArray) {
             result.root.push(rTStruct);
         }
 
-        for (let rtPlanId in this.allRootChildrenNodes.rtPlans) {
-            const rTPlan = this.allRootChildrenNodes.rtPlans[rtPlanId];
+        for (let rTPlan of this.allRootChildrenNodes.rtPlanArray) {
             result.root.push(rTPlan);
         }
 
 
-        for (let imageId in this.allRootChildrenNodes.rTImages) {
-            const rTImage = this.allRootChildrenNodes.rTImages[imageId];
+        for (let rTImage of this.allRootChildrenNodes.rTImageArray) {
             result.root.push(rTImage);
         }
 
-        for (let doseId in this.allRootChildrenNodes.rTDoses) {
-            const rTDose = this.allRootChildrenNodes.rTDoses[doseId];
+        for (let rTDose of this.allRootChildrenNodes.rTDoseArray) {
             result.root.push(rTDose);
         }
 
@@ -121,8 +129,7 @@ export default class TreeBuilder {
             result.root.push(ctSeries);
         }
 
-        for (let imageId in base.rTImages) {
-            const rTImage = base.rTImages[imageId];
+        for (let rTImage of base.rTImageArray) {
             const refSequence = rTImage["ReferencedRTPlanSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
@@ -137,8 +144,7 @@ export default class TreeBuilder {
             }
         }
 
-        for (let doseId in base.rTDoses) {
-            const rTDose = base.rTDoses[doseId];
+        for (let rTDose of base.rTDoseArray) {
             const refSequence = rTDose["ReferencedRTPlanSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
@@ -154,8 +160,7 @@ export default class TreeBuilder {
 
         }
 
-        for (let rtPlanId in base.rtPlans) {
-            const rTPlan = base.rtPlans[rtPlanId];
+        for (let rTPlan of base.rtPlanArray) {
             const refSequence = rTPlan["ReferencedStructureSetSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
@@ -170,8 +175,7 @@ export default class TreeBuilder {
             }
         }
 
-        for (let rtStructId in base.rTStructs) {
-            const rTStruct = base.rTStructs[rtStructId];
+        for (let rTStruct of base.rTStructArray) {
             const refSequence = rTStruct["ReferencedFrameOfReferenceSequence"];
             for (let frameOfReferenceItem of refSequence) {
                 if (frameOfReferenceItem.get("RTReferencedStudySequence") !== undefined) {
@@ -225,8 +229,7 @@ export default class TreeBuilder {
         const rTStructsAfterFirstSplit = [];
         const rtPlansAfterFirstSplit = [];
 
-        for (let rtStructId in this.rtViewVirtualSeriesNodes.rTStructs) {
-            const rTStruct = this.rtViewVirtualSeriesNodes.rTStructs[rtStructId];
+        for (let rTStruct of this.rtViewVirtualSeriesNodes.rTStructArray) {
             const resultNodes = rTStruct.splitIfNodeHasTwoParents();
             rTStructsAfterFirstSplit.push(...resultNodes);
             if (resultNodes.length > 1) {
@@ -234,8 +237,7 @@ export default class TreeBuilder {
             }
         }
 
-        for (let rtPlanId in this.rtViewVirtualSeriesNodes.rtPlans) {
-            const rTPlan = this.rtViewVirtualSeriesNodes.rtPlans[rtPlanId];
+        for (let rTPlan of this.rtViewVirtualSeriesNodes.rtPlanArray) {
             const resultNodes = rTPlan.splitIfNodeHasTwoParents();
             rtPlansAfterFirstSplit.push(...resultNodes);
             if (resultNodes.length > 1) {
@@ -243,16 +245,14 @@ export default class TreeBuilder {
             }
         }
 
-        for (let doseId in this.rtViewVirtualSeriesNodes.rTDoses) {
-            const rTDose = this.rtViewVirtualSeriesNodes.rTDoses[doseId];
+        for (let rTDose of this.rtViewVirtualSeriesNodes.rTDoseArray) {
             const resultNodes = rTDose.splitIfNodeHasTwoParents();
             if (resultNodes.length > 1) {
                 newVirtualNodesArray.push(...resultNodes);
             }
         }
 
-        for (let imageId in this.rtViewVirtualSeriesNodes.rTImages) {
-            const rTImage = this.rtViewVirtualSeriesNodes.rTImages[imageId];
+        for (let rTImage of this.rtViewVirtualSeriesNodes.rTImageArray) {
             const resultNodes = rTImage.splitIfNodeHasTwoParents();
             if (resultNodes.length > 1) {
                 newVirtualNodesArray.push(...resultNodes);
@@ -310,9 +310,13 @@ export default class TreeBuilder {
      */
     buildSeriesNodesMaps(base = this.allRootChildrenNodes) {
         base.rTStructs = {};
+        base.rTStructArray = [];
         base.rtPlans = {};
+        base.rtPlanArray = [];
         base.rTDoses = {};
+        base.rTDoseArray = [];
         base.rTImages = {};
+        base.rTImageArray = [];
         base.cTs = {};
         base.otherSeries = {};
         this.isReferencedFromMap = new Map();
@@ -322,19 +326,32 @@ export default class TreeBuilder {
             let series = studyObject.getSeriesArray();
             for (let seriesObject of series) {
                 const modality = seriesObject.modality;
+                const treeNode = this.getTreeNode(seriesObject);
 
                 switch (modality) {
                     case "RTSTRUCT":
-                        base.rTStructs[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.rTStructArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rTStructs[SOPInstanceUID] = treeNode;
+                        }
                         break;
                     case "RTPLAN":
-                        base.rtPlans[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.rtPlanArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rtPlans[SOPInstanceUID] = treeNode;
+                        }
                         break;
                     case "RTDOSE":
-                        base.rTDoses[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
-                        break
+                        base.rTDoseArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rTDoses[SOPInstanceUID] = treeNode;
+                        }
+                        break;
                     case "RTIMAGE":
-                        base.rTImages[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
+                        base.rTImageArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rTImages[SOPInstanceUID] = treeNode;
+                        }
                         break;
                     case "CT":
                         base.cTs[seriesObject.parameters.get("SeriesInstanceUID")] = this.getTreeNode(seriesObject);
