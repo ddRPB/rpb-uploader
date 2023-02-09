@@ -261,8 +261,9 @@ export default class TreeBuilder {
 
 
         for (let rTStruct of rTStructsAfterFirstSplit) {
+            const newNodes = rTStruct.splitBySOPInstanceUIDIfImageIsReferenced(this.rtViewVirtualSeriesNodes.referencedSOPInstanceUIDs);
+
             const parent = rTStruct.getParent();
-            const newNodes = rTStruct.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
             if (newNodes.length > 1) {
                 newVirtualNodesArray.push(...newNodes);
                 if (parent != null) {
@@ -276,8 +277,9 @@ export default class TreeBuilder {
         }
 
         for (let rTPlan of rtPlansAfterFirstSplit) {
+            const newNodes = rTPlan.splitBySOPInstanceUIDIfImageIsReferenced(this.rtViewVirtualSeriesNodes.referencedSOPInstanceUIDs);
+
             const parent = rTPlan.getParent();
-            const newNodes = rTPlan.splitIfThereAreMoreThanOneChildrenThatAreNotLeafs();
             if (newNodes.length > 1) {
                 newVirtualNodesArray.push(...newNodes);
                 if (parent != null) {
@@ -319,7 +321,7 @@ export default class TreeBuilder {
         base.rTImageArray = [];
         base.cTs = {};
         base.otherSeries = {};
-        this.isReferencedFromMap = new Map();
+        base.referencedSOPInstanceUIDs = new Set();
 
 
         for (let studyObject of this.dicomStudyArray) {
@@ -327,6 +329,7 @@ export default class TreeBuilder {
             for (let seriesObject of series) {
                 const modality = seriesObject.modality;
                 const treeNode = this.getTreeNode(seriesObject);
+                // base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
 
                 switch (modality) {
                     case "RTSTRUCT":
@@ -334,24 +337,28 @@ export default class TreeBuilder {
                         for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
                             base.rTStructs[SOPInstanceUID] = treeNode;
                         }
+                        // base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
                     case "RTPLAN":
                         base.rtPlanArray.push(treeNode);
                         for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
                             base.rtPlans[SOPInstanceUID] = treeNode;
                         }
+                        base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
                     case "RTDOSE":
                         base.rTDoseArray.push(treeNode);
                         for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
                             base.rTDoses[SOPInstanceUID] = treeNode;
                         }
+                        base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
                     case "RTIMAGE":
                         base.rTImageArray.push(treeNode);
                         for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
                             base.rTImages[SOPInstanceUID] = treeNode;
                         }
+                        base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
                     case "CT":
                         base.cTs[seriesObject.parameters.get("SeriesInstanceUID")] = this.getTreeNode(seriesObject);

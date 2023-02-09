@@ -26,7 +26,8 @@ export default class DicomInstance {
 
         this.fileObject = fileObject;
         this.sopInstanceUID = fileObjectDetails.sopInstanceUID;
-        this.referencedSopInstanceUids = fileObjectDetails.referencedSopInstanceUids
+        this.referencedSopInstanceUids = fileObjectDetails.referencedSopInstanceUids;
+        this.description = fileObjectDetails.description;
     }
 
     getFile() {

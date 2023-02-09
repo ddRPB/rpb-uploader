@@ -756,6 +756,7 @@ export default class DicomFile {
         const fileObjectDetails = {
             sopInstanceUID: this.getSOPInstanceUID(),
             referencedSopInstanceUids: this.referencedSopInstanceUids,
+            description: this.getSeriesDescription(),
         };
 
         return new DicomInstance(this.fileObject, fileObjectDetails);

@@ -60,7 +60,7 @@ export default class TreeNode {
         return this.children.length === 0 ? true : false;
     }
 
-    getReferenceDetails(referencedSopInstanceUid) {
+    getReferenceDetailsByReferencedSOPInstanceUID(referencedSopInstanceUid) {
         for (let referenceDetail of this.referencesDetails) {
             if (referenceDetail.destinationInstanceUID === referencedSopInstanceUid) {
                 return referenceDetail;
@@ -70,16 +70,15 @@ export default class TreeNode {
         return null;
     }
 
-    splitIntoVirtualNodes() {
-        const nodeArray = [];
-        if (this.isLeaf) {
-            nodeArray.push(this);
-            return nodeArray;
+    getReferenceDetailsBySourceInstanceUID(SopInstanceUids) {
+        const result = [];
+        for (let referenceDetail of this.referencesDetails) {
+            if (SopInstanceUids.includes(referenceDetail.sourceInstanceUID)) {
+                result.push(referenceDetail);
+            }
         }
 
-        // split if two parents
-
-        return nodeArray;
+        return result;
     }
 
     evaluateChildren() {
@@ -130,7 +129,7 @@ export default class TreeNode {
             parentNode.children.push(replacementNodeTwo);
 
             for (let referencedParentSopInstanceUID of parentNodeSopInstanceUIDs) {
-                const referenceDetail = this.getReferenceDetails(referencedParentSopInstanceUID);
+                const referenceDetail = this.getReferenceDetailsByReferencedSOPInstanceUID(referencedParentSopInstanceUID);
 
                 if (referenceDetail != null) {
                     replacementNodeTwo.sopInstancesUIDs.push(referenceDetail.sourceInstanceUID);
@@ -149,70 +148,54 @@ export default class TreeNode {
         return nodeArray;
     }
 
-    splitIfThereAreMoreThanOneChildrenThatAreNotLeafs() {
+    splitBySOPInstanceUIDIfImageIsReferenced(referencedSOPInstanceUIDs) {
         const nodeArray = [];
-        if (this.children.length < 2) {
+        if (this.sopInstancesUIDs.size < 2) {
             nodeArray.push(this);
             return nodeArray;
         }
 
-        const leafChildren = []
-
-        for (let childNode of this.children) {
-            if (childNode.isLeaf() === true) {
-                leafChildren.push(childNode);
-            } else {
+        const unreferencedSOPInstanceUIDs = [];
+        for (let sopInstancesUID of this.sopInstancesUIDs) {
+            if (referencedSOPInstanceUIDs.has(sopInstancesUID)) {
                 let replacementNode = Object.create(Object.getPrototypeOf(new TreeNode()));
-                let replacementNodeTwo = Object.assign(replacementNode, this)
-
-                nodeArray.push(replacementNodeTwo);
+                let replacementNodeTwo = Object.assign(replacementNode, this);
                 replacementNodeTwo.isVirtual = true;
                 replacementNodeTwo.seriesInstanceUID = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
                 replacementNodeTwo.key = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
-                replacementNodeTwo.children = [childNode];
-                replacementNodeTwo.sopInstancesUIDs = [];
-                childNode.parentNodes = [replacementNodeTwo];
 
-
-                for (let referencedSopInstanceUid of this.sopInstancesUIDs) {
-                    const referenceDetail = childNode.getReferenceDetails(referencedSopInstanceUid);
-                    if (referenceDetail != null) {
-                        replacementNodeTwo.sopInstancesUIDs.push(referenceDetail.destinationInstanceUID);
+                replacementNodeTwo.children = [];
+                for (let childNode of this.children) {
+                    const referencesFromChild = childNode.getReferenceDetails(sopInstancesUID);
+                    if (referencesFromChild != null) {
+                        replacementNodeTwo.children.push(childNode);
                     }
                 }
 
+                replacementNodeTwo.sopInstancesUIDs = JSON.parse(JSON.stringify([sopInstancesUID]));
+                replacementNodeTwo.referencesDetails = JSON.parse(JSON.stringify(this.getReferenceDetailsBySourceInstanceUID(sopInstancesUID)));
+                nodeArray.push(replacementNodeTwo);
+
+
+            } else {
+                unreferencedSOPInstanceUIDs.push(sopInstancesUID);
             }
         }
 
-
-        if (leafChildren.length > 0) {
-            // one node with leafs only
-            if (nodeArray.length === 0) {
-                nodeArray.push(this);
-            } else {
-                let replacementNode = Object.create(Object.getPrototypeOf(new TreeNode()));
-                let replacementNodeTwo = Object.assign(replacementNode, this)
-
-                nodeArray.push(replacementNodeTwo);
-                replacementNodeTwo.isVirtual = true;
-                replacementNodeTwo.seriesInstanceUID = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
-                replacementNodeTwo.key = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
-                replacementNodeTwo.children = leafChildren;
-                replacementNodeTwo.sopInstancesUIDs = [];
-
-                for (let childNode of leafChildren) {
-                    childNode.parentNodes = [replacementNodeTwo];
-                    for (let referencedSopInstanceUid of this.sopInstancesUIDs) {
-                        const referenceDetail = childNode.getReferenceDetails(referencedSopInstanceUid);
-                        if (referenceDetail != null) {
-                            replacementNodeTwo.sopInstancesUIDs.push(referenceDetail.destinationInstanceUID);
-                        }
-                    }
-                }
-            }
+        if (unreferencedSOPInstanceUIDs.length > 0) {
+            let replacementNode = Object.create(Object.getPrototypeOf(new TreeNode()));
+            let replacementNodeTwo = Object.assign(replacementNode, this);
+            replacementNodeTwo.isVirtual = true;
+            replacementNodeTwo.seriesInstanceUID = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
+            replacementNodeTwo.key = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
+            replacementNodeTwo.children = [];
+            replacementNodeTwo.sopInstancesUIDs = JSON.parse(JSON.stringify(unreferencedSOPInstanceUIDs));
+            replacementNodeTwo.referencesDetails = JSON.parse(JSON.stringify(this.getReferenceDetailsBySourceInstanceUID(unreferencedSOPInstanceUIDs)));
+            nodeArray.push(replacementNodeTwo);
         }
 
         return nodeArray;
+
     }
 
     removeChildrenNode(newChildNode = new TreeNode()) {
