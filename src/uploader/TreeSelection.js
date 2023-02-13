@@ -47,6 +47,9 @@ export class TreeSelection extends Component {
             if (this.props.selectedStudy.allRootTree != null && this.props.seriesTree === "allRootTree") {
                 return this.props.selectedStudy.allRootTree.root;
             }
+            if (this.props.selectedStudy.virtualSeriesRtViewTree != null && this.props.seriesTree === "virtualSeriesRtViewTree") {
+                return this.props.selectedStudy.virtualSeriesRtViewTree.root;
+            }
         }
 
         return {};

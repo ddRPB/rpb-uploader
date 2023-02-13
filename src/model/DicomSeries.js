@@ -58,8 +58,6 @@ export default class DicomSeries {
 
         this.burnedInAnnotation = new Set([...this.burnedInAnnotation, ...seriesObject.burnedInAnnotation]);
         this.identityRemoved = new Set([...this.identityRemoved, ...seriesObject.identityRemoved]);
-
-
     }
 
     getSeriesInstanceUID() {
@@ -102,20 +100,38 @@ export default class DicomSeries {
     }
 
     addInstance(dicomInstance) {
-        if (!this.instanceExists(dicomInstance.SOPInstanceUID)) {
-            this.instances[dicomInstance.SOPInstanceUID] = dicomInstance
+        if (!this.instanceExists(dicomInstance.sopInstanceUID)) {
+            this.instances[dicomInstance.sopInstanceUID] = dicomInstance
         } else {
             throw Error("Existing instance")
         }
     }
 
-    instanceExists(SOPInstanceUID) {
-        let knownInstancesUID = Object.keys(this.instances)
-        return knownInstancesUID.includes(SOPInstanceUID)
+    addInstances(dicomInstancesArray) {
+        dicomInstancesArray.forEach((item) => {
+            try {
+                this.addInstance(item);
+            } catch (error) {
+                // do nothing
+            }
+        });
+    }
+
+    instanceExists(sopInstanceUID) {
+        let knownInstancesUID = Object.keys(this.instances);
+        return knownInstancesUID.includes(sopInstanceUID);
     }
 
     getInstance(instanceUID) {
         return this.instances[instanceUID]
+    }
+
+    getInstancesByUIDArray(instanceUIDArray) {
+        const result = [];
+        instanceUIDArray.forEach((UID) => {
+            result.push(this.getInstance(UID));
+        })
+        return result;
     }
 
     getInstances() {
@@ -128,5 +144,33 @@ export default class DicomSeries {
 
     getInstancesSize() {
         return Object.keys(this.instances).length;
+    }
+
+    getSopInstancesUIDs() {
+        return Object.keys(this.instances);
+    }
+
+    getInstancesReferencesDetails() {
+        const references = [];
+        for (let instanceUID of Object.keys(this.instances)) {
+            const instanceObject = this.instances[instanceUID];
+            for (let referencedUID of instanceObject.referencedSopInstanceUids.keys()) {
+                references.push({
+                    sourceInstanceUID: instanceUID,
+                    destinationInstanceUID: referencedUID,
+                    sourceDicomSeriesInstanceUID: this.seriesInstanceUID
+                })
+            }
+        }
+        return references;
+    }
+
+    getReferencedInstancesUIDs() {
+        let refernecedSeriesUIDs = new Set();
+        for (let instanceUID of Object.keys(this.instances)) {
+            const instanceObject = this.instances[instanceUID];
+            refernecedSeriesUIDs = new Set([...refernecedSeriesUIDs, ...instanceObject.referencedSopInstanceUids]);
+        }
+        return refernecedSeriesUIDs;
     }
 }

@@ -22,9 +22,12 @@
  */
 export default class DicomInstance {
 
-    constructor(fileObject, SOPInstanceUID) {
-        this.SOPInstanceUID = SOPInstanceUID
-        this.fileObject = fileObject
+    constructor(fileObject, fileObjectDetails) {
+
+        this.fileObject = fileObject;
+        this.sopInstanceUID = fileObjectDetails.sopInstanceUID;
+        this.referencedSopInstanceUids = fileObjectDetails.referencedSopInstanceUids;
+        this.description = fileObjectDetails.description;
     }
 
     getFile() {

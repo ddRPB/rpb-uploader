@@ -18,84 +18,98 @@
  * 
  */
 
+import TreeNodeFactory from "./treeHelper/TreeNodeFactory";
+
 export default class TreeBuilder {
-    rTStructs = {};
-    rtPlans = {};
-    rTDoses = {};
-    rTImages = {};
-    cTs = {};
-    otherSeries = {};
+    allRootChildrenNodes = {
+        rTStructs: {},
+        rTStructArray: [],
+        rtPlans: {},
+        rtPlanArray: [],
+        rTDoses: {},
+        rTDoseArray: [],
+        rTImages: {},
+        rTImageArray: [],
+        cTs: {},
+        otherSeries: {},
+        root: [],
+    };
+
+
+    rtViewNodes = {
+        rTStructs: {},
+        rTStructArray: [],
+        rtPlans: {},
+        rtPlanArray: [],
+        rTDoses: {},
+        rTDoseArray: [],
+        rTImages: {},
+        rTImageArray: [],
+        cTs: {},
+        otherSeries: {},
+        root: [],
+    };
+
+    rtViewVirtualSeriesNodes = {
+        rTStructs: {},
+        rTStructArray: [],
+        rtPlans: {},
+        rtPlansArray: [],
+        rTDoses: {},
+        rTDoseArray: [],
+        rTImages: {},
+        rTImageArray: [],
+        cTs: {},
+        otherSeries: {},
+        virtualSeriesNodes: new Map(),
+
+    };
+
+    factory = new TreeNodeFactory();
 
     constructor(dicomStudyArray) {
         this.dicomStudyArray = dicomStudyArray;
     }
 
-    getBasicSeriesNode(seriesObject) {
-        const node = {};
-        node.data = {};
-        node.children = [];
-
-        // key property for React
-        node.key = seriesObject.getSeriesInstanceUID();
-        node.data.modality = seriesObject.modality;
-        node.data.seriesInstanceUID = seriesObject.getSeriesInstanceUID();
-        node.data.seriesDate = seriesObject.getSeriesDate();
-        node.data.seriesDescription = seriesObject.getSeriesDescription();
-        node.data.studyInstanceUID = seriesObject.getStudyInstanceUID();
-        node.data.instancesSize = seriesObject.getInstancesSize();
-
-        const patientBirthdate = seriesObject.patientBirthDate;
-        const patientID = seriesObject.patientID;
-        const patientName = seriesObject.patientName;
-        const patientSex = seriesObject.patientSex;
-
-        node.data.patientDetails = [];
-        node.data.patientDetails.push(this.getDetailsItem("ID", patientID));
-        node.data.patientDetails.push(this.getDetailsItem("Name", patientName));
-        node.data.patientDetails.push(this.getDetailsItem("Sex", patientSex));
-        node.data.patientDetails.push(this.getDetailsItem("Birth Date", patientBirthdate));
-
-        node.data.deIdentificationStatus = [];
-        node.data.deIdentificationStatus.push(this.getDetailsItem("BurnedInAnnotation", seriesObject.burnedInAnnotation));
-        node.data.deIdentificationStatus.push(this.getDetailsItem("IdentityRemoved", seriesObject.identityRemoved));
-
-        return node;
+    getTreeNode(dicomSeries) {
+        return this.factory.createTreeNode(dicomSeries);
     }
 
+    /**
+     * Creates a tree where all nodes are children of root -> 
+     * mainly used for studies with non RT related series
+     */
+
     buildAllNodesChildrenOfRoot() {
-        this.buildSeriesNodesMaps();
+        this.buildSeriesNodesMaps(this.allRootChildrenNodes);
 
         let result = {}
         result.root = [];
 
-        for (let otherSeriesId in this.otherSeries) {
-            const otherSeries = this.otherSeries[otherSeriesId];
+        for (let otherSeriesId in this.allRootChildrenNodes.otherSeries) {
+            const otherSeries = this.allRootChildrenNodes.otherSeries[otherSeriesId];
             result.root.push(otherSeries);
         }
 
-        for (let ctId in this.cTs) {
-            const ctSeries = this.cTs[ctId];
+        for (let ctId in this.allRootChildrenNodes.cTs) {
+            const ctSeries = this.allRootChildrenNodes.cTs[ctId];
             result.root.push(ctSeries);
         }
 
-        for (let rtStructId in this.rTStructs) {
-            const rTStruct = this.rTStructs[rtStructId];
+        for (let rTStruct of this.allRootChildrenNodes.rTStructArray) {
             result.root.push(rTStruct);
         }
 
-        for (let rtPlanId in this.rtPlans) {
-            const rTPlan = this.rtPlans[rtPlanId];
+        for (let rTPlan of this.allRootChildrenNodes.rtPlanArray) {
             result.root.push(rTPlan);
         }
 
 
-        for (let imageId in this.rTImages) {
-            const rTImage = this.rTImages[imageId];
+        for (let rTImage of this.allRootChildrenNodes.rTImageArray) {
             result.root.push(rTImage);
         }
 
-        for (let doseId in this.rTDoses) {
-            const rTDose = this.rTDoses[doseId];
+        for (let rTDose of this.allRootChildrenNodes.rTDoseArray) {
             result.root.push(rTDose);
         }
 
@@ -103,314 +117,254 @@ export default class TreeBuilder {
 
     }
 
-    build() {
-        this.buildSeriesNodesMaps();
+    buildRTNodesTree(base = this.rtViewNodes) {
+        this.buildSeriesNodesMaps(base);
 
-        this.result = {}
-        this.result.root = [];
+        let result = {
+            root: []
+        };
 
-        for (let ctId in this.cTs) {
-            const ctSeries = this.cTs[ctId];
-            this.result.root.push(ctSeries);
+        for (let ctId in base.cTs) {
+            const ctSeries = base.cTs[ctId];
+            result.root.push(ctSeries);
         }
 
-        for (let imageId in this.rTImages) {
-            const rTImage = this.rTImages[imageId];
+        for (let rTImage of base.rTImageArray) {
             const refSequence = rTImage["ReferencedRTPlanSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                if ((this.rtPlans[refSOPUID]) !== undefined) {
-                    if (this.rtPlans[refSOPUID].children !== undefined) {
-                        this.rtPlans[refSOPUID].children.push(rTImage);
+                if ((base.rtPlans[refSOPUID]) !== undefined) {
+                    if (base.rtPlans[refSOPUID].children !== undefined) {
+                        base.rtPlans[refSOPUID].children.push(rTImage);
+                        rTImage.addParentNode(base.rtPlans[refSOPUID]);
                     }
-                };
+                } else {
+                    result.root.push(rTImage);
+                }
             }
         }
 
-        for (let doseId in this.rTDoses) {
-            const rTDose = this.rTDoses[doseId];
+        for (let rTDose of base.rTDoseArray) {
             const refSequence = rTDose["ReferencedRTPlanSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                if ((this.rtPlans[refSOPUID]) !== undefined) {
-                    if (this.rtPlans[refSOPUID].children !== undefined) {
-                        this.rtPlans[refSOPUID].children.push(rTDose);
+                if ((base.rtPlans[refSOPUID]) !== undefined) {
+                    if (base.rtPlans[refSOPUID].children !== undefined) {
+                        base.rtPlans[refSOPUID].children.push(rTDose);
+                        rTDose.addParentNode(base.rtPlans[refSOPUID]);
                     }
-                };
+                } else {
+                    result.root.push(rTDose);
+                }
             }
 
         }
 
-        for (let rtPlanId in this.rtPlans) {
-            const rTPlan = this.rtPlans[rtPlanId];
+        for (let rTPlan of base.rtPlanArray) {
             const refSequence = rTPlan["ReferencedStructureSetSequence"];
             for (let reference of refSequence) {
                 const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                if ((this.rTStructs[refSOPUID]) !== undefined) {
-                    if (this.rTStructs[refSOPUID].children !== undefined) {
-                        this.rTStructs[refSOPUID].children.push(rTPlan);
+                if ((base.rTStructs[refSOPUID]) !== undefined) {
+                    if (base.rTStructs[refSOPUID].children !== undefined) {
+                        base.rTStructs[refSOPUID].children.push(rTPlan);
+                        rTPlan.addParentNode(base.rTStructs[refSOPUID]);
                     }
-                };
+                } else {
+                    result.root.push(rTPlan);
+                }
             }
         }
 
-        for (let rtStructId in this.rTStructs) {
-            const rTStruct = this.rTStructs[rtStructId];
+        for (let rTStruct of base.rTStructArray) {
             const refSequence = rTStruct["ReferencedFrameOfReferenceSequence"];
             for (let frameOfReferenceItem of refSequence) {
                 if (frameOfReferenceItem.get("RTReferencedStudySequence") !== undefined) {
                     for (let reference of frameOfReferenceItem.get("RTReferencedStudySequence")) {
                         const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-                        if ((this.cTs[refSOPUID]) !== undefined) {
-                            if (this.cTs[refSOPUID].children !== undefined) {
-                                this.cTs[refSOPUID].children.push(rTStruct);
+                        if ((base.cTs[refSOPUID]) !== undefined) {
+                            if (base.cTs[refSOPUID].children !== undefined) {
+                                base.cTs[refSOPUID].children.push(rTStruct);
+                                rTStruct.addParentNode(base.cTs[refSOPUID]);
                             }
                         } else {
                             for (let contourImage of reference.get("ContourImageSequence")) {
-                                if ((this.cTs[contourImage.get("SeriesInstanceUID")]) !== undefined) {
-                                    if (this.cTs[contourImage.get("SeriesInstanceUID")].children !== undefined) {
-                                        this.cTs[contourImage.get("SeriesInstanceUID")].children.push(rTStruct);
+                                if ((base.cTs[contourImage.get("SeriesInstanceUID")]) !== undefined) {
+                                    if (base.cTs[contourImage.get("SeriesInstanceUID")].children !== undefined) {
+                                        base.cTs[contourImage.get("SeriesInstanceUID")].children.push(rTStruct);
+                                        rTStruct.addParentNode(base.cTs[contourImage.get("SeriesInstanceUID")]);
                                     }
                                 }
                             }
 
+                        }
+
+                        if (rTStruct.parentNodes.length === 0) {
+                            result.root.push(rTStruct);
                         }
                     }
                 }
             }
         }
 
-
-
-        return this.result;
+        return result;
     }
 
-    getDetailsItem(name, value) {
-        return {
-            "name": name,
-            "value": value
+    removeNodeFromRoot(rootNodeArray, key) {
+        const newRootNodeArray = [];
+
+        for (let node of rootNodeArray) {
+            if (node.key != key) {
+                newRootNodeArray.push(node);
+            }
         }
 
+        return newRootNodeArray;
+
+    }
+
+    buildVirtualNodesTree() {
+        const seriesBasedTree = this.buildRTNodesTree(this.rtViewVirtualSeriesNodes);
+        const newVirtualNodesArray = [];
+
+        const rTStructsAfterFirstSplit = [];
+        const rtPlansAfterFirstSplit = [];
+
+        for (let rTStruct of this.rtViewVirtualSeriesNodes.rTStructArray) {
+            const resultNodes = rTStruct.splitIfNodeHasTwoParents();
+            rTStructsAfterFirstSplit.push(...resultNodes);
+            if (resultNodes.length > 1) {
+                newVirtualNodesArray.push(...resultNodes);
+            }
+        }
+
+        for (let rTPlan of this.rtViewVirtualSeriesNodes.rtPlanArray) {
+            const resultNodes = rTPlan.splitIfNodeHasTwoParents();
+            rtPlansAfterFirstSplit.push(...resultNodes);
+            if (resultNodes.length > 1) {
+                newVirtualNodesArray.push(...resultNodes);
+            }
+        }
+
+        for (let rTDose of this.rtViewVirtualSeriesNodes.rTDoseArray) {
+            const resultNodes = rTDose.splitIfNodeHasTwoParents();
+            if (resultNodes.length > 1) {
+                newVirtualNodesArray.push(...resultNodes);
+            }
+        }
+
+        for (let rTImage of this.rtViewVirtualSeriesNodes.rTImageArray) {
+            const resultNodes = rTImage.splitIfNodeHasTwoParents();
+            if (resultNodes.length > 1) {
+                newVirtualNodesArray.push(...resultNodes);
+            }
+        }
+
+
+        for (let rTStruct of rTStructsAfterFirstSplit) {
+            const newNodes = rTStruct.splitBySOPInstanceUIDIfImageIsReferenced(this.rtViewVirtualSeriesNodes.referencedSOPInstanceUIDs);
+
+            const parent = rTStruct.getParent();
+            if (newNodes.length > 1) {
+                newVirtualNodesArray.push(...newNodes);
+                if (parent != null) {
+                    parent.removeChildrenNode(rTStruct);
+                    parent.children.push(...newNodes);
+                } else {
+                    seriesBasedTree.root = this.removeNodeFromRoot(seriesBasedTree.root, rTStruct.key);
+                    seriesBasedTree.root.push(...newNodes);
+                }
+            }
+        }
+
+        for (let rTPlan of rtPlansAfterFirstSplit) {
+            const newNodes = rTPlan.splitBySOPInstanceUIDIfImageIsReferenced(this.rtViewVirtualSeriesNodes.referencedSOPInstanceUIDs);
+
+            const parent = rTPlan.getParent();
+            if (newNodes.length > 1) {
+                newVirtualNodesArray.push(...newNodes);
+                if (parent != null) {
+                    parent.removeChildrenNode(rTPlan);
+                    parent.children.push(...newNodes);
+                } else {
+                    seriesBasedTree.root = this.removeNodeFromRoot(seriesBasedTree.root, rTPlan.key);
+                    seriesBasedTree.root.push(...newNodes);
+                }
+            }
+        }
+
+        const newVirtualNodesMap = new Map();
+        newVirtualNodesArray.forEach((item) => {
+            if (item.isVirtual === true) {
+                newVirtualNodesMap.set(item.key, item);
+            }
+        });
+
+        return {
+            seriesBasedTree,
+            newVirtualNodes: newVirtualNodesMap
+        };
     }
 
 
-    buildSeriesNodesMaps() {
-        this.rTStructs = {};
-        this.rtPlans = {};
-        this.rTDoses = {};
-        this.rTImages = {};
-        this.cTs = {};
-        this.otherSeries = {};
+    /**
+     * DicomSeries will converted into Tree nodes and sorted into maps with respect to their modality.
+     * This steps prepares creating a tree that visualizes the relationship between RT series.
+     */
+    buildSeriesNodesMaps(base = this.allRootChildrenNodes) {
+        base.rTStructs = {};
+        base.rTStructArray = [];
+        base.rtPlans = {};
+        base.rtPlanArray = [];
+        base.rTDoses = {};
+        base.rTDoseArray = [];
+        base.rTImages = {};
+        base.rTImageArray = [];
+        base.cTs = {};
+        base.otherSeries = {};
+        base.referencedSOPInstanceUIDs = new Set();
 
 
         for (let studyObject of this.dicomStudyArray) {
             let series = studyObject.getSeriesArray();
             for (let seriesObject of series) {
                 const modality = seriesObject.modality;
+                const treeNode = this.getTreeNode(seriesObject);
+                // base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
 
                 switch (modality) {
                     case "RTSTRUCT":
-                        const struct = this.getBasicSeriesNode(seriesObject);
-                        struct.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
-                        struct.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
-                        struct.data.StructureSetLabel = seriesObject.parameters.get("StructureSetLabel");
-                        struct.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
-                        struct.data.StructureSetName = seriesObject.parameters.get("StructureSetName");
-                        struct.data.StructureSetDescription = seriesObject.parameters.get("StructureSetDescription");
-                        struct.data.ApprovalStatus = seriesObject.parameters.get("ApprovalStatus");
-
-                        if (struct.data.seriesDescription === "") {
-                            if (seriesObject.parameters.get("StructureSetDescription") !== undefined && seriesObject.parameters.get("StructureSetDescription") !== "") {
-                                struct.data.seriesDescription = seriesObject.parameters.get("StructureSetDescription");
-                            } else if (seriesObject.parameters.get("StructureSetLabel") !== undefined && seriesObject.parameters.get("StructureSetLabel") !== "") {
-                                struct.data.seriesDescription = seriesObject.parameters.get("StructureSetLabel");
-                            } else if (seriesObject.parameters.get("StructureSetName") !== undefined && seriesObject.parameters.get("StructureSetName") !== "") {
-                                struct.data.seriesDescription = seriesObject.parameters.get("StructureSetName");
-                            }
+                        base.rTStructArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rTStructs[SOPInstanceUID] = treeNode;
                         }
-
-                        struct.data.StructureSetDate = seriesObject.parameters.get("StructureSetDate");
-
-                        if (seriesObject.parameters.get("StructureSetDate") !== "" && struct.data.seriesDate === "") {
-                            struct.data.seriesDate = seriesObject.parameters.get("StructureSetDate");
-                        }
-
-
-                        struct.data.StructureSetROISequence = seriesObject.parameters.get("StructureSetROISequence");
-
-                        struct.data.ROINumber = seriesObject.parameters.get("ROINumber");
-                        struct.data.ReferencedFrameOfReferenceUID = seriesObject.parameters.get("ReferencedFrameOfReferenceUID");
-                        struct.data.ROIName = seriesObject.parameters.get("ROIName");
-                        struct.data.ROIDescription = seriesObject.parameters.get("ROIDescription");
-                        struct.data.ROIVolume = seriesObject.parameters.get("ROIVolume");
-                        struct.data.ROIGenerationAlgorithm = seriesObject.parameters.get("ROIGenerationAlgorithm");
-                        struct.ReferencedFrameOfReferenceSequence = seriesObject.parameters.get("ReferencedFrameOfReferenceSequence");
-                        struct.data.ROIGenerationAlgorithm = seriesObject.parameters.get("ROIGenerationAlgorithm");
-
-                        struct.data.rOIOberservationSequenceArray = seriesObject.parameters.get("RTROIObservationsSequence");
-
-                        struct.data.detailsArray = [];
-                        // if (struct.data.seriesDescription) struct.data.detailsArray.push(this.getDetailsItem("SeriesDescription", struct.data.seriesDescription));
-                        if (struct.data.StructureSetLabel) struct.data.detailsArray.push(this.getDetailsItem("StructureSetLabel", struct.data.StructureSetLabel));
-                        if (struct.data.StructureSetName) struct.data.detailsArray.push(this.getDetailsItem("StructureSetName", struct.data.StructureSetName));
-                        if (struct.data.StructureSetDescription) struct.data.detailsArray.push(this.getDetailsItem("StructureSetDescription", struct.data.StructureSetDescription));
-                        if (struct.data.StructureSetDate) struct.data.detailsArray.push(this.getDetailsItem("StructureSetDate", struct.data.StructureSetDate));
-                        if (struct.data.ROINumber) struct.data.detailsArray.push(this.getDetailsItem("ROINumber", struct.data.ROINumber));
-                        if (struct.data.ApprovalStatus) struct.data.detailsArray.push(this.getDetailsItem("ApprovalStatus", struct.data.ApprovalStatus));
-
-                        this.rTStructs[seriesObject.parameters.get("SOPInstanceUID")] = struct;
-
+                        // base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
-
                     case "RTPLAN":
-                        const plan = this.getBasicSeriesNode(seriesObject)
-                        plan.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
-                        plan.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
-                        plan.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
-                        plan.data.RTPlanLabel = seriesObject.parameters.get("RTPlanLabel");
-                        plan.data.RTPlanName = seriesObject.parameters.get("RTPlanName");
-                        plan.data.RTPlanDescription = seriesObject.parameters.get("RTPlanDescription");
-                        plan.data.ApprovalStatus = seriesObject.parameters.get("ApprovalStatus");
-
-                        if (plan.data.seriesDescription === "") {
-
-                            if (seriesObject.parameters.get("RTPlanDescription") !== undefined && seriesObject.parameters.get("RTPlanDescription") !== "") {
-                                plan.data.seriesDescription = seriesObject.parameters.get("RTPlanDescription");
-                            } else if (seriesObject.parameters.get("RTPlanLabel") !== undefined && seriesObject.parameters.get("RTPlanLabel") !== "") {
-                                plan.data.seriesDescription = seriesObject.parameters.get("RTPlanLabel");
-                            } else if (seriesObject.parameters.get("RTPlanName") !== undefined && seriesObject.parameters.get("RTPlanName") !== "") {
-                                plan.data.seriesDescription = seriesObject.parameters.get("RTPlanName");
-                            }
+                        base.rtPlanArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rtPlans[SOPInstanceUID] = treeNode;
                         }
-
-                        plan.data.PrescriptionDescription = seriesObject.parameters.get("PrescriptionDescription");
-                        plan.data.RTPlanDate = seriesObject.parameters.get("RTPlanDate");
-
-                        if (seriesObject.parameters.get("RTPlanDate") !== "" && plan.data.seriesDate === "") {
-                            plan.data.seriesDate = seriesObject.parameters.get("RTPlanDate");
-                        }
-
-                        plan.data.RTPlanGeometry = seriesObject.parameters.get("RTPlanGeometry");
-                        plan.ReferencedStructureSetSequence = seriesObject.parameters.get("ReferencedStructureSetSequence");
-                        plan.ManufacturerModelName = seriesObject.parameters.get("ManufacturerModelName");
-                        plan.Manufacturer = seriesObject.parameters.get("Manufacturer");
-                        plan.RTPlanGeometry = seriesObject.parameters.get("RTPlanGeometry");
-
-
-                        plan.data.detailsArray = [];
-                        // if (plan.data.seriesDescription) plan.data.detailsArray.push(this.getDetailsItem("SeriesDescription", plan.data.RTPlanDescription));
-                        if (plan.data.RTPlanLabel) plan.data.detailsArray.push(this.getDetailsItem("RTPlanLabel", plan.data.RTPlanLabel));
-                        if (plan.data.ManufacturerModelName) plan.data.detailsArray.push(this.getDetailsItem("ManufacturerModelName", plan.data.ManufacturerModelName));
-                        if (plan.data.Manufacturer) plan.data.detailsArray.push(this.getDetailsItem("Manufacturer", plan.data.Manufacturer));
-                        if (plan.data.RTPlanName) plan.data.detailsArray.push(this.getDetailsItem("RTPlanName", plan.data.RTPlanName));
-                        if (plan.data.RTPlanDate) plan.data.detailsArray.push(this.getDetailsItem("RTPlanDate", plan.data.RTPlanDate));
-                        if (plan.data.RTPlanDescription) plan.data.detailsArray.push(this.getDetailsItem("RTPlanDescription", plan.data.RTPlanDescription));
-                        if (plan.data.RTPlanGeometry) plan.data.detailsArray.push(this.getDetailsItem("RTPlanGeometry", plan.data.RTPlanGeometry));
-                        if (plan.data.PrescriptionDescription) plan.data.detailsArray.push(this.getDetailsItem("PrescriptionDescription", plan.data.PrescriptionDescription));
-                        if (plan.data.ReferencedStructureSetSequence) plan.data.detailsArray.push(this.getDetailsItem("ReferencedStructureSetSequence", plan.data.ReferencedStructureSetSequence));
-                        if (plan.data.ApprovalStatus) plan.data.detailsArray.push(this.getDetailsItem("ApprovalStatus", plan.data.ApprovalStatus));
-
-                        this.rtPlans[seriesObject.parameters.get("SOPInstanceUID")] = plan;
-
+                        base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
-
                     case "RTDOSE":
-                        const dose = this.getBasicSeriesNode(seriesObject);
-                        dose.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
-                        dose.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
-                        dose.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
-                        dose.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
-                        dose.data.DoseUnits = seriesObject.parameters.get("DoseUnits");
-                        dose.data.DoseType = seriesObject.parameters.get("DoseType");
-                        dose.data.DoseComment = seriesObject.parameters.get("DoseComment");
-
-                        if (dose.data.seriesDescription === "") {
-                            if (seriesObject.parameters.get("DoseComment") !== undefined && seriesObject.parameters.get("DoseComment") !== "") {
-                                dose.data.seriesDescription = seriesObject.parameters.get("DoseComment");
-                            }
+                        base.rTDoseArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rTDoses[SOPInstanceUID] = treeNode;
                         }
-
-                        dose.data.DoseSummationType = seriesObject.parameters.get("DoseSummationType");
-                        dose.data.InstanceCreationDate = seriesObject.parameters.get("InstanceCreationDate");
-
-                        if (seriesObject.parameters.get("InstanceCreationDate") !== "" && dose.data.seriesDate === "") {
-                            dose.data.seriesDate = seriesObject.parameters.get("InstanceCreationDate");
-                        }
-
-                        dose.ReferencedRTPlanSequence = seriesObject.parameters.get("ReferencedRTPlanSequence");
-
-
-                        dose.data.detailsArray = [];
-                        if (dose.data.DoseComment) dose.data.detailsArray.push(this.getDetailsItem("DoseComment", dose.data.DoseComment));
-                        if (dose.data.DoseSummationType) dose.data.detailsArray.push(this.getDetailsItem("DoseSummationType", dose.data.DoseSummationType));
-                        if (dose.data.DoseUnits) dose.data.detailsArray.push(this.getDetailsItem("DoseUnits", dose.data.DoseUnits));
-                        if (dose.data.DoseType) dose.data.detailsArray.push(this.getDetailsItem("DoseType", dose.data.DoseType));
-                        if (dose.data.InstanceCreationDate) dose.data.detailsArray.push(this.getDetailsItem("InstanceCreationDate", dose.data.InstanceCreationDate));
-                        if (dose.data.ApprovalStatus) dose.data.detailsArray.push(this.getDetailsItem("ApprovalStatus", dose.data.ApprovalStatus));
-
-                        this.rTDoses[seriesObject.parameters.get("SOPInstanceUID")] = dose;
-
+                        base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
-
                     case "RTIMAGE":
-                        const image = this.getBasicSeriesNode(seriesObject);
-                        image.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
-                        image.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
-                        image.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
-                        image.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
-                        image.data.RTImageLabel = seriesObject.parameters.get("RTImageLabel");
-                        image.data.RTImageName = seriesObject.parameters.get("RTImageName");
-                        image.data.RTImageDescription = seriesObject.parameters.get("RTImageDescription");
-                        image.data.ApprovalStatus = seriesObject.parameters.get("ApprovalStatus");
-
-                        if (image.data.seriesDescription === "") {
-                            if (seriesObject.parameters.get("RTImageName") !== undefined && seriesObject.parameters.get("RTImageName") !== "") {
-                                image.data.seriesDescription = seriesObject.parameters.get("RTImageName");
-                            } else if (seriesObject.parameters.get("RTImageLabel") !== undefined && seriesObject.parameters.get("RTImageLabel") !== "") {
-                                image.data.seriesDescription = seriesObject.parameters.get("RTImageLabel");
-                            } else if (seriesObject.parameters.get("RTImageDescription") !== undefined && seriesObject.parameters.get("RTImageDescription") !== "") {
-                                image.data.seriesDescription = seriesObject.parameters.get("RTImageDescription");
-                            }
+                        base.rTImageArray.push(treeNode);
+                        for (let SOPInstanceUID of seriesObject.getSopInstancesUIDs()) {
+                            base.rTImages[SOPInstanceUID] = treeNode;
                         }
-
-                        image.data.InstanceCreationDate = seriesObject.parameters.get("InstanceCreationDate");
-
-                        if (seriesObject.parameters.get("InstanceCreationDate") !== "" && image.data.seriesDate === "") {
-                            image.data.seriesDate = seriesObject.parameters.get("InstanceCreationDate");
-                        }
-
-                        image.ReferencedRTPlanSequence = seriesObject.parameters.get("ReferencedRTPlanSequence");
-
-                        image.data.detailsArray = [];
-                        if (image.data.RTImageName) image.data.detailsArray.push(this.getDetailsItem("RTImageName", image.data.RTImageName));
-                        if (image.data.RTImageLabel) image.data.detailsArray.push(this.getDetailsItem("RTImageLabel", image.data.RTImageLabel));
-                        if (image.data.RTImageDescription) image.data.detailsArray.push(this.getDetailsItem("RTImageDescription", image.data.RTImageDescription));
-                        if (image.data.InstanceCreationDate) image.data.detailsArray.push(this.getDetailsItem("InstanceCreationDate", image.data.InstanceCreationDate));
-                        if (image.data.ApprovalStatus) image.data.detailsArray.push(this.getDetailsItem("ApprovalStatus", image.data.ApprovalStatus));
-
-                        this.rTImages[seriesObject.parameters.get("SOPInstanceUID")] = image;
-
+                        base.referencedSOPInstanceUIDs = new Set([...base.referencedSOPInstanceUIDs, ...seriesObject.getReferencedInstancesUIDs()]);
                         break;
-
                     case "CT":
-                        const ct = this.getBasicSeriesNode(seriesObject);
-                        ct.data.SOPInstanceUID = seriesObject.parameters.get("SOPInstanceUID");
-                        ct.data.StudyInstanceUID = seriesObject.parameters.get("StudyInstanceUID");
-                        ct.data.FrameOfReferenceUID = seriesObject.parameters.get("FrameOfReferenceUID");
-                        ct.data.MediaStorageSOPInstanceUID = seriesObject.parameters.get("MediaStorageSOPInstanceUID");
-                        ct.data.BodyPartExamined = seriesObject.parameters.get("BodyPartExamined");
-                        ct.data.StudyDescription = seriesObject.parameters.get("StudyDescription");
-                        ct.data.ImageType = seriesObject.parameters.get("ImageType");
-
-                        ct.data.detailsArray = [];
-                        if (ct.data.ImageType) ct.data.detailsArray.push(this.getDetailsItem("ImageType", ct.data.ImageType));
-                        if (ct.data.BodyPartExamined) ct.data.detailsArray.push(this.getDetailsItem("BodyPartExamined", ct.data.BodyPartExamined));
-
-                        this.cTs[seriesObject.parameters.get("SeriesInstanceUID")] = ct;
+                        base.cTs[seriesObject.parameters.get("SeriesInstanceUID")] = this.getTreeNode(seriesObject);
                         break;
                     default:
-                        const otherSeries = this.getBasicSeriesNode(seriesObject);
-                        this.otherSeries[seriesObject.parameters.get("SOPInstanceUID")] = otherSeries;
+                        base.otherSeries[seriesObject.parameters.get("SOPInstanceUID")] = this.getTreeNode(seriesObject);
                 }
 
             }
