@@ -166,7 +166,7 @@ export default class TreeNode {
 
                 replacementNodeTwo.children = [];
                 for (let childNode of this.children) {
-                    const referencesFromChild = childNode.getReferenceDetails(sopInstancesUID);
+                    const referencesFromChild = childNode.getReferenceDetailsByReferencedSOPInstanceUID(sopInstancesUID);
                     if (referencesFromChild != null) {
                         replacementNodeTwo.children.push(childNode);
                     }
