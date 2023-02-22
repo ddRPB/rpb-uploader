@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  * 
- * Copyright (C) 2013 - 2022 RPB Team
+ * Copyright (C) 2013 - 2023 RPB Team
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,23 +17,29 @@
  * 
  */
 
+// react
+import { Component, Fragment } from 'react';
+// prime react
 import { BlockUI } from 'primereact/blockui';
 import { Divider } from 'primereact/divider';
 import { ScrollTop } from 'primereact/scrolltop';
 import { TabMenu } from 'primereact/tabmenu';
-import { Component, Fragment } from 'react';
+// react toastify
 import { toast } from 'react-toastify';
+// constants
 import DicomGenderEnum from '../constants/dicomValueEnums/DicomGenderEnum';
+import DeIdentificationCheckTypes from './../constants/deIdentificationConfigurationCheck/DeIdentificationCheckTypes';
+import SanityCheckTypes from './../constants/sanityCheck/SanityCheckTypes';
+// model
 import DicomFile from '../model/DicomFile';
-import DicomSeries from '../model/DicomSeries';
 import DicomUploadDictionary from '../model/DicomUploadDictionary';
 import DicomUploadPackage from '../model/DicomUploadPackage';
+// utils
 import DicomUidService from '../util/deidentification/DicomUidService';
 import TreeBuilder from '../util/TreeBuilder';
 import DeIdentificationCheckHelper from '../util/verification/DeIdentificationCheckHelper';
 import SanityCheckHelper from '../util/verification/SanityCheckHelper';
-import DeIdentificationCheckTypes from './../constants/deIdentificationConfigurationCheck/DeIdentificationCheckTypes';
-import SanityCheckTypes from './../constants/sanityCheck/SanityCheckTypes';
+// UI components
 import DicomDropZone from './DicomDropZone';
 import DicomParsingMenu from './DicomParsingMenu';
 import { DicomStudySelection } from "./DicomStudySelection";
@@ -63,6 +69,7 @@ class Uploader extends Component {
         ignoredFilesDetails: [],
         sanityCheckResults: [],
         sanityCheckResultsPerSeries: new Map(),
+        selectedFilesCanBeParsed: true,
         sanityCheckConfiguration: this.createDefaultSanityCheckConfiguration(),
         isAnalysisDone: false,
         studyArray: [],
@@ -609,11 +616,13 @@ class Uploader extends Component {
         const selectedStudyAllSeriesMap = { ...this.state.selectedStudy.series };
         const selectedStudyNewVirtualNodesMap = this.state.selectedStudy.newVirtualNodes;
         const selectedSeriesObjects = {};
+        let filesCanBeParsed = true;
 
         for (let uid in selectedNodesArray) {
             const selectedSeries = selectedStudyAllSeriesMap[uid];
             if (selectedSeries != undefined) {
                 selectedSeriesObjects[uid] = selectedSeries;
+                filesCanBeParsed = filesCanBeParsed && selectedSeries.getIsParsableState();
             } else {
                 const virtualNode = selectedStudyNewVirtualNodesMap.get(uid);
                 const originalSeriesInstanceUID = virtualNode.data.seriesInstanceUID;
@@ -630,6 +639,7 @@ class Uploader extends Component {
 
                 virtualSeriesObject.addInstances(instances);
                 selectedSeriesObjects[originalSeriesInstanceUID] = virtualSeriesObject;
+                filesCanBeParsed = filesCanBeParsed && virtualSeriesObject.getIsParsableState();
 
             }
         }
@@ -645,6 +655,7 @@ class Uploader extends Component {
         this.setState({
             sanityCheckResults: sanityCheckResults,
             deIdentificationCheckResults: deIdentificationCheckResults,
+            selectedFilesCanBeParsed: filesCanBeParsed
         });
 
 
@@ -1010,28 +1021,28 @@ class Uploader extends Component {
                     throw new Error(`Hidden folders will be ignored. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.txt')) {
-                    throw new Error(`The file name ends with txt - it is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with txt - it is not an DICOM file. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.json')) {
-                    throw new Error(`The file name ends with json - it is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with json - it is not an DICOM file. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.xml')) {
-                    throw new Error(`The file name ends with xml - it is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with xml - it is not an DICOM file. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.pdf')) {
-                    throw new Error(`The file name ends with pdf - it is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with pdf - it is not an DICOM file. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.exe')) {
-                    throw new Error(`The file name ends with exe - it is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with exe - it is not an DICOM file. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.com')) {
-                    throw new Error(`The file name ends with com - is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with com - is not an DICOM file. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.xlsx') || file.path.endsWith('.xls')) {
-                    throw new Error(`The file name ends with xlsx - is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with xlsx - is not an DICOM file. FilePath ${file.path}`);
                 }
                 if (file.path.endsWith('.docx') || file.path.endsWith('.doc')) {
-                    throw new Error(`The file name ends with com - is not an ODM file. FilePath ${file.path}`);
+                    throw new Error(`The file name ends with com - is not an DICOM file. FilePath ${file.path}`);
                 }
 
             }
@@ -1156,6 +1167,7 @@ class Uploader extends Component {
                         ignoredFilesCount={this.state.ignoredFilesCount}
                         ignoredFilesDetails={this.state.ignoredFilesDetails}
                         sanityCheckResults={this.state.sanityCheckResults}
+                        selectedFilesCanBeParsed={this.state.selectedFilesCanBeParsed}
                         sanityCheckConfiguration={this.state.sanityCheckConfiguration}
                         deIdentificationCheckResults={this.state.deIdentificationCheckResults}
                         deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}

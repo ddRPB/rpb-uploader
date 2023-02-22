@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  * 
- * Copyright (C) 2013 - 2022 RPB Team
+ * Copyright (C) 2013 - 2023 RPB Team
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published

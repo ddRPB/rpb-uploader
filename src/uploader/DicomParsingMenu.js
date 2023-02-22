@@ -31,7 +31,7 @@ import SanityCheckResultsPanel from './SanityCheckResultsPanel';
 import SettingsDialog from './SettingsDialog';
 
 /**
- * DicomParsingDetails component
+ * DicomParsingDetails menu component
  */
 export default class DicomParsingMenu extends Component {
 
@@ -51,25 +51,6 @@ export default class DicomParsingMenu extends Component {
 
     toggleSettingsDialog = () => {
         this.setState((state) => { return { showSettingsDialog: !state.showSettingsDialog } })
-    }
-
-    createSplitButtonItems() {
-        return [
-            {
-                label: 'Setup',
-                icon: 'pi pi-sliders-h',
-                command: (e) => {
-                    this.toggleSettingsDialog();
-                }
-            },
-            {
-                label: 'Reset',
-                icon: 'pi pi-refresh',
-                command: (e) => {
-                    this.props.resetAll();
-                }
-            },
-        ];
     }
 
     resetAll() {
@@ -171,7 +152,7 @@ export default class DicomParsingMenu extends Component {
                                 iconPos="right"
                                 className='p-button-success'
                                 hidden={
-                                    this.props.uploadApiKey === null || this.props.sanityCheckResults.length > 0 || this.props.deIdentificationCheckResults.length > 0
+                                    this.props.uploadApiKey === null || this.props.sanityCheckResults.length > 0 || this.props.deIdentificationCheckResults.length > 0 || !this.props.selectedFilesCanBeParsed
                                 }
                             />
                         </React.Fragment>

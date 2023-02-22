@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  * 
- * Copyright (C) 2013 - 2022 RPB Team
+ * Copyright (C) 2013 - 2023 RPB Team
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -39,6 +39,9 @@ export class TreeSelection extends Component {
         this.selectNodes = props.selectNodes;
     }
 
+    /**
+     * The component is used in different contexts. This function selects the tree that will be displayed, based on the seriesTree property.
+     */
     getTree() {
         if (this.props.selectedStudy != null) {
             if (this.props.selectedStudy.rtViewTree != null && this.props.seriesTree === "rtViewTree") {
@@ -59,8 +62,6 @@ export class TreeSelection extends Component {
         if (rOIOberservationSequenceItem === undefined) return "";
 
         let rOINumber = rOIOberservationSequenceItem.get("ReferencedROINumber");
-        let observationNumber = rOIOberservationSequenceItem.get("ObservationNumber");
-        // let rOIObservationLabel = rOIOberservationSequenceItem.get("ROIObservationLabel");
         let rTROIInterpretedType = rOIOberservationSequenceItem.get("RTROIInterpretedType");
 
         let rOISequenceItem = rOISequenceLookup.get(rOINumber);
@@ -69,30 +70,59 @@ export class TreeSelection extends Component {
         let numberFormat = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 3 });
 
         let formatedRoiNumber = numberFormat.format(rOINumber);
-        let formatedObservationNumber = numberFormat.format(observationNumber);
-
         let item = formatedRoiNumber + " - " + rOIName + "(" + rTROIInterpretedType + ")";
 
         return item;
     }
 
+    /**
+     * Creates the button logic for the commands column
+     */
     commandsActionTemplate(node, column) {
         let key = column.rowIndex;
-        if (node.data.StructureSetROISequence === undefined || node.data.rOIOberservationSequenceArray === undefined) return <div key={key}></div>;
 
-        let rOISequenceOverlayPanel = React.createRef();
+
+        // parsing problems panel
+        const parsingProblemOverlayPanel = React.createRef();
+        let fileList = [];
+
+        if (node.notParsableFileNames.length > 0) {
+            fileList = node.notParsableFileNames.map((item, index) => <div key={key + index}>{item}</div>);
+        }
+
+        // ROI sequence details panel
+        const rOISequenceOverlayPanel = React.createRef();
         let rOIOberservationSequenceList = [];
 
-        let rOISequenceLookup = new Map();
-        node.data.StructureSetROISequence.forEach((item) => rOISequenceLookup.set(item.get("ROINumber"), item));
+        if (node.data.StructureSetROISequence != undefined && node.data.rOIOberservationSequenceArray != undefined) {
+            let rOISequenceLookup = new Map();
+            node.data.StructureSetROISequence.forEach((item) => rOISequenceLookup.set(item.get("ROINumber"), item));
 
-        if (node.data.rOIOberservationSequenceArray !== undefined) {
-            rOIOberservationSequenceList = node.data.rOIOberservationSequenceArray.map((item, index) => <div key={key + index}>{this.getROIDetailItem(rOISequenceLookup, item)}</div>);
+            if (node.data.rOIOberservationSequenceArray !== undefined) {
+                rOIOberservationSequenceList = node.data.rOIOberservationSequenceArray.map((item, index) => <div key={key + index}>{this.getROIDetailItem(rOISequenceLookup, item)}</div>);
+            }
         }
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
         return <div>
+            {node.parsable === true
+                ? null
+                : <StyledButton
+                    type="button"
+                    label="ERROR"
+                    className="p-button-sm p-button-danger"
+                    icon="pi pi-exclamation-triangle"
+                    onClick={(e) => parsingProblemOverlayPanel.current.toggle(e)}
+                >
+                    <OverlayPanel ref={parsingProblemOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '650px' }} className="overlaypanel text-sm">
+                        <Card title="Parsing Issues">
+                            <div>Some files canot be parsed properly. Please try to fix it with a tool like dcmconv (from DCMTK) for the files:</div>
+                            {fileList}
+                        </Card>
+                    </OverlayPanel>
+
+                </StyledButton>}
             {rOIOberservationSequenceList.length === 0
                 ? null
                 : <StyledButton
@@ -112,6 +142,9 @@ export class TreeSelection extends Component {
         </div>
     }
 
+    /**
+     * Creates the button logic for the details column
+     */
     detailsActionTemplate(node, column) {
         let key = column.rowIndex;
         let detailsOverlayPanel = React.createRef();
@@ -140,12 +173,20 @@ export class TreeSelection extends Component {
                 : <StyledButton
                     type="button"
                     label="Details"
-                    className={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 ? "p-button-sm" : "p-button-sm p-button-warning"}
-                    icon={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 ? "" : "pi pi-exclamation-triangle"}
+                    className={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 && node.parsable ? "p-button-sm" : "p-button-sm p-button-warning"}
+                    icon={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 && node.parsable ? "" : "pi pi-exclamation-triangle"}
                     iconPos="right"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
                     <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
+                        {node.parsable === true
+                            ? null
+                            : <Card
+                                title="Parsing failed"
+                                className="text-red-500">
+                                There is a problem parsing one or more files from the dataset.
+                            </Card>
+                        }
                         {sanityCheckResults.length === 0
                             ? null
                             : <Card
