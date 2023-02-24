@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  * 
- * Copyright (C) 2013 - 2022 RPB Team
+ * Copyright (C) 2013 - 2023 RPB Team
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -78,6 +78,14 @@ export default class TreeNodeFactory {
         treeNode.sopInstancesUIDs = dicomSeries.getSopInstancesUIDs();
         treeNode.data.instancesSize = treeNode.sopInstancesUIDs.length;
         treeNode.referencesDetails = dicomSeries.getInstancesReferencesDetails();
+        treeNode.parsable = dicomSeries.getIsParsableState();
+
+        if (treeNode.parsable) {
+            treeNode.notParsableFileNames = [];
+        } else {
+            treeNode.notParsableFileNames = dicomSeries.getNotParsableFileNames();
+        }
+
     }
 
     getDetailsItem(name, value) {

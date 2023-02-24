@@ -19,11 +19,13 @@
 
 // Cornerstone dicomParser
 import dicomParser from 'dicom-parser'
+// DCMJS DICOM file manipulation tool
+import dcmjs from 'dcmjs';
+const { DicomMessage } = dcmjs.data;
 // DICOM domain model
 import DicomInstance from './DicomInstance'
 import DicomSeries from './DicomSeries'
 import DicomStudy from './DicomStudy'
-
 
 /**
  * DICOM file representation
@@ -111,6 +113,26 @@ export default class DicomFile {
         const byteArray = new Uint8Array(arrayBuffer);
 
         this.parseDicomData(byteArray);
+        this.testDcmjsParsingSuccess(arrayBuffer);
+
+    }
+
+    /**
+     * There are two different tools used to read/manipulate the DICOM files.
+     * This function tests if the DCMJS tool can read the files without errors.
+     * It is used later in the process, but this test allows to give the user feedback on early stage that there could be a problem with the file.
+     */
+    testDcmjsParsingSuccess(arrayBuffer) {
+        let dcmjsResult;
+
+        try {
+            dcmjsResult = DicomMessage.readFile(arrayBuffer);
+            if (dcmjsResult != undefined) {
+                this.parsable = true;
+            }
+        } catch (error) {
+            this.parsable = false;
+        }
     }
 
     /**
@@ -726,10 +748,16 @@ export default class DicomFile {
         return res;
     }
 
+    /**
+     * Creates new DicomStudy object, based on this file
+     */
     getDicomStudyObject() {
         return new DicomStudy(this.getStudyInstanceUID(), this.getStudyDate(), this.getStudyDescription(), this.getPatientID(), this.getPatientName(), this.getPatientBirthDate(), this.getPatientSex())
     }
 
+    /**
+     * Creates new DicomSeries object, based on this file
+     */
     getDicomSeriesObject() {
 
         const patientData = {
@@ -748,15 +776,19 @@ export default class DicomFile {
 
         }
 
-        // return new DicomSeries(this.getSeriesInstanceUID(), this.getSeriesDate(), this.getSeriesDescription(), this.getModality(), this.getStudyInstanceUID(), this.parsedParameters, patientData);
         return new DicomSeries(seriesDetails, patientData, this.parsedParameters, this.availableDicomTags);
     }
 
+    /**
+     * Creates new DicomInstance object, based on this file
+     */
     getDicomInstanceObject() {
         const fileObjectDetails = {
             sopInstanceUID: this.getSOPInstanceUID(),
             referencedSopInstanceUids: this.referencedSopInstanceUids,
             description: this.getSeriesDescription(),
+            parsable: this.parsable,
+            parsedParameters: this.parsedParameters,
         };
 
         return new DicomInstance(this.fileObject, fileObjectDetails);

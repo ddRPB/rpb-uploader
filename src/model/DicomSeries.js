@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
-// DICOM domain model
 
 /**
  * DicomSeries domain object
@@ -50,6 +49,10 @@ export default class DicomSeries {
 
     }
 
+    /**
+     * Merges the existing DICOM series with a new that has been generated from another file of the same series.
+     * The parameters will be added to a set to detect inconsistent values.
+     */
     addSeries(seriesObject) {
         this.patientID = new Set([...this.patientID, ...seriesObject.patientID]);
         this.patientBirthDate = new Set([...this.patientBirthDate, ...seriesObject.patientBirthDate]);
@@ -85,7 +88,6 @@ export default class DicomSeries {
         }
         return this.studyInstanceUID
     }
-
 
     setDeIdentifiedStudyInstanceUID(uid) {
         this.deIdentifiedStudyInstanceUID = uid;
@@ -150,6 +152,10 @@ export default class DicomSeries {
         return Object.keys(this.instances);
     }
 
+    /**
+     * Instances refer to other instances of DICOM Series. 
+     * This function returns an Array of all references of the instances that belong to this series.
+     */
     getInstancesReferencesDetails() {
         const references = [];
         for (let instanceUID of Object.keys(this.instances)) {
@@ -165,12 +171,41 @@ export default class DicomSeries {
         return references;
     }
 
+    /**
+     * Returns a set of DicomInstanceUIDs that are referenced by this series.
+     */
     getReferencedInstancesUIDs() {
-        let refernecedSeriesUIDs = new Set();
+        let referencedSeriesUIDs = new Set();
         for (let instanceUID of Object.keys(this.instances)) {
             const instanceObject = this.instances[instanceUID];
-            refernecedSeriesUIDs = new Set([...refernecedSeriesUIDs, ...instanceObject.referencedSopInstanceUids]);
+            referencedSeriesUIDs = new Set([...referencedSeriesUIDs, ...instanceObject.referencedSopInstanceUids]);
         }
-        return refernecedSeriesUIDs;
+        return referencedSeriesUIDs;
+    }
+
+    /**
+     * Returns a boolean that indicates if the DICOM tool (dcmjs) can parse the files of this series without errors.
+     */
+    getIsParsableState() {
+        let parsable = true;
+        for (let instanceUID of Object.keys(this.instances)) {
+            const instanceObject = this.instances[instanceUID];
+            parsable = parsable && instanceObject.parsable;
+        }
+        return parsable;
+    }
+
+    /**
+     * Returns an array with the file names if some files cannot be parsed properly by the DICOM tool (dcmjs).
+     */
+    getNotParsableFileNames() {
+        const fileNames = [];
+        for (let instanceUID of Object.keys(this.instances)) {
+            const instanceObject = this.instances[instanceUID];
+            if (!instanceObject.parsable) {
+                fileNames.push(instanceObject.fileObject.name);
+            }
+        }
+        return fileNames;
     }
 }
