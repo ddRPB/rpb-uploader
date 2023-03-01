@@ -18,14 +18,14 @@
  */
 
 // Cornerstone dicomParser
-import dicomParser from 'dicom-parser'
+import dicomParser from 'dicom-parser';
 // DCMJS DICOM file manipulation tool
 import dcmjs from 'dcmjs';
 const { DicomMessage } = dcmjs.data;
 // DICOM domain model
-import DicomInstance from './DicomInstance'
-import DicomSeries from './DicomSeries'
-import DicomStudy from './DicomStudy'
+import DicomInstance from './DicomInstance';
+import DicomSeries from './DicomSeries';
+import DicomStudy from './DicomStudy';
 
 /**
  * DICOM file representation
@@ -153,6 +153,12 @@ export default class DicomFile {
         this.parsedParameters.set('SeriesMetaParameter', [])
         this.parsedParameters.set('BurnedInAnnotation', this.getBurnedInAnnotationTag());
         this.parsedParameters.set('IdentityRemoved', this.getIdentityRemovedTag());
+
+        this.parsedParameters.set('patientID', this.getPatientID());
+        this.parsedParameters.set('patientName', this.getPatientName());
+        this.parsedParameters.set('patientBirthDate', this.getPatientBirthDate());
+        this.parsedParameters.set('patientSex', this.getPatientSex());
+
 
         this.availableDicomTags = new Map();
         this.availableDicomTags.set('EncryptedAttributesSequence', this._dicomTagIsDefined('04000500'));
@@ -759,7 +765,7 @@ export default class DicomFile {
      * Creates new DicomSeries object, based on this file
      */
     getDicomSeriesObject() {
-
+        // TODO calculate from Instances
         const patientData = {
             patientID: this.getPatientID(),
             patientName: this.getPatientName(),

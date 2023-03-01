@@ -634,7 +634,7 @@ class Uploader extends Component {
                 if (virtualSeriesObject === undefined) {
                     const newVirtualSeriesObject = Object.create(Object.getPrototypeOf(originalSeries));
                     virtualSeriesObject = Object.assign(newVirtualSeriesObject, originalSeries);
-                    virtualSeriesObject.instances = {};
+                    virtualSeriesObject.instances = new Map();
                 }
 
                 virtualSeriesObject.addInstances(instances);

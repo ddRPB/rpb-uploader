@@ -17,6 +17,8 @@
  * 
  */
 
+import { file } from "jszip";
+
 /**
  * DicomInstance domain object
  */
@@ -29,6 +31,7 @@ export default class DicomInstance {
         this.referencedSopInstanceUids = fileObjectDetails.referencedSopInstanceUids;
         this.description = fileObjectDetails.description;
         this.parsable = fileObjectDetails.parsable;
+        this.parsedParameters = fileObjectDetails.parsedParameters;
     }
 
     getFile() {

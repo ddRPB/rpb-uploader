@@ -150,8 +150,8 @@ export class TreeSelection extends Component {
         let detailsOverlayPanel = React.createRef();
 
         let seriesDetailsList = [];
-        if (node.data.detailsArray != undefined) {
-            seriesDetailsList = node.data.detailsArray.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        if (node.details != undefined) {
+            seriesDetailsList = node.details.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
         }
 
         const seriesUid = node.data.seriesInstanceUID;
@@ -162,8 +162,8 @@ export class TreeSelection extends Component {
         const deIdentificationCheckResults = this.props.deIdentificationCheckResultsPerSeries.get(seriesUid);
         const deIdentificationCheckDetailList = deIdentificationCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
 
-        const patientDetailsList = node.data.patientDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
-        const deIdentificationStatusList = node.data.deIdentificationStatus.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        const patientDetailsList = node.patientDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        const deIdentificationStatusList = node.deIdentificationDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
 

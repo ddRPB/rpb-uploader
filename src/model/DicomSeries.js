@@ -22,7 +22,7 @@
  */
 export default class DicomSeries {
 
-    instances = {};
+    instances = new Map();
     deIdentifiedStudyInstanceUID = null;
     deIdentifiedSeriesInstanceUID = null;
     uploadVerified = false;
@@ -103,7 +103,7 @@ export default class DicomSeries {
 
     addInstance(dicomInstance) {
         if (!this.instanceExists(dicomInstance.sopInstanceUID)) {
-            this.instances[dicomInstance.sopInstanceUID] = dicomInstance
+            this.instances.set(dicomInstance.sopInstanceUID, dicomInstance);
         } else {
             throw Error("Existing instance")
         }
@@ -120,12 +120,11 @@ export default class DicomSeries {
     }
 
     instanceExists(sopInstanceUID) {
-        let knownInstancesUID = Object.keys(this.instances);
-        return knownInstancesUID.includes(sopInstanceUID);
+        return this.instances.has(sopInstanceUID);
     }
 
     getInstance(instanceUID) {
-        return this.instances[instanceUID]
+        return this.instances.get(instanceUID);
     }
 
     getInstancesByUIDArray(instanceUIDArray) {
@@ -137,7 +136,7 @@ export default class DicomSeries {
     }
 
     getInstances() {
-        return Object.values(this.instances)
+        return Array.from(this.instances.values())
     }
 
     getInstancesObject() {
@@ -145,11 +144,11 @@ export default class DicomSeries {
     }
 
     getInstancesSize() {
-        return Object.keys(this.instances).length;
+        return this.instances.size;
     }
 
     getSopInstancesUIDs() {
-        return Object.keys(this.instances);
+        return Array.from(this.instances.keys());
     }
 
     /**
@@ -158,8 +157,8 @@ export default class DicomSeries {
      */
     getInstancesReferencesDetails() {
         const references = [];
-        for (let instanceUID of Object.keys(this.instances)) {
-            const instanceObject = this.instances[instanceUID];
+        for (let instanceUID of this.instances.keys()) {
+            const instanceObject = this.instances.get(instanceUID);
             for (let referencedUID of instanceObject.referencedSopInstanceUids.keys()) {
                 references.push({
                     sourceInstanceUID: instanceUID,
@@ -176,8 +175,8 @@ export default class DicomSeries {
      */
     getReferencedInstancesUIDs() {
         let referencedSeriesUIDs = new Set();
-        for (let instanceUID of Object.keys(this.instances)) {
-            const instanceObject = this.instances[instanceUID];
+        for (let instanceUID of this.instances.keys()) {
+            const instanceObject = this.instances.get(instanceUID);
             referencedSeriesUIDs = new Set([...referencedSeriesUIDs, ...instanceObject.referencedSopInstanceUids]);
         }
         return referencedSeriesUIDs;
@@ -188,8 +187,8 @@ export default class DicomSeries {
      */
     getIsParsableState() {
         let parsable = true;
-        for (let instanceUID of Object.keys(this.instances)) {
-            const instanceObject = this.instances[instanceUID];
+        for (let instanceUID of this.instances.keys()) {
+            const instanceObject = this.instances.get(instanceUID);
             parsable = parsable && instanceObject.parsable;
         }
         return parsable;
@@ -200,8 +199,8 @@ export default class DicomSeries {
      */
     getNotParsableFileNames() {
         const fileNames = [];
-        for (let instanceUID of Object.keys(this.instances)) {
-            const instanceObject = this.instances[instanceUID];
+        for (let instanceUID of this.instances.keys()) {
+            const instanceObject = this.instances.get(instanceUID);
             if (!instanceObject.parsable) {
                 fileNames.push(instanceObject.fileObject.name);
             }

@@ -191,10 +191,10 @@ export default class DicomUploadPackage {
                 if (selectedSeries.parameters != null) {
                     let currentChunk = new DicomUploadChunk(this.studyInstanceUID, seriesUid);
 
-                    for (let sopInstanceUid in selectedSeries.instances) {
+                    for (let sopInstanceUid of selectedSeries.instances.keys()) {
                         this.log.trace('Prepare upload for instance', {}, { sopInstanceUid });
 
-                        const fileObject = selectedSeries.instances[sopInstanceUid];
+                        const fileObject = selectedSeries.instances.get(sopInstanceUid);
                         let uidArray = [];
                         let identities = [];
                         let patientIdentities = [];
