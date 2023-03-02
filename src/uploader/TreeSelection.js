@@ -58,14 +58,12 @@ export class TreeSelection extends Component {
         return {};
     }
 
-    getROIDetailItem(rOISequenceLookup, rOIOberservationSequenceItem) {
-        if (rOIOberservationSequenceItem === undefined) return "";
+    getROIDetailItem(rOISequenceDetailsArrayItem) {
 
-        let rOINumber = rOIOberservationSequenceItem.get("ReferencedROINumber");
-        let rTROIInterpretedType = rOIOberservationSequenceItem.get("RTROIInterpretedType");
 
-        let rOISequenceItem = rOISequenceLookup.get(rOINumber);
-        let rOIName = rOISequenceItem.get("ROIName");
+        let rOINumber = rOISequenceDetailsArrayItem.get("ReferencedROINumber");
+        let rTROIInterpretedType = rOISequenceDetailsArrayItem.get("RTROIInterpretedType");
+        let rOIName = rOISequenceDetailsArrayItem.get("ROIName");
 
         let numberFormat = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 3 });
 
@@ -94,13 +92,8 @@ export class TreeSelection extends Component {
         const rOISequenceOverlayPanel = React.createRef();
         let rOIOberservationSequenceList = [];
 
-        if (node.data.StructureSetROISequence != undefined && node.data.rOIOberservationSequenceArray != undefined) {
-            let rOISequenceLookup = new Map();
-            node.data.StructureSetROISequence.forEach((item) => rOISequenceLookup.set(item.get("ROINumber"), item));
-
-            if (node.data.rOIOberservationSequenceArray !== undefined) {
-                rOIOberservationSequenceList = node.data.rOIOberservationSequenceArray.map((item, index) => <div key={key + index}>{this.getROIDetailItem(rOISequenceLookup, item)}</div>);
-            }
+        if (node.data.rOISequenceDetailsArray.length > 0) {
+            rOIOberservationSequenceList = node.data.rOISequenceDetailsArray.map((item, index) => <div key={key + index}>{this.getROIDetailItem(item)}</div>);
         }
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;

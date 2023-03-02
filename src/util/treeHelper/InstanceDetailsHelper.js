@@ -17,19 +17,45 @@
  *
  */
 
+/**
+ * Extracts and summarizes detail properties of the instances that are part of the DicomSeries or virtual DicomSeries
+ */
 export default class InstanceDetailsHelper {
 
+    // single parameters will be added to the parameters object
     parameters = {};
+    // ROI Sequences
+    structureSetROISequenceMap = new Map();
+    rTROIObservationsSequence = new Map();
 
+    /**
+     * Add DicomInstances
+     * @param  {Map} instancesObject  Map with DicomInstances
+     */
     addInstances(instancesObject) {
         for (let instanceUID of instancesObject.keys()) {
             const instanceParameters = instancesObject.get(instanceUID).parsedParameters;
-            // this.parametersByInstanceUID.set(instanceUID, instanceParameters);
 
             for (let [parameterName, parameterValue] of instanceParameters) {
                 if (parameterValue instanceof Map || parameterValue instanceof Array) {
-                    // ignore
+                    switch (parameterName) {
+                        case 'StructureSetROISequence':
+                            parameterValue.forEach((value) => {
+                                this.structureSetROISequenceMap.set(value.get('ROINumber'), value);
+                            });
+                            break;
+                        case 'RTROIObservationsSequence':
+                            parameterValue.forEach((value) => {
+                                this.rTROIObservationsSequence.set(value.get('ReferencedROINumber'), value);
+                            });
+                            break;
+
+                        default:
+                            break;
+                    }
+
                 } else {
+                    // default - single parameters will be added to parameters object
                     this.addParameter(parameterName, parameterValue);
                 }
             }
@@ -38,6 +64,13 @@ export default class InstanceDetailsHelper {
 
     }
 
+    /**
+     * Single parameters will be collected in Sets to avoid duplicates
+     * 
+     * @param {String} name parameter name
+     * @param {String} value parameter value
+     * 
+     */
     addParameter(name, value) {
         if (this.parameters[name] == undefined) {
             this.parameters[name] = new Set();
@@ -45,6 +78,12 @@ export default class InstanceDetailsHelper {
         this.parameters[name].add(value);
     }
 
+    /**
+     * Aggregates all values of a set to a single String with delimiter
+     * 
+     * @param {String} name parameter name
+     * @returns {String}
+     */
     getParameter(name) {
         if (this.parameters[name] != undefined) {
             return Array.from(this.parameters[name]).join(' / ');
@@ -53,6 +92,11 @@ export default class InstanceDetailsHelper {
         }
     }
 
+    /**
+     * Creates an array with (with patient related) name, value JSON objects that can be used in the UI for generating lists with the parameters and their values.
+     * 
+     *  * @returns {Array<String>}
+     */
     getPatientdetails() {
         const patientDetails = [];
         patientDetails.push(this.getDetailsItem("ID", this.getParameter('patientID')));
@@ -62,6 +106,11 @@ export default class InstanceDetailsHelper {
         return patientDetails;
     }
 
+    /**
+     * Creates an array with (de-identification related) name, value JSON objects that can be used in the UI for generating lists with the parameters and their values.
+     * 
+     *  * @returns {Array<String>}
+     */
     getDeIdentificationDetails() {
         const deIdentificationDetails = [];
         deIdentificationDetails.push(this.getDetailsItem("BurnedInAnnotation", this.getParameter('BurnedInAnnotation')));
@@ -69,6 +118,11 @@ export default class InstanceDetailsHelper {
         return deIdentificationDetails;
     }
 
+    /**
+     * Creates an array with (modality specific) name, value JSON objects that can be used in the UI for generating lists with the parameters and their values.
+     * 
+     *  * @returns {Array<String>}
+     */
     getDetailsArray() {
         const detailsArray = [];
         for (let modality of this.parameters.Modality.values())
@@ -139,12 +193,22 @@ export default class InstanceDetailsHelper {
         this.addParameterIfAvailable(detailsArray, 'BodyPartExamined');
     }
 
+    /**
+     * Adds a parameter JSON object to an array if the parameter is available
+     * @param {Array} detailsArray where the parameter should be added
+     * @param {String} parameterName name of the parameter that will be searched for in this.parameters
+     */
     addParameterIfAvailable(detailsArray, parameterName) {
         if (this.getParameter(parameterName).length > 0) {
             detailsArray.push(this.getDetailsItem(parameterName, this.getParameter(parameterName)));
         }
     }
 
+    /**
+     * Calculates an alternative series description if the original is empty or just a study prefix
+     * 
+     * @returns {String}
+     */
     calculateSeriesDescription() {
         let seriesDescription = this.getParameter('SeriesDescription');
 
@@ -191,6 +255,39 @@ export default class InstanceDetailsHelper {
         return seriesDescription;
     }
 
+    /**
+     * Merges the StructureSetROISequence and RTROIObservationsSequence items and 
+     * creates a sorted array with one item per ROINumber
+     * @returns {Array}
+     */
+    getCalculatedROISequenceDetails() {
+        const rOISequenceDetailsArray = [];
+
+        for (let [key, value] of this.structureSetROISequenceMap) {
+            const rTROIObservationsSequenceItem = this.rTROIObservationsSequence.get(key);
+            rOISequenceDetailsArray.push(new Map([...rTROIObservationsSequenceItem, ...value]));
+        }
+
+        rOISequenceDetailsArray.sort((a, b) => {
+            let result = 0;
+            try {
+                result = parseInt(a.get('ReferencedROINumber')) - parseInt(b.get('ReferencedROINumber'));
+            } catch (error) {
+                // do nothing
+            }
+            return result;
+        })
+
+        return rOISequenceDetailsArray;
+    }
+
+    /**
+     * Creates JSON object with name, value properties that can be used in UI components
+     * 
+     * @param {String} name
+     * @param {String} value
+     * @returns {JSON}
+     */
     getDetailsItem(name, value) {
         return {
             "name": name,

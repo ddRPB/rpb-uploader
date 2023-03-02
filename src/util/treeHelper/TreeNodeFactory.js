@@ -99,10 +99,8 @@ export default class TreeNodeFactory {
             treeNode.data.seriesDate = dicomSeries.parameters.get("StructureSetDate");
         }
 
-        treeNode.data.StructureSetROISequence = dicomSeries.parameters.get("StructureSetROISequence");
         treeNode.data.ReferencedFrameOfReferenceUID = dicomSeries.parameters.get("ReferencedFrameOfReferenceUID");
         treeNode.ReferencedFrameOfReferenceSequence = dicomSeries.parameters.get("ReferencedFrameOfReferenceSequence");
-        treeNode.data.rOIOberservationSequenceArray = dicomSeries.parameters.get("RTROIObservationsSequence");
 
     }
 

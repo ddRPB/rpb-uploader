@@ -93,6 +93,7 @@ export default class TreeNode {
         this.details = instanceDetailHelper.getDetailsArray();
 
         this.data.seriesDescription = instanceDetailHelper.calculateSeriesDescription();
+        this.data.rOISequenceDetailsArray = instanceDetailHelper.getCalculatedROISequenceDetails();
         this.data.instancesSize = this.instances.size;
     }
 
