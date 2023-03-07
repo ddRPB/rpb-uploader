@@ -451,7 +451,6 @@ class Uploader extends Component {
      * Updates the sanity check configuration and the resulting sanity check results
      */
     updateSanityCheckConfiguration(sanityCheckConfiguration) {
-        // this.setState({ sanityCheckConfiguration: sanityCheckConfiguration });
 
         const selectedSeries = this.dicomUploadPackage.getSelectedSeries();
         let sanityCheckResults = [];
@@ -463,7 +462,6 @@ class Uploader extends Component {
         if (this.state.selectedStudy === null) {
             return;
         }
-
 
         if (selectedSeries.size > 0) {
             sanityCheckResults = this.sanityCheckHelper.updateWithSeriesAnalysis(this.dicomUploadPackage.getSelectedSeries(), sanityCheckConfiguration);
@@ -485,7 +483,6 @@ class Uploader extends Component {
         }
 
         this.setState({
-            // sanityCheckConfiguration: sanityCheckConfiguration,
             sanityCheckResults: sanityCheckResults,
             sanityCheckResultsPerSeries: sanityCheckResultsPerSeries,
         });

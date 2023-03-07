@@ -20,6 +20,7 @@
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Column } from 'primereact/column';
+import { Divider } from 'primereact/divider';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { TreeTable } from 'primereact/treetable';
 import React, { Component } from 'react';
@@ -79,16 +80,6 @@ export class TreeSelection extends Component {
     commandsActionTemplate(node, column) {
         let key = column.rowIndex;
 
-
-        // parsing problems panel
-        const parsingProblemOverlayPanel = React.createRef();
-        let fileList = [];
-
-        if (node.notParsableFileNames.length > 0) {
-            fileList = node.notParsableFileNames.map((item, index) => <div key={key + index}>{item}</div>);
-        }
-
-        // ROI sequence details panel
         const rOISequenceOverlayPanel = React.createRef();
         let rOIOberservationSequenceList = [];
 
@@ -99,23 +90,6 @@ export class TreeSelection extends Component {
         const StyledButton = styledComponents(Button)`{ width: 135px }`;
 
         return <div>
-            {node.parsable === true
-                ? null
-                : <StyledButton
-                    type="button"
-                    label="ERROR"
-                    className="p-button-sm p-button-danger"
-                    icon="pi pi-exclamation-triangle"
-                    onClick={(e) => parsingProblemOverlayPanel.current.toggle(e)}
-                >
-                    <OverlayPanel ref={parsingProblemOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '650px' }} className="overlaypanel text-sm">
-                        <Card title="Parsing Issues">
-                            <div>Some files canot be parsed properly. Please try to fix it with a tool like dcmconv (from DCMTK) for the files:</div>
-                            {fileList}
-                        </Card>
-                    </OverlayPanel>
-
-                </StyledButton>}
             {rOIOberservationSequenceList.length === 0
                 ? null
                 : <StyledButton
@@ -135,6 +109,18 @@ export class TreeSelection extends Component {
         </div>
     }
 
+    getDetailsButtonClassName(sanityCheckResults, deIdentificationCheckResults, nodeParsable) {
+        if (nodeParsable === false) {
+            return "p-button-sm p-button-danger";
+        }
+
+        if (sanityCheckResults.length > 0 || deIdentificationCheckResults.length > 0) {
+            return "p-button-sm p-button-warning";
+        }
+
+        return "p-button-sm";
+    }
+
     /**
      * Creates the button logic for the details column
      */
@@ -148,6 +134,11 @@ export class TreeSelection extends Component {
         }
 
         const seriesUid = node.data.seriesInstanceUID;
+
+        let fileList = [];
+        if (node.notParsableFileNames.length > 0) {
+            fileList = node.notParsableFileNames.map((item, index) => <div key={key + index}>{item}</div>);
+        }
 
         const sanityCheckResults = this.props.sanityCheckResultsPerSeries.get(seriesUid);
         const sanityCheckDetailList = sanityCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
@@ -166,24 +157,25 @@ export class TreeSelection extends Component {
                 : <StyledButton
                     type="button"
                     label="Details"
-                    className={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 && node.parsable ? "p-button-sm" : "p-button-sm p-button-warning"}
+                    className={this.getDetailsButtonClassName(sanityCheckResults, deIdentificationCheckResults, node.parsable)}
                     icon={sanityCheckResults.length === 0 && deIdentificationCheckResults.length === 0 && node.parsable ? "" : "pi pi-exclamation-triangle"}
                     iconPos="right"
                     onClick={(e) => detailsOverlayPanel.current.toggle(e)}
                 >
-                    <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '450px' }} className="overlaypanel text-sm">
+                    <OverlayPanel ref={detailsOverlayPanel} showCloseIcon id="overlay_panel" style={{ width: '600px' }} className="overlaypanel text-sm">
                         {node.parsable === true
                             ? null
                             : <Card
-                                title="Parsing failed"
-                                className="text-red-500">
-                                There is a problem parsing one or more files from the dataset.
+                                title="DICOM File Parsing"
+                                className="text-pink-600">
+                                There is a problem parsing one or more files from the dataset:
+                                {fileList}
                             </Card>
                         }
                         {sanityCheckResults.length === 0
                             ? null
                             : <Card
-                                title="Sanity Check Results"
+                                title="Sanity Check"
                                 className="text-orange-500">
                                 {sanityCheckDetailList}
                             </Card>
@@ -196,24 +188,27 @@ export class TreeSelection extends Component {
                                 {deIdentificationCheckDetailList}
                             </Card>
                         }
-                        {seriesDetailsList.length === 0
-                            ? null
-                            : <Card title="Details">
-                                {seriesDetailsList}
-                            </Card>
-                        }
-                        {patientDetailsList.length === 0
-                            ? null
-                            : <Card title="Patient Details">
-                                {patientDetailsList}
-                            </Card>
-                        }
-                        {deIdentificationStatusList.length === 0
-                            ? null
-                            : <Card title="De-Identification Status">
-                                {deIdentificationStatusList}
-                            </Card>
-                        }
+                        <Card title="Details">
+
+                            {seriesDetailsList}
+
+                            {patientDetailsList.length === 0
+                                ? null
+                                : <React.Fragment>
+                                    <Divider />
+                                    <h5>Patient</h5>
+                                    {patientDetailsList}
+                                </React.Fragment>
+                            }
+                            {deIdentificationStatusList.length === 0
+                                ? null
+                                : <React.Fragment>
+                                    <Divider />
+                                    <h5>De-Identification Status</h5>
+                                    {deIdentificationStatusList}
+                                </React.Fragment>
+                            }
+                        </Card>
 
                     </OverlayPanel>
                 </StyledButton>
