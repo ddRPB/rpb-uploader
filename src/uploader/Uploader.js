@@ -101,9 +101,8 @@ class Uploader extends Component {
     }
 
     seriesSelectionMenuItems = [
-        { label: 'All Series', icon: 'pi pi-fw' },
-        { label: 'RT Series', icon: 'pi pi-fw pi-calendar' },
-        { label: 'RT Virtual Series', icon: 'pi pi-fw pi-calendar' }
+        { label: 'All Series', icon: 'pi pi-fw pi-list' },
+        { label: 'RT Series', icon: 'pi pi-fw pi-sitemap' }
     ];
 
 
@@ -1216,21 +1215,6 @@ class Uploader extends Component {
 
                     <div className="mb-3" hidden={!this.state.selectedStudy}>
                         <div className="mb-3" hidden={this.state.seriesSelectionState !== 1}>
-                            <TreeSelection
-                                rTView={true}
-                                selectedStudy={this.state.selectedStudy}
-                                seriesTree={"rtViewTree"}
-                                selectNodes={this.selectNodes}
-                                selectedNodeKeys={this.state.selectedNodeKeys}
-                                sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
-                                deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
-                            >
-                            </TreeSelection>
-                        </div>
-                    </div>
-
-                    <div className="mb-3" hidden={!this.state.selectedStudy}>
-                        <div className="mb-3" hidden={this.state.seriesSelectionState !== 2}>
                             <TreeSelection
                                 rTView={true}
                                 selectedStudy={this.state.selectedStudy}
