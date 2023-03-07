@@ -212,7 +212,7 @@ export default class InstanceDetailsHelper {
     calculateSeriesDescription() {
         let seriesDescription = this.getParameter('SeriesDescription');
 
-        if (seriesDescription.length === 0 || seriesDescription === '(S0)-') {
+        if (seriesDescription.length === 0) {
             for (let modality of this.parameters.Modality.values())
                 switch (modality) {
                     case "RTSTRUCT":
