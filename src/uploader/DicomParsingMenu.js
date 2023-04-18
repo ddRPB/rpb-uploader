@@ -146,13 +146,13 @@ export default class DicomParsingMenu extends Component {
                             />
                             <StyledButton
                                 label="Upload"
-                                disabled={Object.keys(this.props.selectedNodeKeys).length === 0}
+                                disabled={Object.keys(this.props.selectedNodeKeys).length === 0 || !this.props.selectedFilesCanBeParsed}
                                 onClick={this.props.submitUploadPackage}
                                 icon="pi pi-cloud-upload"
                                 iconPos="right"
                                 className='p-button-success'
                                 hidden={
-                                    this.props.uploadApiKey === null || this.props.sanityCheckResults.length > 0 || this.props.deIdentificationCheckResults.length > 0 || !this.props.selectedFilesCanBeParsed
+                                    this.props.uploadApiKey === null || this.props.sanityCheckResults.length > 0 || this.props.deIdentificationCheckResults.length > 0
                                 }
                             />
                         </React.Fragment>
