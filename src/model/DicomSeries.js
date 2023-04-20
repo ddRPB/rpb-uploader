@@ -124,10 +124,10 @@ export default class DicomSeries {
         for (let instanceUID of this.instances.keys()) {
             const instanceObject = this.instances.get(instanceUID);
 
-            this.patientID = new Set([...this.patientID, ...instanceObject.parsedParameters.get('patientID')]);
-            this.patientBirthDate = new Set([...this.patientBirthDate, ...instanceObject.parsedParameters.get('patientBirthDate')]);
-            this.patientSex = new Set([...this.patientSex, ...instanceObject.parsedParameters.get('patientSex')]);
-            this.patientName = new Set([...this.patientName, ...instanceObject.parsedParameters.get('patientName')]);
+            this.patientID = new Set([...this.patientID, ...[instanceObject.parsedParameters.get('patientID')]]);
+            this.patientBirthDate = new Set([...this.patientBirthDate, ...[instanceObject.parsedParameters.get('patientBirthDate')]]);
+            this.patientSex = new Set([...this.patientSex, ...[instanceObject.parsedParameters.get('patientSex')]]);
+            this.patientName = new Set([...this.patientName, ...[instanceObject.parsedParameters.get('patientName')]]);
 
         }
     }
