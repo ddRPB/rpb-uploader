@@ -72,7 +72,6 @@ describe('DeIdentificationCheckHelper', () => {
 
     const firstDicomSeries = new DicomSeries(
         seriesDetails,
-        patientData,
         parameters,
         availableDicomTags
     );
@@ -96,7 +95,6 @@ describe('DeIdentificationCheckHelper', () => {
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                patientData,
                 parameters,
                 availableDicomTags,
             );
@@ -111,7 +109,6 @@ describe('DeIdentificationCheckHelper', () => {
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                patientData,
                 parametersTwo,
                 availableDicomTags,
             );
@@ -137,7 +134,6 @@ describe('DeIdentificationCheckHelper', () => {
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                patientData,
                 parametersTwo,
                 availableDicomTagsTwo,
             );

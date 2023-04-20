@@ -17,15 +17,18 @@
  * 
  */
 
+import InstanceDetailsHelper from "../util/treeHelper/InstanceDetailsHelper";
+
 /**
  * TreeNode - for the UI (https://www.primefaces.org/primereact/treetable/)
- * 
+ *
  */
 export default class TreeNode {
     data = {};
     children = [];
     parentNodes = [];
     sopInstancesUIDs = [];
+    instances = new Map();
     referencesDetails = [];
     isVirtual = false;
 
@@ -81,6 +84,19 @@ export default class TreeNode {
         return result;
     }
 
+    calculateDetailsFromInstances() {
+        const instanceDetailHelper = new InstanceDetailsHelper();
+        instanceDetailHelper.addInstances(this.instances);
+
+        this.patientDetails = instanceDetailHelper.getPatientdetails();
+        this.deIdentificationDetails = instanceDetailHelper.getDeIdentificationDetails();
+        this.details = instanceDetailHelper.getDetailsArray();
+
+        this.data.seriesDescription = instanceDetailHelper.calculateSeriesDescription();
+        this.data.rOISequenceDetailsArray = instanceDetailHelper.getCalculatedROISequenceDetails();
+        this.data.instancesSize = this.instances.size;
+    }
+
     evaluateChildren() {
         if (this.isLeaf === true) {
             return;
@@ -133,7 +149,9 @@ export default class TreeNode {
 
                 if (referenceDetail != null) {
                     replacementNodeTwo.sopInstancesUIDs.push(referenceDetail.sourceInstanceUID);
+                    replacementNodeTwo.instances.set(referenceDetail.sourceInstanceUID, this.instances.get(referenceDetail.sourceInstanceUID));
                     replacementNodeTwo.referencesDetails.push(referenceDetail);
+                    replacementNodeTwo.calculateDetailsFromInstances();
 
                 } else {
                     // nothing to do
@@ -150,12 +168,13 @@ export default class TreeNode {
 
     splitBySOPInstanceUIDIfImageIsReferenced(referencedSOPInstanceUIDs) {
         const nodeArray = [];
-        if (this.sopInstancesUIDs.size < 2) {
+        if (this.sopInstancesUIDs.length < 2) {
             nodeArray.push(this);
             return nodeArray;
         }
 
         const unreferencedSOPInstanceUIDs = [];
+        const unreferencedInstances = new Map();
         for (let sopInstancesUID of this.sopInstancesUIDs) {
             if (referencedSOPInstanceUIDs.has(sopInstancesUID)) {
                 let replacementNode = Object.create(Object.getPrototypeOf(new TreeNode()));
@@ -165,6 +184,7 @@ export default class TreeNode {
                 replacementNodeTwo.key = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
 
                 replacementNodeTwo.children = [];
+                replacementNodeTwo.instances = new Map();
                 for (let childNode of this.children) {
                     const referencesFromChild = childNode.getReferenceDetailsByReferencedSOPInstanceUID(sopInstancesUID);
                     if (referencesFromChild != null) {
@@ -173,12 +193,15 @@ export default class TreeNode {
                 }
 
                 replacementNodeTwo.sopInstancesUIDs = JSON.parse(JSON.stringify([sopInstancesUID]));
+                replacementNodeTwo.instances.set(sopInstancesUID, this.instances.get(sopInstancesUID));
                 replacementNodeTwo.referencesDetails = JSON.parse(JSON.stringify(this.getReferenceDetailsBySourceInstanceUID(sopInstancesUID)));
+                replacementNodeTwo.calculateDetailsFromInstances();
                 nodeArray.push(replacementNodeTwo);
 
 
             } else {
                 unreferencedSOPInstanceUIDs.push(sopInstancesUID);
+                unreferencedInstances.set(sopInstancesUID, this.instances.get(sopInstancesUID));
             }
         }
 
@@ -190,7 +213,9 @@ export default class TreeNode {
             replacementNodeTwo.key = JSON.parse(JSON.stringify(this.seriesInstanceUID)) + '_' + nodeArray.length;
             replacementNodeTwo.children = [];
             replacementNodeTwo.sopInstancesUIDs = JSON.parse(JSON.stringify(unreferencedSOPInstanceUIDs));
+            replacementNodeTwo.instances = unreferencedInstances;
             replacementNodeTwo.referencesDetails = JSON.parse(JSON.stringify(this.getReferenceDetailsBySourceInstanceUID(unreferencedSOPInstanceUIDs)));
+            replacementNodeTwo.calculateDetailsFromInstances();
             nodeArray.push(replacementNodeTwo);
         }
 
