@@ -27,7 +27,7 @@ export default class DicomSeries {
     deIdentifiedSeriesInstanceUID = null;
     uploadVerified = false;
 
-    constructor(seriesDetails, patientData, parsedParameters, availableDicomTags) {
+    constructor(seriesDetails, parsedParameters, availableDicomTags) {
 
         this.seriesInstanceUID = seriesDetails.seriesInstanceUID;
         this.seriesDate = seriesDetails.seriesDate;
@@ -37,10 +37,10 @@ export default class DicomSeries {
 
         this.parameters = parsedParameters;
 
-        this.patientID = new Set([patientData.patientID]);
-        this.patientBirthDate = new Set([patientData.patientBirthDate]);
-        this.patientSex = new Set([patientData.patientSex]);
-        this.patientName = new Set([patientData.patientName]);
+        this.patientID = new Set([parsedParameters.get('patientID')]);
+        this.patientBirthDate = new Set([parsedParameters.get('patientBirthDate')]);
+        this.patientSex = new Set([parsedParameters.get('patientSex')]);
+        this.patientName = new Set([parsedParameters.get('patientName')]);
 
         this.burnedInAnnotation = new Set([parsedParameters.get('BurnedInAnnotation')]);
         this.identityRemoved = new Set([parsedParameters.get('IdentityRemoved')]);
@@ -117,6 +117,19 @@ export default class DicomSeries {
                 // do nothing
             }
         });
+        this.calculatePropertiesFromInstances();
+    }
+
+    calculatePropertiesFromInstances() {
+        for (let instanceUID of this.instances.keys()) {
+            const instanceObject = this.instances.get(instanceUID);
+
+            this.patientID = new Set([...this.patientID, ...instanceObject.parsedParameters.get('patientID')]);
+            this.patientBirthDate = new Set([...this.patientBirthDate, ...instanceObject.parsedParameters.get('patientBirthDate')]);
+            this.patientSex = new Set([...this.patientSex, ...instanceObject.parsedParameters.get('patientSex')]);
+            this.patientName = new Set([...this.patientName, ...instanceObject.parsedParameters.get('patientName')]);
+
+        }
     }
 
     instanceExists(sopInstanceUID) {

@@ -17,9 +17,8 @@
  * 
  */
 
-const DicomGenderEnum = require("../../constants/dicomValueEnums/DicomGenderEnum");
-const { default: DicomInstance } = require("../../model/DicomInstance");
-const { default: DicomSeries } = require("../../model/DicomSeries");
+import DicomInstance from "../../model/DicomInstance";
+import DicomSeries from "../../model/DicomSeries";
 
 describe('DicomSeries Tests', () => {
 
@@ -34,17 +33,10 @@ describe('DicomSeries Tests', () => {
         referencedSopInstanceUids: referencedSopInstanceUids,
     }
 
-    const patientData = {
-        patientID: 'dummy-patient-id',
-        patientName: 'dummy-patient-name',
-        patientBirthDate: '18300101',
-        patientSex: DicomGenderEnum.O,
-    }
-
     const parsedParameters = new Map();
     const availableDicomTags = new Map();
 
-    const dicomSeries = new DicomSeries(seriesDetails, patientData, parsedParameters, availableDicomTags);;
+    const dicomSeries = new DicomSeries(seriesDetails, parsedParameters, availableDicomTags);;
 
     describe('Instances and References', () => {
         test('getInstancesReferencesDetails and getReferencedInstancesUIDs ', () => {

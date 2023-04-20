@@ -765,14 +765,6 @@ export default class DicomFile {
      * Creates new DicomSeries object, based on this file
      */
     getDicomSeriesObject() {
-        // TODO calculate from Instances
-        const patientData = {
-            patientID: this.getPatientID(),
-            patientName: this.getPatientName(),
-            patientBirthDate: this.getPatientBirthDate(),
-            patientSex: this.getPatientSex(),
-        }
-
         const seriesDetails = {
             seriesInstanceUID: this.getSeriesInstanceUID(),
             seriesDate: this.getSeriesDate(),
@@ -782,7 +774,7 @@ export default class DicomFile {
 
         }
 
-        return new DicomSeries(seriesDetails, patientData, this.parsedParameters, this.availableDicomTags);
+        return new DicomSeries(seriesDetails, this.parsedParameters, this.availableDicomTags);
     }
 
     /**

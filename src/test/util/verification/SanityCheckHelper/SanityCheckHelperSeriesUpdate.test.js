@@ -51,11 +51,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
     patientData.patientSex = patientSex;
     patientData.patientName = patientName;
 
-    const parameters = new Map();
-    parameters.set('BurnedInAnnotation', 'BurnedInAnnotation');
-    parameters.set('IdentityRemoved', 'IdentityRemoved');
-
     const availableDicomTags = new Map();
+
+    function getBasicParameters() {
+        const parameters = new Map();
+        parameters.set('BurnedInAnnotation', 'BurnedInAnnotation');
+        parameters.set('IdentityRemoved', 'IdentityRemoved');
+        return parameters;
+    }
 
     describe('Gender', () => {
         let dicomStudy;
@@ -79,16 +82,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
-
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
 
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -118,14 +119,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': DicomGenderEnum.F
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.O);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -155,14 +156,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': DicomGenderEnum.F
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', '');
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: '',
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags
 
@@ -192,14 +193,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': DicomGenderEnum.F
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags
 
@@ -229,27 +230,27 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': DicomGenderEnum.M
             };
 
+            const parametersFirstDicomSeries = getBasicParameters();
+            parametersFirstDicomSeries.set('patientID', patientID);
+            parametersFirstDicomSeries.set('patientBirthDate', '19800101');
+            parametersFirstDicomSeries.set('patientSex', DicomGenderEnum.F);
+            parametersFirstDicomSeries.set('patientName', patientName);
+
+            const parametersSecondDicomSeries = getBasicParameters();
+            parametersSecondDicomSeries.set('patientID', patientID);
+            parametersSecondDicomSeries.set('patientBirthDate', '19800101');
+            parametersSecondDicomSeries.set('patientSex', DicomGenderEnum.M);
+            parametersSecondDicomSeries.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
-                parameters,
+                parametersFirstDicomSeries,
                 availableDicomTags,
             );
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.M,
-                    patientName: patientName
-                },
-                parameters,
+                parametersSecondDicomSeries,
                 availableDicomTags,
 
             );
@@ -286,14 +287,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': DicomGenderEnum.M
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -331,14 +332,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': DicomGenderEnum.M
             };
 
-            const firstDicomSeries = new DicomSeries(
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
+            const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -350,7 +351,7 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
             const sanityCheckConfigurationTwo = { ...sanityCheckConfiguration };
             sanityCheckConfigurationTwo[[SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]] = false;
 
-            let result = sanityCheckHelper.updateWithSeriesAnalysis([firstDicomSeries], sanityCheckConfigurationTwo);
+            let result = sanityCheckHelper.updateWithSeriesAnalysis([dicomSeries], sanityCheckConfigurationTwo);
 
             expect(result.length).toBe(0);
 
@@ -375,30 +376,29 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': DicomGenderEnum.M
             };
 
+            const parametersFirstDicomSeries = getBasicParameters();
+            parametersFirstDicomSeries.set('patientID', patientID);
+            parametersFirstDicomSeries.set('patientBirthDate', '19800101');
+            parametersFirstDicomSeries.set('patientSex', DicomGenderEnum.F);
+            parametersFirstDicomSeries.set('patientName', patientName);
+
+            const parametersSecondDicomSeries = getBasicParameters();
+            parametersSecondDicomSeries.set('patientID', patientID);
+            parametersSecondDicomSeries.set('patientBirthDate', '19800101');
+            parametersSecondDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersSecondDicomSeries.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
-                parameters,
+                parametersFirstDicomSeries,
                 availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersSecondDicomSeries,
                 availableDicomTags,
-
             );
 
             sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
@@ -440,14 +440,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
             );
@@ -477,14 +477,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -515,14 +515,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -552,14 +552,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19000101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19000101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -590,14 +590,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800202');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800202',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -628,28 +628,28 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parametersFirstDicomSeries = getBasicParameters();
+            parametersFirstDicomSeries.set('patientID', patientID);
+            parametersFirstDicomSeries.set('patientBirthDate', '19800202');
+            parametersFirstDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersFirstDicomSeries.set('patientName', patientName);
+
+            const parametersSecondDicomSeries = getBasicParameters();
+            parametersSecondDicomSeries.set('patientID', patientID);
+            parametersSecondDicomSeries.set('patientBirthDate', '19700101');
+            parametersSecondDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersSecondDicomSeries.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800202',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersFirstDicomSeries,
                 availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19700101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersSecondDicomSeries,
                 availableDicomTags,
 
             );
@@ -688,14 +688,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19700101');
+            parameters.set('patientSex', DicomGenderEnum.O);
+            parameters.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19700101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -735,28 +735,29 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+
+            const parametersFirstDicomSeries = getBasicParameters();
+            parametersFirstDicomSeries.set('patientID', patientID);
+            parametersFirstDicomSeries.set('patientBirthDate', '19800101');
+            parametersFirstDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersFirstDicomSeries.set('patientName', patientName);
+
+            const parametersSecondDicomSeries = getBasicParameters();
+            parametersSecondDicomSeries.set('patientID', patientID);
+            parametersSecondDicomSeries.set('patientBirthDate', '19700101');
+            parametersSecondDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersSecondDicomSeries.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersFirstDicomSeries,
                 availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19700101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersSecondDicomSeries,
                 availableDicomTags,
 
             );
@@ -802,14 +803,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -840,14 +841,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -878,14 +879,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -915,14 +916,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19000101');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19000101',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -953,14 +954,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19800202');
+            parameters.set('patientSex', DicomGenderEnum.F);
+            parameters.set('patientName', patientName);
+
             const dicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800202',
-                    patientSex: DicomGenderEnum.F,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -991,28 +992,28 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parametersFirstDicomSeries = getBasicParameters();
+            parametersFirstDicomSeries.set('patientID', patientID);
+            parametersFirstDicomSeries.set('patientBirthDate', '19800202');
+            parametersFirstDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersFirstDicomSeries.set('patientName', patientName);
+
+            const parametersSecondDicomSeries = getBasicParameters();
+            parametersSecondDicomSeries.set('patientID', patientID);
+            parametersSecondDicomSeries.set('patientBirthDate', '19700101');
+            parametersSecondDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersSecondDicomSeries.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800202',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersFirstDicomSeries,
                 availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19700101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersSecondDicomSeries,
                 availableDicomTags,
 
             );
@@ -1051,14 +1052,14 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parameters = getBasicParameters();
+            parameters.set('patientID', patientID);
+            parameters.set('patientBirthDate', '19700101');
+            parameters.set('patientSex', DicomGenderEnum.O);
+            parameters.set('patientName', patientName);
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19700101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
                 parameters,
                 availableDicomTags,
 
@@ -1098,28 +1099,29 @@ describe('SanityCheckHelper update sanitity check results, based on series data'
                 'gender': null
             };
 
+            const parametersFirstDicomSeries = getBasicParameters();
+            parametersFirstDicomSeries.set('patientID', patientID);
+            parametersFirstDicomSeries.set('patientBirthDate', '19800101');
+            parametersFirstDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersFirstDicomSeries.set('patientName', patientName);
+
+            const parametersSecondDicomSeries = getBasicParameters();
+            parametersSecondDicomSeries.set('patientID', patientID);
+            parametersSecondDicomSeries.set('patientBirthDate', '19700101');
+            parametersSecondDicomSeries.set('patientSex', DicomGenderEnum.O);
+            parametersSecondDicomSeries.set('patientName', patientName);
+
+
             const firstDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19800101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersFirstDicomSeries,
                 availableDicomTags,
 
             );
 
             const secondDicomSeries = new DicomSeries(
                 seriesDetails,
-                {
-                    patientID: patientID,
-                    patientBirthDate: '19700101',
-                    patientSex: DicomGenderEnum.O,
-                    patientName: patientName
-                },
-                parameters,
+                parametersSecondDicomSeries,
                 availableDicomTags,
 
             );
