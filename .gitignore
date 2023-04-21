@@ -17,6 +17,9 @@ workspace.code*
 #webpack
 /dist
 
+# js assets
+/src/assets/js/*
+
 # all data folder
 **/data/*
 !**/data/Readme.md
