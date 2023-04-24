@@ -6,9 +6,8 @@ import DeIdentificationConfigurationFactory from '../../../../util/deidentificat
 import DicomFileDeIdentificationComponentDcmjs from '../../../../util/deidentification/DicomFileDeIdentificationComponentDcmjs';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
 import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations';
-import { applyConfigAction } from './../DeIdentificationConfigurationFactory.test';
 
-describe.skip('Clean Structured Content Option Integration Test', () => {
+describe('Clean Structured Content Option Integration Test', () => {
     const dummyPid = 'dummyPid';
     const dummySubjectId = 'dummy-subject-id';
     const dummyStudyEdcCode = 'dummy-edc-code';
@@ -37,29 +36,45 @@ describe.skip('Clean Structured Content Option Integration Test', () => {
     const dummyItemValue = 'dummyValue';
     const dummyItemValueAddition = 'abc';
 
-    let dictCleanCandidates = {
-        // '00400555': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.SQ },
-        // '0040A730': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.SQ },
-        '00400610': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO },
-    };
 
-    let dictCleanFirstChildrenCandidates = {
+
+    let nestedSequencesCandidates = {
         '00400555': {
             Value: [{
-                '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
-            }],
-            vr: DicomValueRepresentations.SQ
-        },
-        '0040A730': {
-            Value: [{
-                '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
+                '004008EA': {
+                    Value: [{
+                        '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
+                    }],
+                    vr: DicomValueRepresentations.SQ
+                }
             }],
             vr: DicomValueRepresentations.SQ
         },
     }
 
+    test("The children of a nested sequence will be cleaned.", () => {
+        deIdentComponent.applyDeIdentificationActions(nestedSequencesCandidates);
+        for (let key of Object.keys(nestedSequencesCandidates)) {
+            expect(nestedSequencesCandidates[key], `${key} is defined`).toBeDefined();
+            const element = nestedSequencesCandidates[key];
+
+            for (let seqElement of element.Value) {
+                for (let keyTwo of Object.keys(seqElement)) {
+                    const elementTwo = seqElement[keyTwo];
+                    for (let innerSeqElement of elementTwo.Value) {
+                        for (let keyThree of Object.keys(innerSeqElement)) {
+                            const elementThree = innerSeqElement[keyThree];
+                            expect(elementThree.Value, `Value of ${keyThree} should be cleaned`).toBe(dummyItemValue + dummyItemValueAddition);
+                        }
+                    }
+                }
+            }
+        }
+    })
 
     test("The children of a sequence will be cleaned.", () => {
+        const dictCleanFirstChildrenCandidates = getDicomDict(dummyItemValue, dummyPatientName, dummyItemValueAddition, dummyPatientId);
+
         deIdentComponent.applyDeIdentificationActions(dictCleanFirstChildrenCandidates);
         for (let key of Object.keys(dictCleanFirstChildrenCandidates)) {
             expect(dictCleanFirstChildrenCandidates[key], `${key} is defined`).toBeDefined();
@@ -75,6 +90,10 @@ describe.skip('Clean Structured Content Option Integration Test', () => {
     })
 
     test("Values of specific items will be cleaned.", () => {
+        let dictCleanCandidates = {
+            '00400610': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO },
+        };
+
         deIdentComponent.applyDeIdentificationActions(dictCleanCandidates);
         for (let key of Object.keys(dictCleanCandidates)) {
             expect(dictCleanCandidates[key], `${key} is defined`).toBeDefined();
@@ -122,3 +141,26 @@ describe.skip('Clean Structured Content Option Integration Test', () => {
 
 
 })
+
+function getDicomDict(dummyItemValue, dummyPatientName, dummyItemValueAddition, dummyPatientId) {
+    return {
+        '00400555': {
+            Value: [{
+                '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
+            }],
+            vr: DicomValueRepresentations.SQ
+        },
+        '0040A730': {
+            Value: [{
+                '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
+            }],
+            vr: DicomValueRepresentations.SQ
+        },
+        '00400610': {
+            Value: [{
+                '11111111': { Value: dummyItemValue + dummyPatientName + dummyItemValueAddition + dummyPatientId, vr: DicomValueRepresentations.LO }
+            }],
+            vr: DicomValueRepresentations.SQ
+        },
+    };
+}
