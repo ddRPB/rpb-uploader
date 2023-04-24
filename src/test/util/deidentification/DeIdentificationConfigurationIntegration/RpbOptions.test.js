@@ -16,6 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
+import DeIdentificationProfileCodes from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes';
+import DeIdentificationProfileCodesMeaning from '../../../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning';
+import YesNoEnum from '../../../../constants/dicomValueEnums/YesNoEnum';
 import DeIdentificationConfigurationFactory from '../../../../util/deidentification/DeIdentificationConfigurationFactory';
 import DeIdentificationProfiles from './../../../../constants/DeIdentificationProfiles';
 import DicomValueRepresentations from './../../../../constants/DicomValueRepresentations';
@@ -113,26 +116,31 @@ describe('RPB Profile Integration Test', () => {
             expect(Object.keys(dict).length, '').toBe(0);
         })
 
-        // this use case is not supported
-        // test("EncryptedAttributesSequence will be not removed, because Patient Identity will be keeped by setup.", () => {
-        //     const profileWithRetainPatientCharacteristics = [DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS, DeIdentificationProfiles.RPB_PROFILE];
-        //     const factoryWithKeepIdentitySetup = new DeIdentificationConfigurationFactory(profileWithRetainPatientCharacteristics, uploadSlot);
-        //     factoryWithKeepIdentitySetup.addAdditionalDeIdentificationRelatedTags();
-        //     const deIdentConfigThatKeepsIdentity = factoryWithKeepIdentitySetup.getConfiguration();
-
-        //     const dictionary = {
-        //         // EncryptedAttributesSequence
-        //         '04000500': { Value: [EncryptedAttributesItemDict], vr: DicomValueRepresentations.SQ },
-        //     };
-
-        //     for (let key of Object.keys(dictionary)) {
-        //         applyConfigAction(deIdentConfigThatKeepsIdentity, dictionary, key, DicomValueRepresentations.SQ);
-        //     }
-        //     expect(Object.keys(dictionary).length, '').toBe(1);
-        // })
-
     })
 
+    test("Additional tags indicate that the RPB Profile was applied on the data set", () => {
+
+        const profile = DeIdentificationProfiles.RPB_PROFILE;
+        const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+        factory.addAdditionalDeIdentificationRelatedTags();
+        const deIdentConfig = factory.getConfiguration();
+
+        // Patient Identity Removed Attribute
+        expect(deIdentConfig.additionalTagValuesMap.get('00120062'), 'Patient Identity removed - should be yes').toBe(YesNoEnum.YES);
+        // De-identification Method Attribute
+        expect(deIdentConfig.additionalTagValuesMap.get('00120063'), 'addtional 00120063 tag').toBe('Per DICOM PS 3.15 AnnexE. RPB-Uploader v1.0');
+        // De-identification Method Code Sequence Attribute
+        const usedMethods = deIdentConfig.additionalTagValuesMap.get('00120064')
+        expect(usedMethods.length, 'Value should be 1.').toBe(1);
+        const lastMethod = usedMethods[0];
+        // Coding Scheme Designator Attribute
+        expect(lastMethod['00080100'].Value, `00080100 - should be ${DeIdentificationProfileCodes.BASIC}`)
+            .toEqual([DeIdentificationProfileCodes.BASIC]);
+        expect(lastMethod['00080102'].Value, `00080102 - should be DCM`).toEqual(['DCM']);
+        expect(lastMethod['00080104'].Value, `00080104 - should be ${DeIdentificationProfileCodesMeaning.BASIC}`)
+            .toEqual([DeIdentificationProfileCodesMeaning.BASIC]);
+
+    })
 
 
 })

@@ -63,6 +63,7 @@ export default class DeIdentificationConfigurationFactory {
             this.addTrialSubjectTags();
             this.addReferingPhysicianReplacementTag();
             this.addPatientNameAndIdReplacementTags();
+
         }
 
         this.addAdditionalDeIdentificationRelatedTags();
@@ -608,15 +609,10 @@ export default class DeIdentificationConfigurationFactory {
         // Visit Comments
         this.actionConfigurationMap.set('00384000', { action: DeIdentificationActionCodes.X });
 
-
     }
 
     // In RPB projects, some tags will be prefixed
     createRpbProfileActions() {
-        // // PatientName
-        // this.actionConfigurationMap.set('00100010', { action: DeIdentificationActionCodes.D });
-        // // PatientID
-        // this.actionConfigurationMap.set('00100020', { action: DeIdentificationActionCodes.D });
 
         // StudyDescription
         this.actionConfigurationMap.set('00081030', { action: DeIdentificationActionCodes.KP });
@@ -682,14 +678,6 @@ export default class DeIdentificationConfigurationFactory {
             this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid);
         }
 
-        // // In RPB projects, the referring Physician name will be replaced
-
-        // if (this.uploadSlot.studyEdcCode != null && this.uploadSlot.subjectId != null) {
-        //     this.tagSpecificReplacementsValuesMap.set(
-        //         '00080090',
-        //         `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`
-        //     );
-        // }
     }
 
     createRetainDeviceIdentityOption() {
