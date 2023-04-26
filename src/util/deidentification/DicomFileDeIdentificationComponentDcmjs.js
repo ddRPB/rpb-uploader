@@ -26,10 +26,10 @@ const { DicomMessage } = dcmjs.data;
 
 export default class DicomFileDeIdentificationComponentDcmjs {
 
-    constructor(dicomUidReplacements, patientIdentityData, configuration, fileObject, logger) {
+    constructor(dicomUidReplacements, patientIdentityData, configFactory, fileObject, logger) {
         this.dicomUidReplacements = dicomUidReplacements;
         this.patientIdentityData = patientIdentityData;
-        this.configuration = configuration;
+        this.configFactory = configFactory;
         this.fileObject = fileObject;
         this.initializeLogger(logger);
     }
@@ -91,6 +91,8 @@ export default class DicomFileDeIdentificationComponentDcmjs {
     deIdentDicomFile(arrayBuffer) {
         this.dataSet = DicomMessage.readFile(arrayBuffer);
         this.log.trace('DicomMessage file content read.', {}, { name: this.fileObject.fileObject.name });
+
+        this.configuration = this.configFactory.getConfiguration(this.dataSet);
 
         this.applyDeIdentificationActions(this.dataSet.meta);
         this.log.trace('Meta section de-identified.', {}, { name: this.fileObject.fileObject.name });

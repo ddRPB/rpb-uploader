@@ -32,6 +32,7 @@ module.exports = Object.freeze({
     RETAIN_LONG_FULL_DATES: 'Retain Long Full Dates Option',
     RETAIN_PATIENT_CHARACTERISTICS: 'Retain Patient Characteristics Option',
     RETAIN_DEVICE_IDENTITY: 'Retain Device Identity Option',
+    RETAIN_SAFE_PRIVATE_OPTION: 'Retain Safe Private Option',
     CLEAN_DESCRIPTORS: 'Clean Descriptors Option',
     CLEAN_STRUCTURED_CONTENT: 'Clean Structured Content Option',
     // RPB defined
