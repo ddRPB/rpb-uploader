@@ -5,7 +5,6 @@
 module.exports = {
     roots: [
         "./test",
-        "./src/test",
     ],
     // adds custom messages to Jest expect
     // https://github.com/mattphillips/jest-expect-message
