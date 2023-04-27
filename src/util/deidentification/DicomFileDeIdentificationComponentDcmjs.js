@@ -30,6 +30,7 @@ export default class DicomFileDeIdentificationComponentDcmjs {
         this.dicomUidReplacements = dicomUidReplacements;
         this.patientIdentityData = patientIdentityData;
         this.configFactory = configFactory;
+        this.configuration = configFactory.getConfiguration();
         this.fileObject = fileObject;
         this.initializeLogger(logger);
     }

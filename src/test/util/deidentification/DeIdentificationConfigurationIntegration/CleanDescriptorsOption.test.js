@@ -31,7 +31,7 @@ describe.skip('Clean Descriptors Option Integration Test', () => {
     const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
     const deIdentConfig = factory.getConfiguration();
 
-    const deIdentComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, patientIdentityData, deIdentConfig, null, null);
+    const deIdentComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, patientIdentityData, factory, null, null);
 
     const dummyItemValue = 'dummyValue';
     const dummyItemValueAddition = 'abc';
