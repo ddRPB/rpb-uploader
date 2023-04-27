@@ -59,8 +59,8 @@ export default class DicomUploadPackage {
 
         this.setChunkSize(config.chunkSize);
 
-        const configFactory = new DeIdentificationConfigurationFactory(config.deIdentificationProfileOption, this.uploadSlot);
-        this.deIdentificationConfiguration = configFactory.getConfiguration();
+        this.configFactory = new DeIdentificationConfigurationFactory(config.deIdentificationProfileOption, this.uploadSlot);
+        this.deIdentificationConfiguration = this.configFactory.getConfiguration();
 
         this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);
 
@@ -295,7 +295,7 @@ export default class DicomUploadPackage {
 
                         this.log.trace("De-identify instance.", {}, { sopInstanceUid: instance.sopInstanceUid, });
 
-                        const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, patientIdentityData, this.deIdentificationConfiguration, instance.fileObject, this.log);
+                        const dicomFileDeIdentificationComponent = new DicomFileDeIdentificationComponentDcmjs(dicomUidReplacements, patientIdentityData, this.configFactory, instance.fileObject, this.log);
                         const arrayBuffer = await dicomFileDeIdentificationComponent.getDeIdentifiedFileContentAsBuffer();
                         this.log.trace("File buffer created", {}, { sopInstanceUid: instance.sopInstanceUid, });
                         const sopInstanceUidReplacement = dicomUidReplacements.get(instance.sopInstanceUid);

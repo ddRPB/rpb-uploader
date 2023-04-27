@@ -19,6 +19,7 @@
 
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import DeIdentificationProfiles from "../../constants/DeIdentificationProfiles";
+import { KEEP_PRIVATE_TAGS, STANDARD } from "../../constants/DeIdentificationSpecialCases";
 import DeIdentificationProfileCodes from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodes";
 import DeIdentificationProfileCodesMeaning from "../../constants/dicomTerminologyDefinitions/DeIdentificationProfileCodesMeaning";
 import YesNoEnum from "../../constants/dicomValueEnums/YesNoEnum";
@@ -40,6 +41,7 @@ import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
 export default class DeIdentificationConfigurationFactory {
 
     constructor(profileOptions, uploadSlot) {
+
         this.uploadSlot = uploadSlot;
         this.actionConfigurationMap = new Map();
         this.defaultReplacementsValuesMap = new Map();
@@ -49,6 +51,7 @@ export default class DeIdentificationConfigurationFactory {
         this.patientIdentitityRemoved = true; // true - current default setting
         this.longitudinalTemporalInformationModified = LongitudinalTemporalInformationModifiedAttribute.REMOVED; // true - current default setting
         this.rpbSpecificActions = false; // default - becomes true if the DeIdentificationProfiles.RPB_PROFILE is set
+        this.retainSafePrivateOption = false // default - becomes true if the DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION is set
         this.appliedDeIdentificationSteps = [];
 
         this.createBasicProfile();
@@ -63,6 +66,7 @@ export default class DeIdentificationConfigurationFactory {
             this.addTrialSubjectTags();
             this.addReferingPhysicianReplacementTag();
             this.addPatientNameAndIdReplacementTags();
+
         }
 
         this.addAdditionalDeIdentificationRelatedTags();
@@ -85,6 +89,9 @@ export default class DeIdentificationConfigurationFactory {
                 break;
             case DeIdentificationProfiles.RPB_PROFILE:
                 this.rpbSpecificActions = true;
+                break;
+            case DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION:
+                this.retainSafePrivateOption = true;
                 break;
             case DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY:
                 this.createRetainDeviceIdentityOption();
@@ -608,15 +615,10 @@ export default class DeIdentificationConfigurationFactory {
         // Visit Comments
         this.actionConfigurationMap.set('00384000', { action: DeIdentificationActionCodes.X });
 
-
     }
 
     // In RPB projects, some tags will be prefixed
     createRpbProfileActions() {
-        // // PatientName
-        // this.actionConfigurationMap.set('00100010', { action: DeIdentificationActionCodes.D });
-        // // PatientID
-        // this.actionConfigurationMap.set('00100020', { action: DeIdentificationActionCodes.D });
 
         // StudyDescription
         this.actionConfigurationMap.set('00081030', { action: DeIdentificationActionCodes.KP });
@@ -682,14 +684,6 @@ export default class DeIdentificationConfigurationFactory {
             this.tagSpecificReplacementsValuesMap.set('00100020', this.uploadSlot.pid);
         }
 
-        // // In RPB projects, the referring Physician name will be replaced
-
-        // if (this.uploadSlot.studyEdcCode != null && this.uploadSlot.subjectId != null) {
-        //     this.tagSpecificReplacementsValuesMap.set(
-        //         '00080090',
-        //         `(${this.uploadSlot.studyEdcCode})-${this.uploadSlot.subjectId}`
-        //     );
-        // }
     }
 
     createRetainDeviceIdentityOption() {
@@ -1462,29 +1456,7 @@ export default class DeIdentificationConfigurationFactory {
         for (let stepDescription of this.appliedDeIdentificationSteps) {
             const { codeMeaning, codeValue } = stepDescription;
 
-            const deIdentificationMethodCodeSequence = {};
-
-            deIdentificationMethodCodeSequence['00080102'] = {
-                vr: DicomValueRepresentations.SH,
-                Value: ['DCM']
-            };
-
-            deIdentificationMethodCodeSequence['00080104'] = {
-                vr: DicomValueRepresentations.SH,
-                Value: [codeMeaning]
-            };
-
-            if (codeValue.length > 16) {
-                deIdentificationMethodCodeSequence['00080119'] = {
-                    vr: DicomValueRepresentations.UC,
-                    Value: [codeValue]
-                };
-            } else {
-                deIdentificationMethodCodeSequence['00080100'] = {
-                    vr: DicomValueRepresentations.SH,
-                    Value: [codeValue]
-                };
-            }
+            const deIdentificationMethodCodeSequence = this.getDeIdentificationMethodCodeSequenceObject(codeMeaning, codeValue);
 
             deIdentificationStepsObject.push(deIdentificationMethodCodeSequence);
 
@@ -1493,6 +1465,33 @@ export default class DeIdentificationConfigurationFactory {
         this.additionalTagValuesMap.set('00120064', deIdentificationStepsObject);
 
 
+    }
+
+    getDeIdentificationMethodCodeSequenceObject(codeMeaning, codeValue) {
+        const deIdentificationMethodCodeSequence = {};
+
+        deIdentificationMethodCodeSequence['00080102'] = {
+            vr: DicomValueRepresentations.SH,
+            Value: ['DCM']
+        };
+
+        deIdentificationMethodCodeSequence['00080104'] = {
+            vr: DicomValueRepresentations.SH,
+            Value: [codeMeaning]
+        };
+
+        if (codeValue.length > 16) {
+            deIdentificationMethodCodeSequence['00080119'] = {
+                vr: DicomValueRepresentations.UC,
+                Value: [codeValue]
+            };
+        } else {
+            deIdentificationMethodCodeSequence['00080100'] = {
+                vr: DicomValueRepresentations.SH,
+                Value: [codeValue]
+            };
+        }
+        return deIdentificationMethodCodeSequence;
     }
 
     addTrialSubjectTags() {
@@ -1532,13 +1531,158 @@ export default class DeIdentificationConfigurationFactory {
         }
     }
 
-    getConfiguration() {
-        return new DeIdentificationConfiguration(
+    getConfiguration(dataSet = { meta: {}, dict: {} }) {
+
+        let deIdentificationConfiguration = new DeIdentificationConfiguration(
             this.actionConfigurationMap,
             this.defaultReplacementsValuesMap,
             this.tagSpecificReplacementsValuesMap,
             this.additionalTagValuesMap,
             this.uploadSlot
         );
+
+        // special case are in RETAIN_SAFE_PRIVATE_OPTION only
+        if (this.retainSafePrivateOption) {
+            if (Object.keys(dataSet.dict).length > 0 && Object.keys(dataSet.meta).length > 0) {
+
+                deIdentificationConfiguration = this.modifyDeIdenticationConfigurationInSpecialCases(
+                    dataSet,
+                    deIdentificationConfiguration
+                );
+            }
+
+        }
+        return deIdentificationConfiguration;
+    }
+
+    modifyDeIdenticationConfigurationInSpecialCases(dataSet, deIdentificationConfiguration) {
+        const specialCase = this.detectSpecialCases(dataSet);
+
+        switch (specialCase) {
+            case KEEP_PRIVATE_TAGS:
+                const adaptedActionConfigurationMap = new Map(this.actionConfigurationMap);
+                adaptedActionConfigurationMap.set('private', { action: DeIdentificationActionCodes.K });
+
+                const adaptedAdditionalTagValuesMap = new Map(this.additionalTagValuesMap);
+                const deIdentificationStepsArray = adaptedAdditionalTagValuesMap.get('00120064');
+                const modifiedDeIdentificationStepsArray = [...deIdentificationStepsArray];
+
+                const retainPatientCharacteristicsIsThere = deIdentificationStepsArray.find(element => element['00080100'].Value[0] === '113108');
+
+                if (retainPatientCharacteristicsIsThere == undefined) {
+                    // add tag
+                    const retainPatientCharacteristicsCodeSequence = this.getDeIdentificationMethodCodeSequenceObject(
+                        DeIdentificationProfileCodesMeaning.RETAIN_PATIENT_CHARACTERISTICS,
+                        DeIdentificationProfileCodes.RETAIN_PATIENT_CHARACTERISTICS
+                    );
+                    modifiedDeIdentificationStepsArray.push(retainPatientCharacteristicsCodeSequence);
+                    adaptedAdditionalTagValuesMap.set('00120064', modifiedDeIdentificationStepsArray);
+
+                }
+
+                deIdentificationConfiguration = new DeIdentificationConfiguration(
+                    adaptedActionConfigurationMap,
+                    this.defaultReplacementsValuesMap,
+                    this.tagSpecificReplacementsValuesMap,
+                    adaptedAdditionalTagValuesMap,
+                    this.uploadSlot
+                );
+                break;
+
+            default:
+
+                break;
+        }
+        return deIdentificationConfiguration;
+    }
+
+    detectSpecialCases(dataSet) {
+        const transferSyntaxUID = this.wrapIntoArrayIfNecessary(dataSet.meta['00020010']);
+        const manufacturerAttribute = this.wrapIntoArrayIfNecessary(dataSet.dict['00080070']);
+        const manufacturerModelName = this.wrapIntoArrayIfNecessary(dataSet.dict['00081090']);
+        const modality = this.wrapIntoArrayIfNecessary(dataSet.dict['00080060']);
+
+        if (transferSyntaxUID.find(element => element == "1.3.46.670589.33.1.4.1")) {
+            return KEEP_PRIVATE_TAGS;
+        }
+
+        if ( // speedup by modality check
+            modality.find(element => element == 'PT') ||
+            modality.find(element => element == 'MR') ||
+            modality.find(element => element == 'RTDOSE') ||
+            modality.find(element => element == 'RTPLAN')
+        ) {
+            if (
+                manufacturerAttribute.find(element => element == 'Philips Medical Systems') &&
+                manufacturerModelName.find(element => element == 'Ingenuity TF PET/MR') &&
+                modality.find(element => element == 'PT')
+            ) {
+                return KEEP_PRIVATE_TAGS;
+            }
+
+            if (
+                manufacturerAttribute.find(element => element == 'Philips Medical Systems') &&
+                manufacturerModelName.find(element => element == 'Ingenuity TF PET/MR') &&
+                modality.find(element => element == 'MR')
+            ) {
+                return KEEP_PRIVATE_TAGS;
+            }
+
+            if (
+                manufacturerAttribute.find(element => element == 'Philips Medical Systems') &&
+                manufacturerModelName.find(element => element == 'Ingenuity') &&
+                modality.find(element => element == 'MR')
+            ) {
+                return KEEP_PRIVATE_TAGS;
+            }
+
+            if (
+                manufacturerAttribute.find(element => element == 'Nucletron') &&
+                manufacturerModelName.find(element => element == 'Oncentra') &&
+                modality.find(element => element == 'RTDOSE')
+            ) {
+                return KEEP_PRIVATE_TAGS;
+            }
+
+            if (
+                manufacturerAttribute.find(element => element == 'TomoTherapy Incorporated') &&
+                manufacturerModelName.find(element => element == 'Hi-Art') &&
+                modality.find(element => element == 'RTDOSE')
+            ) {
+                return KEEP_PRIVATE_TAGS;
+            }
+
+            if (
+                manufacturerAttribute.find(element => element == 'Nucletron') &&
+                manufacturerModelName.find(element => element == 'Oncentra') &&
+                modality.find(element => element == 'RTPLAN')
+            ) {
+                return KEEP_PRIVATE_TAGS;
+            }
+
+            if (
+                manufacturerAttribute.find(element => element == 'TomoTherapy Incorporated') &&
+                manufacturerModelName.find(element => element == 'Hi-Art') &&
+                modality.find(element => element == 'RTPLAN')
+            ) {
+                return KEEP_PRIVATE_TAGS;
+            }
+        }
+
+        return STANDARD;
+
+
+    }
+
+    wrapIntoArrayIfNecessary(value) {
+        if (value == undefined) {
+            return [];
+        }
+
+        if (!Array.isArray(value)) {
+            return [value];
+        } else {
+            return value;
+        }
     }
 }
