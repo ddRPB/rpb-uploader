@@ -6,49 +6,29 @@ import { render } from '@testing-library/react'
 import React from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import App from '../../src/App'
+import DeIdentificationProfiles from '../../src/constants/DeIdentificationProfiles'
+
+require('jest-fetch-mock').enableMocks();
 
 const config = {
-    // Declare default config, we are fine with one patient/ one upload slots per upload
-    //availableUploadSlots : [],
-    availableUploadSlots: [
-        {
-            "study": "Default Study", // for display purposes (with study site as well)
-            "studySubjectID": "SSID", // for display purposes
-            "subjectPseudonym": "PID", // this should be also not checked but we can use it for display,
-            "subjectSex": "M", // Only if patient gender is collected
-            "subjectDOB": "01-01-1900", // Only if the patient date of birth is collected in a study
-            "studyEvent": "Baseline", // For display purposes
-            "studyEventDate": "09-11-2008", // We do not really want to make restrictions based on the event date
-            "slotName": "Treatment Plan", // For display purposes name (label of item from eCRF)
-            "slotID": "S_DEFAULTS1/SS_XXB/SE_STIMAGING/1/F_STDCM_V11/IG_STDCM_UNGROUPED/I_STDCM_2STUIDDCM",
-            "slotAnnotationType": "DICOM_STUDY_INSTANCE_UID",
-            "annotations": [
-                {
-                    "annotationType": "DICOM_PATIENT_ID",
-                    "address": "S_DEFAULTS1/SS_XXB/SE_STIMAGING/1/F_STDCM_V11/IG_STDCM_UNGROUPED/I_STDCM_PATIDDCM",
-                    "value": "" // slot can be already used with ability to overwrite it
-                },
-                {
-                    "annotationType": "DICOM_STUDY_INSTANCE_UID",
-                    "address": "S_DEFAULTS1/SS_XXB/SE_STIMAGING/1/F_STDCM_V11/IG_STDCM_UNGROUPED/I_STDCM_2STUIDDCM",
-                    "value": "" // slot can be already used with ability to overwrite it
-                },
-                {
-                    "annotationType": "DICOM_SR_TEXT",
-                    "address": "S_DEFAULTS1/SS_XXB/SE_STIMAGING/1/F_STDCM_V11/IG_STDCM_UNGROUPED/I_STDCM_PETCTHINITSRTEXT",
-                    "value": "" // slot can be already used with ability to overwrite it
-                }
-            ]
-        }
+    rpbPortalUrl: 'http://localhost',
+    rpbUploadServiceUrl: 'http://localhost',
+    portalUploaderParameterLandingPageRelativeUrl: '/pacs/rpbUploader.faces',
+    portalLandingPageRelativeUrl: '/pacs/dicomPatientStudies.faces',
+    chunkSize: 5,
+    deIdentificationProfileOption: [
+        DeIdentificationProfiles.RETAIN_LONG_FULL_DATES,
+        DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS,
+        DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY,
+        DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION,
+        DeIdentificationProfiles.RPB_PROFILE,
     ],
-    rpbEndpoint: 'http://localhost:8080/api/v1/',
-    onStudyUploaded: (slotID, successIDsUploaded, numberOfFiles) => { console.log(slotID) },
-    onStartUsing: () => { console.log('use started') },
-    onUploadComplete: () => { console.log('upload finished') },
-    isNewStudy: async () => { return true }
 }
 
-test.skip('renders DICOM Upload Slot headline', () => {
+test('renders DICOM Upload Slot headline', () => {
+    fetch.resetMocks();
+    fetch.mockResponse(JSON.stringify({ apiKey: "aabb" }));
+
     const { getByText } = render(
         <MemoryRouter initialEntries={["/uploader/test"]}>
             <App config={config} />
@@ -56,5 +36,8 @@ test.skip('renders DICOM Upload Slot headline', () => {
 
     )
     const linkElement = getByText(/DICOM Upload Slot/)
+
+    fetch.disableMocks();
+
     expect(linkElement).toBeInTheDocument;
 })

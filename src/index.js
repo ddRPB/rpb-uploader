@@ -17,8 +17,9 @@
  */
 
 // React
-import React from 'react'
+import React, { StrictMode } from 'react'
 import ReactDOM from 'react-dom'
+import { BrowserRouter, Route, Routes, useSearchParams } from "react-router-dom"
 
 // Main application component
 import App from './App'
@@ -55,7 +56,14 @@ const config = {
 // Application entry point
 // Render the application into the root div
 const rootElement = document.getElementById('root')
-ReactDOM.render(<App config={config} />, rootElement)
+ReactDOM.render(
+    // https://react.dev/reference/react/StrictMode
+    <StrictMode>
+        <BrowserRouter>
+            <App config={config} />
+        </BrowserRouter>
+    </StrictMode>
+    , rootElement)
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
