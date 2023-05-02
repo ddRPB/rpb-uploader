@@ -6,13 +6,18 @@ module.exports = {
         modules: false
       }
     ],
-    "@babel/preset-react"
+    [
+      "@babel/preset-react",
+      {
+        "runtime": "automatic"
+      }
+    ]
   ],
   plugins: [
     "@babel/plugin-transform-runtime",
     "@babel/plugin-syntax-dynamic-import",
     ["@babel/plugin-proposal-class-properties", {
-      "loose": true,
+      // "loose": true,
     }],
     "@babel/plugin-syntax-top-level-await"
   ],
@@ -31,7 +36,7 @@ module.exports = {
       ]
     },
     test: {
-      only: ["src"],
+      only: ["src", "test"],
       plugins: ["@babel/plugin-transform-modules-commonjs"]
     },
   }

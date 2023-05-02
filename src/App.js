@@ -25,7 +25,7 @@ import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/saga-blue/theme.css'
 import React, { Fragment } from 'react'
 // import React, { Component, Fragment } from 'react';
-import { BrowserRouter, Route, Routes, useSearchParams } from "react-router-dom"
+import { Route, Routes, useSearchParams } from "react-router-dom"
 import { ToastContainer } from 'react-toastify'
 // Toastify CSS
 import 'react-toastify/dist/ReactToastify.css'
@@ -84,28 +84,41 @@ function App(props) {
     }
 
     function UploaderWithTestParams() {
-        // let { studyIdentifier, siteIdentifier, studySubjectIdentifier } = useParams();
-        const [searchParams] = useSearchParams();
+
+        const log = new Logger(LogLevels.FATAL);
 
         return <Uploader
             {...props}
-            studyIdentifier="Default Study"
-            siteIdentifier="DD-Default Study"
-            eventOid="eventId"
-            eventRepeatKey="2"
-            eventStartDate="2000-01-01"
-            eventEndDate="2001-01-01"
-            formOid="formId"
-            itemGroupOid="itemGroupId"
-            itemGroupRepeatKey="4"
-            item="itemId"
-            itemLabel="label"
 
-            subjectId="subject123"
-            pid="DD-1234abc"
-            dob="1900-01-30"
-            yob="1900"
-            gender="m"
+            studyIdentifier='studyidentifier'
+            siteIdentifier='siteidentifier'
+            studyInstanceItemOid='studyinstanceitemoid'
+            studyOid='studyoid'
+            studyEdcCode='studyedccode'
+
+            eventOid='eventoid'
+            eventRepeatKey='eventrepeatkey'
+            eventStartDate='eventstartdate'
+            eventEndDate='eventenddate'
+            eventName='eventname'
+            eventDescription='eventdescription'
+
+            formOid='formoid'
+            itemGroupOid='itemgroupoid'
+            itemGroupRepeatKey='itemgrouprepeatkey'
+            itemLabel='itemlabel'
+            itemDescription='itemdescription'
+
+            subjectId='studysubjectid'
+            subjectKey='subjectkey'
+            pid='pid'
+            dicomPatientIdItemOid='dicompatientiditemoid'
+
+            dob='dob'
+            yob='yob'
+            gender='gender'
+
+            log={log}
         />;
     }
 
@@ -121,23 +134,23 @@ function App(props) {
                 rtl={false}
                 pauseOnHover
             />
-            <BrowserRouter>
-                <Routes>
-                    <Route
-                        path="/uploader/"
-                        element={<UploaderWithParams {...props} />}>
-                    </Route>
-                    <Route
-                        path="/uploader/test"
-                        element={<UploaderWithTestParams {...props} />}>
-                    </Route>
-                    {/* <Route
+            {/* <BrowserRouter> */}
+            <Routes>
+                <Route
+                    path="/uploader/"
+                    element={<UploaderWithParams {...props} />}>
+                </Route>
+                <Route
+                    path="/uploader/test"
+                    element={<UploaderWithTestParams {...props} />}>
+                </Route>
+                {/* <Route
                         path="*"
                         element={<UploaderWithParams {...props} />}>
                     </Route> */}
 
-                </Routes>
-            </BrowserRouter>
+            </Routes>
+            {/* </BrowserRouter> */}
         </Fragment>
         // </Provider>
     )
