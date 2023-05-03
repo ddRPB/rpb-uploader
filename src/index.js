@@ -51,11 +51,14 @@ const config = {
         DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION,
         DeIdentificationProfiles.RPB_PROFILE,
     ],
+    language: navigator.language,
+    userAgent: navigator.userAgent,
 }
 
 // Application entry point
 // Render the application into the root div
-const rootElement = document.getElementById('root')
+const rootElement = document.getElementById('root');
+
 ReactDOM.render(
     // https://react.dev/reference/react/StrictMode
     <StrictMode>
@@ -63,9 +66,9 @@ ReactDOM.render(
             <App config={config} />
         </BrowserRouter>
     </StrictMode>
-    , rootElement)
+    , rootElement);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister()
+serviceWorker.unregister();
