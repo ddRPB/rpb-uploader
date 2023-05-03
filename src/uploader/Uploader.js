@@ -109,10 +109,6 @@ class Uploader extends Component {
     constructor(props) {
         super(props)
 
-        this.state = {
-            ...this.defaultState
-        };
-
         // configuration from the index.js
         this.config = this.props.config;
 
@@ -120,6 +116,13 @@ class Uploader extends Component {
         this.log = this.props.log;
 
         this.log.trace('Start Uploader', {}, this.props);
+
+        this.state = {
+            ...this.defaultState,
+            language: this.detectBrowserLanguage(this.props.config)
+        };
+
+        this.log.trace('UserAgent: ' + this.props.config.userAgent);
 
         this.dicomUploadDictionary = new DicomUploadDictionary();
 
@@ -130,6 +133,7 @@ class Uploader extends Component {
         this.verifyPropsAndDownloadServerUploadParameter();
 
         this.ignoredFilesArray = [];
+
     }
 
     createDefaultSanityCheckConfiguration() {
@@ -191,6 +195,27 @@ class Uploader extends Component {
         if (propsComplete) {
             this.getServerUploadParameter();
         }
+    }
+
+    detectBrowserLanguage(config) {
+        if (config.language != undefined || config.language.length == 0) {
+            if (config.language.startsWith("en")) {
+                this.log.trace('English browser language \"' + config.language + '\" detected.');
+            }
+
+            if (config.language.startsWith("de")) {
+                this.log.trace('German browser language \"' + config.language + '\" detected.');
+            }
+
+            this.log.trace('Unknown Browser language: \"' + config.language + '\" detected.');
+
+        } else {
+            this.log.trace('No Browser language: \"' + config.language + '\" detected. Using \"en\"');
+            return 'en';
+        }
+
+        return config.language;
+
     }
 
     /**
@@ -1140,6 +1165,8 @@ class Uploader extends Component {
                         dob={this.props.dob}
                         yob={this.props.yob}
                         gender={this.props.gender}
+
+                        language={this.state.language}
                     />
 
                     <Divider />
@@ -1172,6 +1199,7 @@ class Uploader extends Component {
                         updateDeIdentificationCheckConfiguration={this.updateDeIdentificationCheckConfiguration}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
+                        language={this.state.language}
                         resetAll={this.resetAll}
                         submitUploadPackage={this.submitUploadPackage}
                         getServerUploadParameter={this.getServerUploadParameter}

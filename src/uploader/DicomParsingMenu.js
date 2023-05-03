@@ -187,6 +187,7 @@ export default class DicomParsingMenu extends Component {
                     updateSanityCheckConfiguration={this.props.updateSanityCheckConfiguration}
                     deIdentificationCheckConfiguration={this.props.deIdentificationCheckConfiguration}
                     updateDeIdentificationCheckConfiguration={this.props.updateDeIdentificationCheckConfiguration}
+                    language={this.props.language}
                     resetAll={this.props.resetAll}
                 />
 
