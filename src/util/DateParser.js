@@ -118,5 +118,52 @@ function convertDicomDateStringToYear(dateString) {
     throw `Can not read \'${dateString}\' as DICOM date.`;
 }
 
-export { parseOcFormattedDates, parseRpbFormattedDates, parseDicomFormattedDates, convertToDicomDateFormatedString, convertDicomDateStringToYear };
+function convertDicomDateStringToLocaleString(dateString, locale) {
+    try {
+        const date = parseDicomFormattedDates(dateString);
+        if (locale != undefined || locale.length > 0) {
+            return date.toLocaleDateString(locale);
+        }
+    } catch (error) {
+        return dateString;
+    }
+    return dateString;
+}
+
+function convertRPBDateStringToLocaleString(dateString, locale) {
+    try {
+        const date = parseRpbFormattedDates(dateString);
+        if (locale != undefined || locale.length > 0) {
+            return date.toLocaleDateString(locale);
+        }
+    } catch (error) {
+        return dateString;
+    }
+    return dateString;
+}
+
+function convertOCDateStringToLocaleString(dateString, locale) {
+    try {
+        const date = parseOcFormattedDates(dateString);
+        if (locale != undefined || locale.length > 0) {
+            return date.toLocaleDateString(locale);
+        }
+    } catch (error) {
+        return dateString;
+    }
+    return dateString;
+}
+
+
+
+export {
+    parseOcFormattedDates,
+    parseRpbFormattedDates,
+    parseDicomFormattedDates,
+    convertToDicomDateFormatedString,
+    convertDicomDateStringToYear,
+    convertDicomDateStringToLocaleString,
+    convertRPBDateStringToLocaleString,
+    convertOCDateStringToLocaleString
+};
 
