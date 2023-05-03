@@ -1,5 +1,8 @@
 import {
+    convertDicomDateStringToLocaleString,
     convertDicomDateStringToYear,
+    convertOCDateStringToLocaleString,
+    convertRPBDateStringToLocaleString,
     convertToDicomDateFormatedString,
     parseDicomFormattedDates,
     parseOcFormattedDates,
@@ -168,6 +171,89 @@ describe("DateParser tests", () => {
 
             expect(convertedDateString).toEqual("2002");
 
+        });
+    })
+
+    describe('convertDicomDateStringToLocaleString', () => {
+        test('keeps the String if locale is not defined', () => {
+            const dicomDateString = '20141201';
+            expect(convertDicomDateStringToLocaleString(dicomDateString)).toBe('20141201');
+        });
+
+        test('keeps the String if date canot be parsed', () => {
+            const dicomDateString = '20ab141201';
+            expect(convertDicomDateStringToLocaleString(dicomDateString)).toBe('20ab141201');
+        });
+
+        test('converts Dicom date String to german date String', () => {
+            const dicomDateString = '20141201';
+            expect(convertDicomDateStringToLocaleString(dicomDateString, 'de')).toMatch('1.12.2014');
+        });
+
+        test('converts Dicom date String to english date String', () => {
+            const dicomDateString = '20141201';
+            expect(convertDicomDateStringToLocaleString(dicomDateString, 'en')).toMatch('12/1/2014');
+        });
+
+        test('converts Dicom date String to en-Us date String', () => {
+            const dicomDateString = '20141201';
+            expect(convertDicomDateStringToLocaleString(dicomDateString, 'en-Us')).toMatch('12/1/2014');
+        });
+    })
+
+    describe('convertRPBDateStringToLocaleString', () => {
+        test('keeps the String if locale is not defined', () => {
+
+            const dicomDateString = '01.12.2014';
+            expect(convertRPBDateStringToLocaleString(dicomDateString)).toBe('01.12.2014');
+        });
+
+        test('keeps the String if date canot be parsed', () => {
+            const dicomDateString = '20ab141201';
+            expect(convertRPBDateStringToLocaleString(dicomDateString)).toBe('20ab141201');
+        });
+
+        test('converts Dicom date String to german date String', () => {
+            const dicomDateString = '01.12.2014';
+            expect(convertRPBDateStringToLocaleString(dicomDateString, 'de')).toMatch('1.12.2014');
+        });
+
+        test('converts Dicom date String to english date String', () => {
+            const dicomDateString = '01.12.2014';
+            expect(convertRPBDateStringToLocaleString(dicomDateString, 'en')).toMatch('12/1/2014');
+        });
+
+        test('converts Dicom date String to en-Us date String', () => {
+            const dicomDateString = '01.12.2014';
+            expect(convertRPBDateStringToLocaleString(dicomDateString, 'en-Us')).toMatch('12/1/2014');
+        });
+    })
+
+    describe('convertOCDateStringToLocaleString', () => {
+        test('keeps the String if locale is not defined', () => {
+
+            const dicomDateString = '2014-12-01';
+            expect(convertOCDateStringToLocaleString(dicomDateString)).toBe('2014-12-01');
+        });
+
+        test('keeps the String if date canot be parsed', () => {
+            const dicomDateString = '20ab141201';
+            expect(convertOCDateStringToLocaleString(dicomDateString)).toBe('20ab141201');
+        });
+
+        test('converts Dicom date String to german date String', () => {
+            const dicomDateString = '2014-12-01';
+            expect(convertOCDateStringToLocaleString(dicomDateString, 'de')).toMatch('1.12.2014');
+        });
+
+        test('converts Dicom date String to english date String', () => {
+            const dicomDateString = '2014-12-01';
+            expect(convertOCDateStringToLocaleString(dicomDateString, 'en')).toMatch('12/1/2014');
+        });
+
+        test('converts Dicom date String to en-Us date String', () => {
+            const dicomDateString = '2014-12-01';
+            expect(convertOCDateStringToLocaleString(dicomDateString, 'en-Us')).toMatch('12/1/2014');
         });
     })
 
