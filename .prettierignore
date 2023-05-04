@@ -1,0 +1,13 @@
+# Ignore settings folder:
+.github
+.idea
+.vscode
+
+# Ignore artifacts:
+build
+coverage
+dist
+node_modules
+public
+
+src/assets/
