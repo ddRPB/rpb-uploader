@@ -130,6 +130,17 @@ function convertDicomDateStringToLocaleString(dateString, locale) {
     return dateString;
 }
 
+function convertDicomDateStringArrayToLocaleString(dateStringArray, locale) {
+    let resultArray = dateStringArray;
+
+    if (Array.isArray(dateStringArray)) {
+        resultArray = dateStringArray.map(dateString => convertDicomDateStringToLocaleString(dateString, locale));
+    }
+
+    return resultArray;
+
+}
+
 function convertRPBDateStringToLocaleString(dateString, locale) {
     try {
         const date = parseRpbFormattedDates(dateString);
@@ -164,6 +175,7 @@ export {
     convertDicomDateStringToYear,
     convertDicomDateStringToLocaleString,
     convertRPBDateStringToLocaleString,
-    convertOCDateStringToLocaleString
+    convertOCDateStringToLocaleString,
+    convertDicomDateStringArrayToLocaleString
 };
 

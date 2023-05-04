@@ -84,13 +84,18 @@ export default class TreeNode {
         return result;
     }
 
+    /**
+     * This function aggregates parameters of the file instances to parameters of the Node that represents a DicomSeries in the UI.
+     */
     calculateDetailsFromInstances() {
         const instanceDetailHelper = new InstanceDetailsHelper();
         instanceDetailHelper.addInstances(this.instances);
 
-        this.patientDetails = instanceDetailHelper.getPatientdetails();
+        this.patientDetails = instanceDetailHelper.getPatientDetails();
+        this.patientDateDetails = instanceDetailHelper.getPatientDateDetails();
         this.deIdentificationDetails = instanceDetailHelper.getDeIdentificationDetails();
         this.details = instanceDetailHelper.getDetailsArray();
+        this.dateDetails = instanceDetailHelper.getDateDetailsArray();
 
         this.data.seriesDescription = instanceDetailHelper.calculateSeriesDescription();
         this.data.rOISequenceDetailsArray = instanceDetailHelper.getCalculatedROISequenceDetails();

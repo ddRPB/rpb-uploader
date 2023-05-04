@@ -25,6 +25,7 @@ import { OverlayPanel } from 'primereact/overlaypanel';
 import { Tooltip } from 'primereact/tooltip';
 import React, { Component, Fragment } from 'react';
 import styledComponents from 'styled-components';
+import { convertDicomDateStringArrayToLocaleString } from '../util/DateParser';
 
 export class DicomStudySelection extends Component {
 
@@ -36,7 +37,7 @@ export class DicomStudySelection extends Component {
         let studies = []
         for (let study of Object.values(this.props.studies)) {
             study.studyType = study.getStudyType();
-            study.joinedStudyDates = study.getStudyDate();
+            study.joinedStudyDates = (convertDicomDateStringArrayToLocaleString(study.getStudyDateArray(), this.props.language));
             study.joinedStudyDescriptions = study.getStudyDescription();
             study.seriesModalities = (Array.from(new Set((study.getSeriesModalitiesArray())))).sort().join(", ");
             study.files = study.getInstancesSize();
@@ -131,7 +132,7 @@ export class DicomStudySelection extends Component {
             if (node.patientBirthDate.size > 0) {
                 patientDetailsList.push(
                     <div key={key + '3'}>
-                        <b>Birth Date :</b> {[...node.patientBirthDate].join(' / ')} {node.patientBirthDate.size === 1 ? null : this.getExclamationToolTip(inconsitentValuesMessages)}
+                        <b>Birth Date :</b> {(convertDicomDateStringArrayToLocaleString([...node.patientBirthDate], this.props.language)).join(' / ')} {node.patientBirthDate.size === 1 ? null : this.getExclamationToolTip(inconsitentValuesMessages)}
                     </div>
                 );
             }

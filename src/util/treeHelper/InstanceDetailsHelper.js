@@ -93,17 +93,42 @@ export default class InstanceDetailsHelper {
     }
 
     /**
+     * Aggregates all values of a set to an Array of Strings
+     * 
+     * @param {String} name parameter name
+     * @returns {Array<String>}
+     */
+    getParameterArray(name) {
+        if (this.parameters[name] != undefined) {
+            return Array.from(this.parameters[name]);
+        } else {
+            return '';
+        }
+    }
+
+    /**
      * Creates an array with (with patient related) name, value JSON objects that can be used in the UI for generating lists with the parameters and their values.
      * 
      *  * @returns {Array<String>}
      */
-    getPatientdetails() {
+    getPatientDetails() {
         const patientDetails = [];
         patientDetails.push(this.getDetailsItem("ID", this.getParameter('patientID')));
         patientDetails.push(this.getDetailsItem("Name", this.getParameter('patientName')));
         patientDetails.push(this.getDetailsItem("Sex", this.getParameter('patientSex')));
-        patientDetails.push(this.getDetailsItem("Birth Date", this.getParameter('patientBirthDate')));
         return patientDetails;
+    }
+
+    /**
+     * Creates an array (of date parameters) with (with patient related) name, value JSON objects that can be used in the UI for generating lists with the parameters and their values.
+     * The separation of the date parameters is necessary to parse the Strings to a language specific format.
+     * 
+     *  * @returns {Array<String>}
+     */
+    getPatientDateDetails() {
+        const patientDateDetails = [];
+        patientDateDetails.push(this.getDetailsItem("Birth Date", this.getParameterArray('patientBirthDate')));
+        return patientDateDetails;
     }
 
     /**
@@ -125,6 +150,7 @@ export default class InstanceDetailsHelper {
      */
     getDetailsArray() {
         const detailsArray = [];
+
         for (let modality of this.parameters.Modality.values())
             switch (modality) {
                 case "RTSTRUCT":
@@ -149,13 +175,46 @@ export default class InstanceDetailsHelper {
         return detailsArray;
     }
 
+    /**
+     * Creates an array (especialy for date parameters) with (modality specific) name, value JSON objects that can be used in the UI for generating lists with the parameters and their values.
+     * The separation of the date parameters is necessary to parse the Strings to a language specific format.
+     * 
+     *  * @returns {Array<String>}
+     */
+    getDateDetailsArray() {
+        const detailsDateArray = [];
+
+        for (let modality of this.parameters.Modality.values())
+            switch (modality) {
+                case "RTSTRUCT":
+                    this.parseRTStructDates(detailsDateArray);
+                    break;
+                case "RTPLAN":
+                    this.parseRTPlanDates(detailsDateArray);
+                    break;
+                case "RTDOSE":
+                    this.parseRTDoseDates(detailsDateArray)
+                    break;
+                case "RTIMAGE":
+                    this.parseRTImageDates(detailsDateArray);
+                    break;
+                default:
+                // nothing to do
+            }
+
+        return detailsDateArray;
+    }
+
     parseRTStruct(detailsArray) {
         this.addParameterIfAvailable(detailsArray, 'StructureSetLabel');
         this.addParameterIfAvailable(detailsArray, 'StructureSetName');
         this.addParameterIfAvailable(detailsArray, 'StructureSetDescription');
-        this.addParameterIfAvailable(detailsArray, 'StructureSetDate');
         this.addParameterIfAvailable(detailsArray, 'ROINumber');
         this.addParameterIfAvailable(detailsArray, 'ApprovalStatus');
+    }
+
+    parseRTStructDates(detailsDateArray) {
+        this.addParameterArrayIfAvailable(detailsDateArray, 'StructureSetDate');
     }
 
     parseRTPlan(detailsArray) {
@@ -163,7 +222,6 @@ export default class InstanceDetailsHelper {
         this.addParameterIfAvailable(detailsArray, 'ManufacturerModelName');
         this.addParameterIfAvailable(detailsArray, 'Manufacturer');
         this.addParameterIfAvailable(detailsArray, 'RTPlanName');
-        this.addParameterIfAvailable(detailsArray, 'RTPlanDate');
         this.addParameterIfAvailable(detailsArray, 'RTPlanDescription');
         this.addParameterIfAvailable(detailsArray, 'RTPlanGeometry');
         this.addParameterIfAvailable(detailsArray, 'PrescriptionDescription');
@@ -171,21 +229,31 @@ export default class InstanceDetailsHelper {
         this.addParameterIfAvailable(detailsArray, 'ApprovalStatus');
     }
 
+    parseRTPlanDates(detailsDateArray) {
+        this.addParameterArrayIfAvailable(detailsDateArray, 'RTPlanDate');
+    }
+
     parseRTDose(detailsArray) {
         this.addParameterIfAvailable(detailsArray, 'DoseComment');
         this.addParameterIfAvailable(detailsArray, 'DoseSummationType');
         this.addParameterIfAvailable(detailsArray, 'DoseUnits');
         this.addParameterIfAvailable(detailsArray, 'DoseType');
-        this.addParameterIfAvailable(detailsArray, 'InstanceCreationDate');
         this.addParameterIfAvailable(detailsArray, 'ApprovalStatus');
+    }
+
+    parseRTDoseDates(detailsDateArray) {
+        this.addParameterArrayIfAvailable(detailsDateArray, 'InstanceCreationDate');
     }
 
     parseRTImage(detailsArray) {
         this.addParameterIfAvailable(detailsArray, 'RTImageName');
         this.addParameterIfAvailable(detailsArray, 'RTImageLabel');
         this.addParameterIfAvailable(detailsArray, 'RTImageDescription');
-        this.addParameterIfAvailable(detailsArray, 'InstanceCreationDate');
         this.addParameterIfAvailable(detailsArray, 'ApprovalStatus');
+    }
+
+    parseRTImageDates(detailsDateArray) {
+        this.addParameterArrayIfAvailable(detailsDateArray, 'InstanceCreationDate');
     }
 
     parseCT(detailsArray) {
@@ -201,6 +269,12 @@ export default class InstanceDetailsHelper {
     addParameterIfAvailable(detailsArray, parameterName) {
         if (this.getParameter(parameterName).length > 0) {
             detailsArray.push(this.getDetailsItem(parameterName, this.getParameter(parameterName)));
+        }
+    }
+
+    addParameterArrayIfAvailable(detailsArray, parameterName) {
+        if (this.getParameterArray(parameterName).length > 0) {
+            detailsArray.push(this.getDetailsItem(parameterName, this.getParameterArray(parameterName)));
         }
     }
 

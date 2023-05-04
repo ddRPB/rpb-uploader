@@ -20,6 +20,7 @@
 import React, { Component } from 'react';
 import styledComponents from 'styled-components';
 import { Card } from 'primereact/card';
+import { convertOCDateStringToLocaleString } from '../util/DateParser';
 
 /**
  * SlotPanel component
@@ -143,7 +144,7 @@ export class SlotPanel extends Component {
                                     Subject DOB:&nbsp;
                                 </StyledDivNameComponent>
                                 <StyledDivValueComponent>
-                                    {this.props.dob}
+                                    {convertOCDateStringToLocaleString(this.props.dob, this.props.language)}
                                 </StyledDivValueComponent>
                             </div>
                             : null
@@ -182,7 +183,7 @@ export class SlotPanel extends Component {
                                     Start Date:&nbsp;
                                 </StyledDivNameComponent>
                                 <StyledDivValueComponent>
-                                    {this.props.eventStartDate}
+                                    {convertOCDateStringToLocaleString(this.props.eventStartDate, this.props.language)}
                                 </StyledDivValueComponent>
                             </div>
                             : null
@@ -194,7 +195,7 @@ export class SlotPanel extends Component {
                                     End Date:&nbsp;
                                 </StyledDivNameComponent>
                                 <StyledDivValueComponent>
-                                    {this.props.eventEndDate}
+                                    {convertOCDateStringToLocaleString(this.props.eventEndDate, this.props.language)}
                                 </StyledDivValueComponent>
                             </div>
                             : null
