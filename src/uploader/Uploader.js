@@ -198,19 +198,11 @@ class Uploader extends Component {
     }
 
     detectBrowserLanguage(config) {
-        if (config.language != undefined || config.language.length == 0) {
-            if (config.language.startsWith("en")) {
-                this.log.trace('English browser language \"' + config.language + '\" detected.');
-            }
-
-            if (config.language.startsWith("de")) {
-                this.log.trace('German browser language \"' + config.language + '\" detected.');
-            }
-
-            this.log.trace('Unknown Browser language: \"' + config.language + '\" detected.');
+        if (config.language != undefined) {
+            this.log.trace('Browser language \"' + config.language + '\" detected.');
 
         } else {
-            this.log.trace('No Browser language: \"' + config.language + '\" detected. Using \"en\"');
+            this.log.trace('No Browser language: \"' + config.language + '\" detected. Using default: \"en\"');
             return 'en';
         }
 
