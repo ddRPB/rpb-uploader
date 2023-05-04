@@ -109,10 +109,6 @@ class Uploader extends Component {
     constructor(props) {
         super(props)
 
-        this.state = {
-            ...this.defaultState
-        };
-
         // configuration from the index.js
         this.config = this.props.config;
 
@@ -120,6 +116,13 @@ class Uploader extends Component {
         this.log = this.props.log;
 
         this.log.trace('Start Uploader', {}, this.props);
+
+        this.state = {
+            ...this.defaultState,
+            language: this.detectBrowserLanguage(this.props.config)
+        };
+
+        this.log.trace('UserAgent: ' + this.props.config.userAgent);
 
         this.dicomUploadDictionary = new DicomUploadDictionary();
 
@@ -130,6 +133,7 @@ class Uploader extends Component {
         this.verifyPropsAndDownloadServerUploadParameter();
 
         this.ignoredFilesArray = [];
+
     }
 
     createDefaultSanityCheckConfiguration() {
@@ -191,6 +195,19 @@ class Uploader extends Component {
         if (propsComplete) {
             this.getServerUploadParameter();
         }
+    }
+
+    detectBrowserLanguage(config) {
+        if (config.language != undefined) {
+            this.log.trace('Browser language \"' + config.language + '\" detected.');
+
+        } else {
+            this.log.trace('No Browser language: \"' + config.language + '\" detected. Using default: \"en\"');
+            return 'en';
+        }
+
+        return config.language;
+
     }
 
     /**
@@ -1140,6 +1157,8 @@ class Uploader extends Component {
                         dob={this.props.dob}
                         yob={this.props.yob}
                         gender={this.props.gender}
+
+                        language={this.state.language}
                     />
 
                     <Divider />
@@ -1172,6 +1191,7 @@ class Uploader extends Component {
                         updateDeIdentificationCheckConfiguration={this.updateDeIdentificationCheckConfiguration}
                         selectedNodeKeys={this.state.selectedNodeKeys}
                         selectedDicomFiles={this.state.selectedDicomFiles}
+                        language={this.state.language}
                         resetAll={this.resetAll}
                         submitUploadPackage={this.submitUploadPackage}
                         getServerUploadParameter={this.getServerUploadParameter}
@@ -1186,6 +1206,7 @@ class Uploader extends Component {
                             selectStudy={this.selectStudy}
                             selectedStudy={this.state.selectedStudy}
                             uploadSlot={this.createUploadSlotParameterObject()}
+                            language={this.state.language}
                         />
                     </div>
 
@@ -1205,6 +1226,7 @@ class Uploader extends Component {
                                 selectedNodeKeys={this.state.selectedNodeKeys}
                                 sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
                                 deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
+                                language={this.state.language}
                             >
                             </TreeSelection>
                         </div>
@@ -1220,6 +1242,7 @@ class Uploader extends Component {
                                 selectedNodeKeys={this.state.selectedNodeKeys}
                                 sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
                                 deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
+                                language={this.state.language}
                             >
                             </TreeSelection>
                         </div>
