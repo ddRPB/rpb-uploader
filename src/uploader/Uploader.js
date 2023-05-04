@@ -1214,6 +1214,7 @@ class Uploader extends Component {
                             selectStudy={this.selectStudy}
                             selectedStudy={this.state.selectedStudy}
                             uploadSlot={this.createUploadSlotParameterObject()}
+                            language={this.state.language}
                         />
                     </div>
 
@@ -1233,6 +1234,7 @@ class Uploader extends Component {
                                 selectedNodeKeys={this.state.selectedNodeKeys}
                                 sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
                                 deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
+                                language={this.state.language}
                             >
                             </TreeSelection>
                         </div>
@@ -1248,6 +1250,7 @@ class Uploader extends Component {
                                 selectedNodeKeys={this.state.selectedNodeKeys}
                                 sanityCheckResultsPerSeries={this.state.sanityCheckResultsPerSeries}
                                 deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}
+                                language={this.state.language}
                             >
                             </TreeSelection>
                         </div>

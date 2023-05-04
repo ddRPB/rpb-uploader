@@ -25,6 +25,7 @@ import { OverlayPanel } from 'primereact/overlaypanel';
 import { TreeTable } from 'primereact/treetable';
 import React, { Component } from 'react';
 import styledComponents from 'styled-components';
+import { convertDicomDateStringArrayToLocaleString } from '../util/DateParser';
 
 
 export class TreeSelection extends Component {
@@ -129,8 +130,17 @@ export class TreeSelection extends Component {
         let detailsOverlayPanel = React.createRef();
 
         let seriesDetailsList = [];
+
         if (node.details != undefined) {
-            seriesDetailsList = node.details.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+            seriesDetailsList = node.details.map((item, index) => <div key={'0' + key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        }
+
+        if (node.dateDetails != undefined) {
+            let seriesDateDetailsList = []
+            seriesDateDetailsList = node.dateDetails.map(
+                (item, index) => <div key={'1' + key + index}><b>{item.name + ": "} </b> {convertDicomDateStringArrayToLocaleString(item.value, this.props.language)}</div>
+            );
+            seriesDetailsList = seriesDetailsList.concat(seriesDateDetailsList);
         }
 
         const seriesUid = node.data.seriesInstanceUID;
@@ -146,7 +156,12 @@ export class TreeSelection extends Component {
         const deIdentificationCheckResults = this.props.deIdentificationCheckResultsPerSeries.get(seriesUid);
         const deIdentificationCheckDetailList = deIdentificationCheckResults.map((item, index) => <div key={key + index} ><b>{item.title + ": "} </b> {item.message}</div>);
 
-        const patientDetailsList = node.patientDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        let patientDetailsList = node.patientDetails.map((item, index) => <div key={'0' + key + index}><b>{item.name + ": "} </b> {item.value}</div>);
+        const patientDateDetailsList = node.patientDateDetails.map(
+            (item, index) => <div key={'1' + key + index}><b>{item.name + ": "} </b> {convertDicomDateStringArrayToLocaleString(item.value, this.props.language)}</div>
+        );
+        patientDetailsList = patientDetailsList.concat(patientDateDetailsList);
+
         const deIdentificationStatusList = node.deIdentificationDetails.map((item, index) => <div key={key + index}><b>{item.name + ": "} </b> {item.value}</div>);
 
         const StyledButton = styledComponents(Button)`{ width: 135px }`;

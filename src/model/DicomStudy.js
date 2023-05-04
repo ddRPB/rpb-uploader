@@ -113,6 +113,10 @@ export default class DicomStudy {
         return [...this.studyDate].join(' / ');
     }
 
+    getStudyDateArray() {
+        return [...this.studyDate];
+    }
+
     getStudyDescription() {
         return [...this.studyDescription].join(' / ');
     }
