@@ -32,7 +32,8 @@
     "build": "react-app-rewired build",
     "build-webpack": "webpack --mode production",
     "test": "jest --config=./jest.config.js",
-    "eject": "react-scripts eject"
+    "check-code": "npx prettier --check .",
+    "format-code": "npx prettier --write ."
   },
   "resolutions": {
     "autoprefixer": "10.4.5"
