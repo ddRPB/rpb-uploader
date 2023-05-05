@@ -32,7 +32,8 @@
     "build": "react-app-rewired build",
     "build-webpack": "webpack --mode production",
     "test": "jest --config=./jest.config.js",
-    "eject": "react-scripts eject"
+    "check-code": "npx prettier --check .",
+    "format-code": "npx prettier --write ."
   },
   "resolutions": {
     "autoprefixer": "10.4.5"
@@ -76,6 +77,7 @@
     "jest-fetch-mock": "^3.0.3",
     "mailparser": "^3.4.0",
     "mini-css-extract-plugin": "^2.5.3",
+    "prettier": "2.8.8",
     "react-app-rewire-html-webpack-plugin": "^1.1.0",
     "react-app-rewired": "^2.2.1",
     "react-scripts": "^5.0.1",

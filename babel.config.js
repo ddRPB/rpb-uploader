@@ -3,23 +3,26 @@ module.exports = {
     [
       "@babel/preset-env",
       {
-        modules: false
-      }
+        modules: false,
+      },
     ],
     [
       "@babel/preset-react",
       {
-        "runtime": "automatic"
-      }
-    ]
+        runtime: "automatic",
+      },
+    ],
   ],
   plugins: [
     "@babel/plugin-transform-runtime",
     "@babel/plugin-syntax-dynamic-import",
-    ["@babel/plugin-proposal-class-properties", {
-      // "loose": true,
-    }],
-    "@babel/plugin-syntax-top-level-await"
+    [
+      "@babel/plugin-proposal-class-properties",
+      {
+        // "loose": true,
+      },
+    ],
+    "@babel/plugin-syntax-top-level-await",
   ],
   env: {
     production: {
@@ -28,16 +31,16 @@ module.exports = {
         [
           "transform-react-remove-prop-types",
           {
-            removeImport: true
-          }
+            removeImport: true,
+          },
         ],
         "@babel/plugin-transform-react-inline-elements",
-        "@babel/plugin-transform-react-constant-elements"
-      ]
+        "@babel/plugin-transform-react-constant-elements",
+      ],
     },
     test: {
       only: ["src", "test"],
-      plugins: ["@babel/plugin-transform-modules-commonjs"]
+      plugins: ["@babel/plugin-transform-modules-commonjs"],
     },
-  }
+  },
 };
