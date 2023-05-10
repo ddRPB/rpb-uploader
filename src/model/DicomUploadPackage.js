@@ -482,7 +482,7 @@ export default class DicomUploadPackage {
 
         //https://www.npmjs.com/package/promise-poller
         const interval = 5000;
-        const timeout = 5000;
+        const timeout = 20000;
         const retries = 50;
         const pollTask = () =>
           this.evaluateUploadOfSeries(
