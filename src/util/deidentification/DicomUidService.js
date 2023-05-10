@@ -77,7 +77,7 @@ export default class DicomUidService {
           this.originalUidToPseudomizedUidMap.set(this.uids[i], this.generatedUids[i]);
         }
       } else {
-        error.push({
+        errors.push({
           message: `The service did not provide a sufficient count of UIDs (needed: ${this.uids.length} - provided: ${this.generatedUids.length})`,
         });
       }
