@@ -131,10 +131,9 @@ export default class DicomUploadPackage {
     this.selectedFiles = [];
     for (let uid in selectedSeriesObjects) {
       const selectedSeries = selectedSeriesObjects[uid];
-      let result = Object.keys(selectedSeries.instances).map(function (key, index) {
-        return selectedSeries.instances[key].fileObject;
+      selectedSeries.instances.forEach((value, key, map) => {
+        this.selectedFiles.push(value.fileObject);
       });
-      this.selectedFiles = this.selectedFiles.concat(result);
     }
   }
 
@@ -345,7 +344,7 @@ export default class DicomUploadPackage {
           }
 
           this.log.trace(
-            "chunk de-identified",
+            "Chunk de-identified",
             {},
             {
               studyUid: chunk.originalStudyUid,
@@ -356,12 +355,6 @@ export default class DicomUploadPackage {
 
           chunk.deIdentified = true;
           this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
-          const pseudomizedFilesCount = this.pseudomizedFiles.length;
-
-          // if (pseudomizedFilesCount % (this.chunkSize * 50) === 0) {
-          //     setDeIdentifiedFilesCountValue(this.pseudomizedFiles.length);
-          // }
-
           chunk.mimeMessage = mimeMessageBuilder.build();
         } catch (error) {
           const message = "There was a problem within the de-identification";
@@ -489,7 +482,7 @@ export default class DicomUploadPackage {
 
         //https://www.npmjs.com/package/promise-poller
         const interval = 5000;
-        const timeout = 5000;
+        const timeout = 20000;
         const retries = 50;
         const pollTask = () =>
           this.evaluateUploadOfSeries(
