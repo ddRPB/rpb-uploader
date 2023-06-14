@@ -1,11 +1,30 @@
-/**
- * https://www.toptal.com/react/webpack-react-tutorial-pt-1
+/*
+ * This file is part of RadPlanBio
+ *
+ * Copyright (C) 2013 - 2022 RPB Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
 const path = require("path");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const fs = require("fs");
 const webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const ZipPlugin = require("zip-webpack-plugin");
+
+const { version } = JSON.parse(fs.readFileSync("package.json"));
 
 module.exports = function (_env, argv) {
   const isProduction = argv.mode === "production";
@@ -51,14 +70,7 @@ module.exports = function (_env, argv) {
         {
           test: /\.svg$/,
           use: ["@svgr/webpack"],
-        }, //,
-        // {
-        //     test: /\.(eot|otf|ttf|woff|woff2)$/,
-        //     loader: require.resolve("file-loader"),
-        //     options: {
-        //         name: "static/media/[name].[hash:8].[ext]",
-        //     }
-        // }
+        },
       ],
     },
     resolve: {
@@ -86,6 +98,16 @@ module.exports = function (_env, argv) {
       }),
       // adding copyright and license information to the webpack output *.js.LICENSE.txt
       new webpack.BannerPlugin("RPB-uploader " + "Copyright (C) 2013-2022 RPB Team. " + "@license AGPL-3.0-or-later"),
+      new ZipPlugin({
+        path: path.resolve(__dirname, "dist"),
+        filename: "rpb-uploader-v" + version + ".zip",
+        fileOptions: {
+          mtime: new Date(),
+          mode: 0o100664,
+          compress: true,
+          forceZip64Format: false,
+        },
+      }),
     ].filter(Boolean),
   };
 };
