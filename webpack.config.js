@@ -18,6 +18,7 @@ module.exports = function (_env, argv) {
       path: path.resolve(__dirname, "dist"),
       filename: "assets/js/[name].[contenthash:8].js",
       publicPath: "/uploader/",
+      clean: true,
     },
     module: {
       rules: [
