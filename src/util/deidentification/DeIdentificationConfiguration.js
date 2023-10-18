@@ -288,6 +288,25 @@ export default class DeIdentificationConfiguration {
   }
 
   /**
+   * Specific tags will be added with default values if they are not in the data set
+   */
+  addDefaultTagsIfNecessary(dataSetDictionary) {
+    if (dataSetDictionary["00081030"] == null && this.additionalTagValuesMap.get("00081030") != undefined) {
+      dataSetDictionary["00081030"] = {
+        vr: DicomValueRepresentations.LO,
+        Value: [this.additionalTagValuesMap.get("00081030")],
+      };
+    }
+
+    if (dataSetDictionary["0008103E"] == null && this.additionalTagValuesMap.get("0008103E") != undefined) {
+      dataSetDictionary["0008103E"] = {
+        vr: DicomValueRepresentations.LO,
+        Value: [this.additionalTagValuesMap.get("0008103E")],
+      };
+    }
+  }
+
+  /**
    * Adds or modifies additional tags to the data set that describe the applied de-identification process.
    */
   addAdditionalTags(dataSetDictionary) {

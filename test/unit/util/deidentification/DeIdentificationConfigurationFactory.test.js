@@ -434,6 +434,17 @@ describe("Test DeIdentificationConfigurationFactory", () => {
       // expect(deIdentConfig.getReplacementValue('00080090')).toStrictEqual('(' + dummyStudyEdcCode + ')' + '-' + dummySubjectId);
     });
 
+    test("RPB specific default values for study or series description tags", () => {
+      const profile = DeIdentificationProfiles.RPB_PROFILE;
+      const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+      const deIdentConfig = factory.getConfiguration();
+
+      // StudyDescription
+      expect(deIdentConfig.additionalTagValuesMap.get("00081030")).toBe("(" + uploadSlot.studyEdcCode + ")-");
+      // SeriesDescription
+      expect(deIdentConfig.additionalTagValuesMap.get("0008103E")).toBe("(" + uploadSlot.studyEdcCode + ")-");
+    });
+
     test("Additional tags will indicate that the basic profile was applied on the data set", () => {
       const profile = DeIdentificationProfiles.BASIC;
       const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);

@@ -64,6 +64,7 @@ export default class DeIdentificationConfigurationFactory {
       this.addTrialSubjectTags();
       this.addReferingPhysicianReplacementTag();
       this.addPatientNameAndIdReplacementTags();
+      this.addDefaultDescriptionTags();
     }
 
     this.addAdditionalDeIdentificationRelatedTags();
@@ -2723,6 +2724,18 @@ export default class DeIdentificationConfigurationFactory {
       this.additionalTagValuesMap.set("00100010", this.uploadSlot.pid);
       // PatientID
       this.additionalTagValuesMap.set("00100020", this.uploadSlot.pid);
+    }
+  }
+
+  /**
+   * default values if the tag is empty or not set - allows later to query datasets
+   */
+  addDefaultDescriptionTags() {
+    if (this.uploadSlot.studyEdcCode != undefined) {
+      // StudyDescription
+      this.additionalTagValuesMap.set("00081030", "(" + this.uploadSlot.studyEdcCode + ")-");
+      // SeriesDescription
+      this.additionalTagValuesMap.set("0008103E", "(" + this.uploadSlot.studyEdcCode + ")-");
     }
   }
 
