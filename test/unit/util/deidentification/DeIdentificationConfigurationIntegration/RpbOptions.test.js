@@ -94,6 +94,48 @@ describe("RPB Profile Integration Test", () => {
     });
   });
 
+  describe("Default Values are set if necessary", () => {
+    const dummyValue = "dummy Value";
+
+    test("Add default StudyDescription tag", () => {
+      let emptyDict = {};
+      deIdentConfig.addDefaultTagsIfNecessary(emptyDict);
+      expect(emptyDict["00081030"].Value, "StudyDescription is EDC code").toStrictEqual([
+        "(" + dummyStudyEdcCode + ")-",
+      ]);
+    });
+
+    test("Keep existing StudyDescription", () => {
+      let existingDict = {};
+      existingDict["00081030"] = {
+        vr: DicomValueRepresentations.LO,
+        Value: [dummyValue],
+      };
+
+      deIdentConfig.addDefaultTagsIfNecessary(existingDict);
+      expect(existingDict["00081030"].Value, "StudyDescription is dummy value").toStrictEqual([dummyValue]);
+    });
+
+    test("Add default SeriesDescription tag", () => {
+      let emptyDict = {};
+      deIdentConfig.addDefaultTagsIfNecessary(emptyDict);
+      expect(emptyDict["0008103E"].Value, "StudyDescription is EDC code").toStrictEqual([
+        "(" + dummyStudyEdcCode + ")-",
+      ]);
+    });
+
+    test("Keep existing SeriesDescription", () => {
+      let existingDict = {};
+      existingDict["0008103E"] = {
+        vr: DicomValueRepresentations.LO,
+        Value: [dummyValue],
+      };
+
+      deIdentConfig.addDefaultTagsIfNecessary(existingDict);
+      expect(existingDict["0008103E"].Value, "StudyDescription is dummy value").toStrictEqual([dummyValue]);
+    });
+  });
+
   describe("EncryptedAttributesSequence will be removed if patientIdentitityRemoved is activated by De-Identification Profile settings", () => {
     const EncryptedAttributesItemDict = {
       // EncryptedContentTransferSyntaxUID

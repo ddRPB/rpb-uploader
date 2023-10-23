@@ -99,6 +99,9 @@ export default class DicomFileDeIdentificationComponentDcmjs {
     this.applyDeIdentificationActions(this.dataSet.dict);
     this.log.trace("Dict section de-identified.", {}, { name: this.fileObject.fileObject.name });
 
+    this.configuration.addDefaultTagsIfNecessary(this.dataSet.dict);
+    this.log.trace("Default tags added.", {}, { name: this.fileObject.fileObject.name });
+
     this.configuration.addAdditionalTags(this.dataSet.dict);
     this.log.trace("Replacement tags added.", {}, { name: this.fileObject.fileObject.name });
 
