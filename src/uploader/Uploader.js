@@ -1148,6 +1148,9 @@ class Uploader extends Component {
   render = () => {
     return (
       <Fragment>
+        <div>
+          <small>You are running this application in <b>{process.env.REACT_APP_TEST}</b> mode.</small>
+        </div>
         <BlockUI blocked={this.state.blockedPanel}>
           <SlotPanel
             studyIdentifier={this.props.studyIdentifier}

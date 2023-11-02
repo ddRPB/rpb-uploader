@@ -11,6 +11,14 @@ module.exports = override(
   addWebpackPlugin(
     new webpack.ProvidePlugin({
       Buffer: ["buffer", "Buffer"],
+    }),
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: 'development', // use 'development' unless process.env.NODE_ENV is defined
+      DEBUG: false,
+      REACT_APP_TEST: 'testabc',
+    }),
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_TEST': JSON.stringify(process.env.REACT_APP_TEST || 'testabc')
     })
   ),
   addWebpackResolve({
