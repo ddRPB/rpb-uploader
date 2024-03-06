@@ -134,6 +134,13 @@ export default class DicomFileDeIdentificationComponentDcmjs {
                     this.handleRecursiveDeIdentificationAction(seqElement, action, parameter);
                   }
                   break;
+                case DeIdentificationActionCodes.X:
+                  try {
+                    action(dataSetDict, propertyName, parameter);
+                  } catch (error) {
+                    this.log.warn(`Failed to apply action ${action} to ${propertyName}.`, {}, error);
+                  }
+                  break;
 
                 default:
                   break;

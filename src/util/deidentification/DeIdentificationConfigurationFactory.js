@@ -1185,7 +1185,6 @@ export default class DeIdentificationConfigurationFactory {
     this.actionConfigurationMap.set("00321064", {
       action: DeIdentificationActionCodes.X,
     });
-
   }
 
   // Default replacements, based on the data type of the tag
