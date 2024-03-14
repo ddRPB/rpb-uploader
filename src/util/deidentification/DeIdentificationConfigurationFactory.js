@@ -463,6 +463,10 @@ export default class DeIdentificationConfigurationFactory {
     this.actionConfigurationMap.set("00380061", {
       action: DeIdentificationActionCodes.X,
     });
+    // Issuer of Service Episode ID Sequence
+    this.actionConfigurationMap.set("00380064", {
+      action: DeIdentificationActionCodes.X,
+    });
     // Large Palette Color Lookup Table UID
     this.actionConfigurationMap.set("00281214", {
       action: DeIdentificationActionCodes.U,
@@ -619,7 +623,7 @@ export default class DeIdentificationConfigurationFactory {
     this.actionConfigurationMap.set("00100032", {
       action: DeIdentificationActionCodes.X,
     });
-    // Patientʼs Institution Reside
+    // Patientʼs Institution Residence
     this.actionConfigurationMap.set("00380400", {
       action: DeIdentificationActionCodes.X,
     });
