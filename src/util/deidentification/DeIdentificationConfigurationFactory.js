@@ -1175,6 +1175,16 @@ export default class DeIdentificationConfigurationFactory {
         action: DeIdentificationActionCodes.X,
       });
     }
+
+    // Procedure Code Sequence
+    this.actionConfigurationMap.set("00081032", {
+      action: DeIdentificationActionCodes.X,
+    });
+
+    // Requested Procedure Code Sequence
+    this.actionConfigurationMap.set("00321064", {
+      action: DeIdentificationActionCodes.X,
+    });
   }
 
   // Default replacements, based on the data type of the tag
