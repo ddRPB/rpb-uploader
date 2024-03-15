@@ -122,27 +122,36 @@ export default class DicomFileDeIdentificationComponentDcmjs {
             ({ action, parameter, actionCode } = this.configuration.getTask(propertyName, vr));
             if (actionCode === undefined || actionCode === "not defined") {
               // recursion for all elements of the sequence
-              for (let seqElement of element.Value) {
-                this.applyDeIdentificationActions(seqElement);
-              }
+              this.iterateRecursivelyOnAllSequenceElements(element);
             } else {
               switch (actionCode) {
-                // specific recursion for cleaning - need to iterate to all children
                 case DeIdentificationActionCodes.C:
+                  /**
+                   * specific recursion for cleaning
+                   * need to iterate to all children and
+                   * to re-use an array of Strings (that would identify the patient) as parameter
+                   * such Strings will be replaced with an empty String (see cleanIdentifyingInformation method in DeIdentificationConfigurationComponentDcmjs)
+                   */
                   parameter = this.createPatientIdentityValueArray();
                   for (let seqElement of element.Value) {
-                    this.handleRecursiveDeIdentificationAction(seqElement, action, parameter);
+                    this.handleRecursiveDeIdentificationActionWithConsistentParameterAndAction(
+                      seqElement,
+                      action,
+                      parameter
+                    );
                   }
                   break;
                 case DeIdentificationActionCodes.X:
+                  // delete without iteration
                   try {
                     action(dataSetDict, propertyName, parameter);
                   } catch (error) {
                     this.log.warn(`Failed to apply action ${action} to ${propertyName}.`, {}, error);
                   }
                   break;
-
                 default:
+                  // default rule: recursion on all elements of the sequence
+                  this.iterateRecursivelyOnAllSequenceElements(element);
                   break;
               }
             }
@@ -168,14 +177,27 @@ export default class DicomFileDeIdentificationComponentDcmjs {
     }
   }
 
-  handleRecursiveDeIdentificationAction(dataSetDict, action, parameter) {
+  /**
+   * Standard handling to iterate on the sequences of DICOM tags and to apply the de-identification actions recursively on each element
+   */
+  iterateRecursivelyOnAllSequenceElements(element) {
+    for (let seqElement of element.Value) {
+      this.applyDeIdentificationActions(seqElement);
+    }
+  }
+
+  /**
+   * Special case for the iteration on the sequences of DICOM tags. We apply the same action and parameter on all children.
+   * For instance: all elements that contain Strings will be scanned for text fragment like the patient name which then is removed from the String.
+   */
+  handleRecursiveDeIdentificationActionWithConsistentParameterAndAction(dataSetDict, action, parameter) {
     for (let key of Object.keys(dataSetDict)) {
       const element = dataSetDict[key];
       const vr = element.vr;
 
       if (vr === "SQ") {
         for (let seqElement of element.Value) {
-          this.handleRecursiveDeIdentificationAction(seqElement, action, parameter);
+          this.handleRecursiveDeIdentificationActionWithConsistentParameterAndAction(seqElement, action, parameter);
         }
       } else {
         try {

@@ -164,7 +164,7 @@ describe("DeIdentificationConfiguration Tests", () => {
     };
 
     const deIdentificationMethodTag = "00120063";
-    const defaultValue = "Per DICOM PS 3.15 AnnexE. RPB-Uploader v1.0";
+    const defaultValue = "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.2";
     const dummyValue = "dummyItemValue";
 
     const profile = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
