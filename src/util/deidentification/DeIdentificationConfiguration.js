@@ -304,6 +304,15 @@ export default class DeIdentificationConfiguration {
         Value: [this.additionalTagValuesMap.get("0008103E")],
       };
     }
+
+    const birthDateValue = this.getTagItemValueOrEmptyString(dataSetDictionary, "00100030");
+
+    if (birthDateValue === "") {
+      dataSetDictionary["00100030"] = {
+        vr: DicomValueRepresentations.DA,
+        Value: [this.defaultReplacementsValuesMap.get(DicomValueRepresentations.DA)],
+      };
+    }
   }
 
   /**
@@ -495,5 +504,21 @@ export default class DeIdentificationConfiguration {
     let defaultReplacement = this.defaultReplacementsValuesMap.get(vr);
     if (defaultReplacement === undefined) defaultReplacement = this.defaultReplacementsValuesMap.get("default");
     return defaultReplacement;
+  }
+
+  getTagItemValueOrEmptyString(dataSetDictionary, tag) {
+    if (dataSetDictionary[tag] == null) {
+      return "";
+    }
+
+    if (dataSetDictionary[tag].Value == null) {
+      return "";
+    }
+
+    if (dataSetDictionary[tag].Value[0] != null) {
+      return dataSetDictionary[tag].Value[0];
+    }
+
+    return dataSetDictionary[tag].value;
   }
 }

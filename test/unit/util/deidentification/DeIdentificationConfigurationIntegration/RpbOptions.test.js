@@ -134,6 +134,59 @@ describe("RPB Profile Integration Test", () => {
       deIdentConfig.addDefaultTagsIfNecessary(existingDict);
       expect(existingDict["0008103E"].Value, "StudyDescription is dummy value").toStrictEqual([dummyValue]);
     });
+
+    test("add dummy birthdate if no birthdate is set", () => {
+      const dummyItemValue = "dummyValue";
+      const profile = DeIdentificationProfiles.RPB_PROFILE;
+      const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+      const deIdentConfig = factory.getConfiguration();
+
+      let dict = {
+        "00080090": { Value: dummyItemValue, vr: DicomValueRepresentations.PN },
+        "00081030": { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+        "0008103E": { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+      };
+
+      deIdentConfig.addDefaultTagsIfNecessary(dict);
+
+      expect(dict["00100030"].Value).toStrictEqual(["19000101"]);
+    });
+
+    test("add dummy birthdate if the birthdate is an empty string", () => {
+      const dummyItemValue = "dummyValue";
+      const profile = DeIdentificationProfiles.RPB_PROFILE;
+      const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+      const deIdentConfig = factory.getConfiguration();
+
+      let dict = {
+        "00080090": { Value: dummyItemValue, vr: DicomValueRepresentations.PN },
+        "00081030": { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+        "0008103E": { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+        "00100030": { Value: [""], vr: DicomValueRepresentations.DA },
+      };
+
+      deIdentConfig.addDefaultTagsIfNecessary(dict);
+
+      expect(dict["00100030"].Value).toStrictEqual(["19000101"]);
+    });
+
+    test("not add dummy birthdate if a birthdate is set", () => {
+      const dummyItemValue = "dummyValue";
+      const profile = DeIdentificationProfiles.RPB_PROFILE;
+      const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+      const deIdentConfig = factory.getConfiguration();
+
+      let dict = {
+        "00080090": { Value: dummyItemValue, vr: DicomValueRepresentations.PN },
+        "00081030": { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+        "0008103E": { Value: dummyItemValue, vr: DicomValueRepresentations.LO },
+        "00100030": { Value: ["20000101"], vr: DicomValueRepresentations.DA },
+      };
+
+      deIdentConfig.addDefaultTagsIfNecessary(dict);
+
+      expect(dict["00100030"].Value).toStrictEqual(["20000101"]);
+    });
   });
 
   describe("EncryptedAttributesSequence will be removed if patientIdentitityRemoved is activated by De-Identification Profile settings", () => {
