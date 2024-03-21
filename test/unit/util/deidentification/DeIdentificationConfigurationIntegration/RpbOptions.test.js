@@ -39,8 +39,12 @@ describe("RPB Profile Integration Test", () => {
     siteIdentifier: dummySiteIdentifier,
   };
 
+  const studyCommentsReplacementString = "study-comments-replacement";
+
   const profile = DeIdentificationProfiles.RPB_PROFILE;
   const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+
+  factory.additionalTagValuesMap.set("00324000", studyCommentsReplacementString);
   factory.addAdditionalDeIdentificationRelatedTags();
   const deIdentConfig = factory.getConfiguration();
 
@@ -57,6 +61,13 @@ describe("RPB Profile Integration Test", () => {
       deIdentConfig.addAdditionalTags(emptyDict);
       expect(emptyDict["00080090"].Value, "ReferringPhysicianName is ({studyEdcCode})-{subjectId}").toStrictEqual([
         "(" + dummyStudyEdcCode + ")-" + dummySubjectId,
+      ]);
+    });
+
+    test("Additional Study Comments field replacement is added", () => {
+      deIdentConfig.addAdditionalTags(emptyDict);
+      expect(emptyDict["00324000"].Value, "Study Comments field replacement").toStrictEqual([
+        studyCommentsReplacementString,
       ]);
     });
 

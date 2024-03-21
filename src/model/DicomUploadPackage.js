@@ -17,12 +17,13 @@
  *
  */
 
+import * as forge from "node-forge";
 import promisePoller from "promise-poller";
 import LogLevels from "../constants/LogLevels";
+import MimeMessageBuilder from "../util/MimeMessageBuilder";
 import DeIdentificationConfigurationFactory from "../util/deidentification/DeIdentificationConfigurationFactory";
 import DicomFileDeIdentificationComponentDcmjs from "../util/deidentification/DicomFileDeIdentificationComponentDcmjs";
 import Logger from "../util/logging/Logger";
-import MimeMessageBuilder from "../util/MimeMessageBuilder";
 import DicomFileInspector from "../util/verification/DicomFileInspector";
 import DicomUploadChunk from "./DicomUploadChunk";
 
@@ -54,7 +55,7 @@ export default class DicomUploadPackage {
     this.verifiedFiles = [];
 
     this.studyInstanceUID = "";
-    this.replacedStudyInstanceUID = "";
+    this.pseudonymizedStudyInstanceUID = "";
 
     this.apiKey = null;
     this.uploadServiceUrl = null;
@@ -171,7 +172,7 @@ export default class DicomUploadPackage {
     this.uploadedFiles = [];
     this.verifiedFiles = [];
 
-    this.replacedStudyInstanceUID = "";
+    this.pseudonymizedStudyInstanceUID = "";
 
     // ToDo: cancel linking
   }
@@ -275,10 +276,15 @@ export default class DicomUploadPackage {
     setUploadedFilesCountValue
   ) {
     let errors = [];
-    const replacedStudyUID = dicomUidReplacements.get(this.studyInstanceUID);
-    if (replacedStudyUID != null) {
-      this.replacedStudyInstanceUID = replacedStudyUID;
+
+    const pseudonymizedStudyUID = dicomUidReplacements.get(this.studyInstanceUID);
+    if (pseudonymizedStudyUID != null) {
+      this.pseudonymizedStudyInstanceUID = pseudonymizedStudyUID;
     }
+
+    // StudyComments tag is used for XNAT handling
+    const md5HashStudyInstanceUID = this.createMdFiveHashFromPseudonymizedStudyInstanceUID();
+    this.addStudyCommentTagReplacement(md5HashStudyInstanceUID);
 
     let processedChunksCount = 0;
 
@@ -301,7 +307,7 @@ export default class DicomUploadPackage {
 
       if (!chunk.deIdentified) {
         try {
-          chunk.setDeIdentifiedStudyUid(this.replacedStudyInstanceUID);
+          chunk.setDeIdentifiedStudyUid(this.pseudonymizedStudyInstanceUID);
           chunk.setDeIdentifiedSeriesUid(dicomUidReplacements.get(chunk.originalSeriesUid));
 
           this.log.trace(
@@ -396,7 +402,7 @@ export default class DicomUploadPackage {
 
         try {
           let response = await fetch(
-            `${this.uploadServiceUrl}/api/v1/dicomweb/studies/${this.replacedStudyInstanceUID}`,
+            `${this.uploadServiceUrl}/api/v1/dicomweb/studies/${this.pseudonymizedStudyInstanceUID}`,
             args
           );
           const data = {
@@ -455,6 +461,45 @@ export default class DicomUploadPackage {
   }
 
   /**
+   * The study comment tag (0032,4000) is used for XNAT intergration.
+   * The function prepares the addtionalTagValuesMap with an replacement String.
+   */
+  addStudyCommentTagReplacement(md5HashStudyInstanceUID) {
+    const siteIdentifier = this.uploadSlot.siteIdentifier;
+    const pid = this.uploadSlot.pid;
+    const edcCode = this.uploadSlot.studyEdcCode;
+    const studySubjectID = this.uploadSlot.subjectId;
+    const studyCommentsReplacementArray = [];
+    studyCommentsReplacementArray.push("Project:" + siteIdentifier);
+    studyCommentsReplacementArray.push("Subject:" + pid);
+    studyCommentsReplacementArray.push("Session:" + edcCode + "_" + studySubjectID + "_" + md5HashStudyInstanceUID);
+    this.configFactory.additionalTagValuesMap.set("00324000", studyCommentsReplacementArray.join(" "));
+  }
+
+  /**
+   * Creates an MD5 hash that is converted to an String representation of a decimal number.
+   */
+  createMdFiveHashFromPseudonymizedStudyInstanceUID() {
+    if (this.pseudonymizedStudyInstanceUID === "") {
+      this.log.error(
+        "Creating MD5 hash from pseudonymized DicomStudyUID failed - pseudonymized DicomStudyUID is an empty String"
+      );
+      return "";
+    }
+
+    const md = forge.md.md5.create();
+    md.update(this.pseudonymizedStudyInstanceUID);
+    const md5HashStudyInstanceUID = BigInt("0x" + md.digest().toHex()).toString(10);
+    this.log.trace(
+      "Create MD5 hash from pseudonymized DicomStudyUID: " +
+        this.pseudonymizedStudyInstanceUID +
+        " -> " +
+        md5HashStudyInstanceUID
+    );
+    return md5HashStudyInstanceUID;
+  }
+
+  /**
    * Verifies that the uploaded DICOM data passed the backend and are available there.
    * A polling mechanism allows to wait until the process has been finished.
    */
@@ -472,7 +517,7 @@ export default class DicomUploadPackage {
 
       const data = {
         pid: this.uploadSlot.pid,
-        studyUid: this.replacedStudyInstanceUID,
+        studyUid: this.pseudonymizedStudyInstanceUID,
         seriesUid: deIdentifiedSeriesUid,
         instances: selectedSeries.getInstancesSize(),
       };
@@ -487,7 +532,7 @@ export default class DicomUploadPackage {
         const pollTask = () =>
           this.evaluateUploadOfSeries(
             this.uploadSlot.pid,
-            this.replacedStudyInstanceUID,
+            this.pseudonymizedStudyInstanceUID,
             deIdentifiedSeriesUid,
             selectedSeries.getInstancesSize()
           );
