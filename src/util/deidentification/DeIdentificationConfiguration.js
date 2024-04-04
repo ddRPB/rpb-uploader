@@ -327,6 +327,10 @@ export default class DeIdentificationConfiguration {
 
     this.addPatientNameAndIdTagsIfDefined(dataSetDictionary);
 
+    // StudyComments tag is used for XNAT handling
+    // "Project:{StudySiteProtocolID}  Subject:{Pseudonym} Session:{EDC-code}_{StudySubjectID}_{md5hash_base_10_digit string_from_pseudonymised_StudyInstaceUID}"
+    this.addXnatSortingHelperTagAsStudyComment(dataSetDictionary);
+
     // PatientIdentityRemoved
     this.handlePatientIdentityRemovedTag(dataSetDictionary);
 
@@ -390,6 +394,15 @@ export default class DeIdentificationConfiguration {
       dataSetDictionary["00100020"] = {
         vr: DicomValueRepresentations.LO,
         Value: [this.additionalTagValuesMap.get("00100020")],
+      };
+    }
+  }
+
+  addXnatSortingHelperTagAsStudyComment(dataSetDictionary) {
+    if (this.additionalTagValuesMap.get("00324000") != undefined) {
+      dataSetDictionary["00324000"] = {
+        vr: DicomValueRepresentations.LT,
+        Value: [this.additionalTagValuesMap.get("00324000")],
       };
     }
   }
