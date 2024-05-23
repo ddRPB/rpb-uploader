@@ -200,6 +200,9 @@ export default class DicomFile {
         case "x0020000e":
           resultMap.set("SeriesInstanceUID", this._getString(element));
           break;
+        case "x0008103e":
+          resultMap.set("SeriesDescription", this._getString(element));
+          break;
       }
     }
   }
