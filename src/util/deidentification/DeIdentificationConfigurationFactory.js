@@ -2660,7 +2660,7 @@ export default class DeIdentificationConfigurationFactory {
 
     this.additionalTagValuesMap.set("00280303", this.longitudinalTemporalInformationModified);
 
-    this.additionalTagValuesMap.set("00120063", "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.2");
+    this.additionalTagValuesMap.set("00120063", "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.3");
 
     // https://dicom.innolitics.com/ciods/enhanced-sr/patient/00120064/00080100
     // https://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_8.html#chapter_8
