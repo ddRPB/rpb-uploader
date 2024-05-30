@@ -107,7 +107,7 @@ describe("Retain Device Identity Option Integration Test", () => {
     );
     // De-identification Method Attribute
     expect(deIdentConfig.additionalTagValuesMap.get("00120063"), "addtional 00120063 tag").toBe(
-      "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.2"
+      "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.3"
     );
     // De-identification Method Code Sequence Attribute
     const usedMethods = deIdentConfig.additionalTagValuesMap.get("00120064");
