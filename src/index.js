@@ -53,6 +53,7 @@ const config = {
   ],
   language: navigator.language,
   userAgent: navigator.userAgent,
+  uploaderVersion: "v0.0.3",
 };
 
 // Application entry point

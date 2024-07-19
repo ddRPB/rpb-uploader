@@ -63,7 +63,7 @@ export default class DicomUploadPackage {
     this.setChunkSize(config.chunkSize);
 
     this.configFactory = new DeIdentificationConfigurationFactory(
-      config.deIdentificationProfileOption,
+      config,
       this.uploadSlot
     );
     this.deIdentificationConfiguration = this.configFactory.getConfiguration();

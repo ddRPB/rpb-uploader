@@ -27,8 +27,8 @@ describe("Clean Structured Content Option Integration Test", () => {
 
   const dicomUidReplacements = new Map();
 
-  const profile = DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT;
-  const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+  const deIdentificationProfileOption = DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT;
+  const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
   const deIdentConfig = factory.getConfiguration();
 
   const deIdentComponent = new DicomFileDeIdentificationComponentDcmjs(
@@ -127,8 +127,9 @@ describe("Clean Structured Content Option Integration Test", () => {
   });
 
   test("Additional tags will indicate that the Clean Structured Content Option was applied on the data set", () => {
-    const profile = DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT;
-    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    const uploaderVersion = "dummy-version-string";
+    const deIdentificationProfileOption = DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT;
+    const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption, uploaderVersion}, uploadSlot);
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 
@@ -138,7 +139,7 @@ describe("Clean Structured Content Option Integration Test", () => {
     );
     // De-identification Method Attribute
     expect(deIdentConfig.additionalTagValuesMap.get("00120063"), "addtional 00120063 tag").toBe(
-      "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.3"
+      `Per DICOM PS 3.15 AnnexE. RPB-Uploader ${uploaderVersion}`
     );
     // De-identification Method Code Sequence Attribute
     const usedMethods = deIdentConfig.additionalTagValuesMap.get("00120064");
