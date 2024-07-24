@@ -42,55 +42,55 @@ describe("Test DeIdentificationConfigurationFactory", () => {
     test("Unknown profile throws", () => {
       const deIdentificationProfileOption = "unknown";
       expect(() => {
-        new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+        new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       }).toThrow();
     });
 
     test("Basic profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
 
     test("Retail Long Full Dates Option profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_LONG_FULL_DATES;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
 
     test("Retain Patient Characteristics Option profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
 
     test("Retain Device Identity Option profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
 
     test("Retain Safe Private Option profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
 
     test("Clean Descriptors Option profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.CLEAN_DESCRIPTORS;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
 
     test("Clean Structured Content Option profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.CLEAN_STRUCTURED_CONTENT;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
 
     test("RPB Profile Option profile works", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       expect(factory).not.toBeNull();
     });
   });
@@ -98,7 +98,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
   describe("Test Basic Profile", () => {
     test("Basic profile creates valid DeIdentificationConfiguration instance", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       expect(deIdentConfig).not.toBeNull();
@@ -107,7 +107,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
 
     test("some example Basic profile action codes", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       const configurationMap = deIdentConfig.getConfigurationMap();
@@ -121,7 +121,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
     test("extra RPB profile action codes", () => {
       const dummyItemValue = "dummyValue";
       const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       const configurationMap = deIdentConfig.getConfigurationMap();
@@ -152,7 +152,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
       describe("DeIdentificationConfiguration changes implementation tests", () => {
         test("Does no change if the RETAIN_PATIENT_CHARACTERISTICS profile is not active", () => {
           const deIdentificationProfileOption = [DeIdentificationProfiles.RPB_PROFILE];
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.3.46.670589.33.1.4.1" },
@@ -174,8 +174,11 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test("Changes the configuration for private tags and add the RETAIN_PATIENT_CHARACTERISTICS profile", () => {
-          const deIdentificationProfileOption = [DeIdentificationProfiles.RPB_PROFILE, DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION];
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const deIdentificationProfileOption = [
+            DeIdentificationProfiles.RPB_PROFILE,
+            DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION,
+          ];
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.3.46.670589.33.1.4.1" },
@@ -202,8 +205,11 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test("Factory class objects are not changed -> factory produces ususal configuration afterwards if a special case is not detected", () => {
-          const deIdentificationProfileOption = [DeIdentificationProfiles.RPB_PROFILE, DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION];
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const deIdentificationProfileOption = [
+            DeIdentificationProfiles.RPB_PROFILE,
+            DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION,
+          ];
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.3.46.670589.33.1.4.1" },
@@ -229,7 +235,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
             DeIdentificationProfiles.RPB_PROFILE,
             DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS,
           ];
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.3.46.670589.33.1.4.1" },
@@ -245,10 +251,13 @@ describe("Test DeIdentificationConfigurationFactory", () => {
       });
 
       describe("Test case detection", () => {
-        const deIdentificationProfileOption = [DeIdentificationProfiles.RPB_PROFILE, DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION];
+        const deIdentificationProfileOption = [
+          DeIdentificationProfiles.RPB_PROFILE,
+          DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION,
+        ];
 
         test('TransferSyntaxUID == "1.3.46.670589.33.1.4.1"', () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.3.46.670589.33.1.4.1" },
@@ -265,7 +274,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test("Philips Medical Systems - Ingenuity TF PET/MR - Modality : PT ", () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.2.840.10008.1.2" },
@@ -286,7 +295,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test('Philips Medical Systems - Ingenuity TF PET/MR - Modality : "MR"', () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.2.840.10008.1.2" },
@@ -307,7 +316,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test('Philips Medical Systems - Ingenuity - Modality : "MR"', () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.2.840.10008.1.2" },
@@ -328,7 +337,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test('Nucletron - Oncentra - Modality : "RTDOSE"', () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.2.840.10008.1.2" },
@@ -349,7 +358,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test('TomoTherapy Incorporated - Hi-Art - Modality : "RTDOSE"', () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.2.840.10008.1.2" },
@@ -370,7 +379,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test('Nucletron - Oncentra - Modality : "RTPLAN"', () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.2.840.10008.1.2" },
@@ -391,7 +400,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
         });
 
         test('TomoTherapy Incorporated - Hi-Art - Modality : "RTPLAN"', () => {
-          const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+          const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
           const dicomDict = {
             meta: { "00020010": "1.2.840.10008.1.2" },
@@ -417,7 +426,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
   describe("Test Lookup Maps", () => {
     test("Test defaultReplacementsValuesMap", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       expect(deIdentConfig.getDefaultReplacementValue(DicomValueRepresentations.DA)).toStrictEqual("19000101");
@@ -428,7 +437,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
 
     test.skip("Test tagSpecificReplacements", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       expect(deIdentConfig.getReplacementValue("00100010")).toStrictEqual(dummyPid);
@@ -438,7 +447,7 @@ describe("Test DeIdentificationConfigurationFactory", () => {
 
     test("RPB specific default values for study or series description tags", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       // StudyDescription
@@ -449,7 +458,10 @@ describe("Test DeIdentificationConfigurationFactory", () => {
 
     test("Additional tags will indicate that the basic profile was applied on the data set", () => {
       const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
-      const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption, uploaderVersion}, uploadSlot);
+      const factory = new DeIdentificationConfigurationFactory(
+        { deIdentificationProfileOption, uploaderVersion },
+        uploadSlot
+      );
       factory.addAdditionalDeIdentificationRelatedTags();
       const deIdentConfig = factory.getConfiguration();
 

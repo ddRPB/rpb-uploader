@@ -37,9 +37,12 @@ describe("Retain Device Identity Option Integration Test", () => {
     pid: dummyPid,
   };
 
-  const uploaderVersion = "dummy-version-string"
+  const uploaderVersion = "dummy-version-string";
   const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
-  const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption, uploaderVersion}, uploadSlot);
+  const factory = new DeIdentificationConfigurationFactory(
+    { deIdentificationProfileOption, uploaderVersion },
+    uploadSlot
+  );
   factory.addAdditionalDeIdentificationRelatedTags();
   const deIdentConfig = factory.getConfiguration();
   const dummyItemValue = "dummyValue";
@@ -150,8 +153,11 @@ describe("Retain Device Identity Option Plus RPB Modifications Integration Test"
     pid: dummyPid,
   };
 
-  const deIdentificationProfileOption = [DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY, DeIdentificationProfiles.RPB_PROFILE];
-  const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+  const deIdentificationProfileOption = [
+    DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY,
+    DeIdentificationProfiles.RPB_PROFILE,
+  ];
+  const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
   factory.addAdditionalDeIdentificationRelatedTags();
   const deIdentConfig = factory.getConfiguration();
   const dummyUid = "dummyUid";

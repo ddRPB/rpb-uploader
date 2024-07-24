@@ -177,7 +177,10 @@ describe("DeIdentificationConfiguration Tests", () => {
     const dummyValue = "dummyItemValue";
 
     const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
-    const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption, uploaderVersion }, uploadSlot);
+    const factory = new DeIdentificationConfigurationFactory(
+      { deIdentificationProfileOption, uploaderVersion },
+      uploadSlot
+    );
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 
@@ -209,7 +212,6 @@ describe("DeIdentificationConfiguration Tests", () => {
     });
 
     test("Existing item is keeped and additional value is added to the array if the size is not bigger than 64 characters.", () => {
-
       let dict = {
         "00120063": { Value: [dummyValue], vr: DicomValueRepresentations.LO },
       };
@@ -247,7 +249,8 @@ describe("DeIdentificationConfiguration Tests", () => {
 
     test("Existing item is cut and additional item is added to the array if the size would become bigger than 64 characters", () => {
       const tenCharacters = "0123456789";
-      const sixtyCharacters = tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters;
+      const sixtyCharacters =
+        tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters;
       const fortyfourCharacters = tenCharacters + tenCharacters + tenCharacters + tenCharacters + "0123";
 
       let dict = {
@@ -285,10 +288,7 @@ describe("DeIdentificationConfiguration Tests", () => {
 
       expect(deidentificationMethodItem.Value.length, "should be two items").toBe(1);
       expect(deidentificationMethodItem.Value[0], "matches the existing value").toMatch(defaultValue);
-    
     });
-
-
   });
 
   describe("Method cleanIdentifyingInformation tests", () => {

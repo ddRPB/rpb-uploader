@@ -432,7 +432,10 @@ export default class DeIdentificationConfiguration {
    * Adds or modifies the DeIdentificationMethod tag.
    */
   handleDeidentificationMethodTag(dataSetDictionary) {
-    if (this.additionalTagValuesMap.get("00120063") != undefined && this.additionalTagValuesMap.get("00120063-fallback") != undefined) {
+    if (
+      this.additionalTagValuesMap.get("00120063") != undefined &&
+      this.additionalTagValuesMap.get("00120063-fallback") != undefined
+    ) {
       const deIdentificationMethodValue = this.additionalTagValuesMap.get("00120063");
       const fallbackDeIdentificationMethodValue = this.additionalTagValuesMap.get("00120063-fallback");
 
@@ -484,9 +487,12 @@ export default class DeIdentificationConfiguration {
             // cutPreviousItem
 
             if (previousDeIdentificationMethodValue.length == 1) {
-              const offset = 1 // slice starts with position 0
+              const offset = 1; // slice starts with position 0
               const slicePosition = maxValueLength - fallbackDeIdentificationMethodValue.length - offset;
-              const cutPreviousDeIdentificationMethodValue = previousDeIdentificationMethodValue[0].slice(0, slicePosition);
+              const cutPreviousDeIdentificationMethodValue = previousDeIdentificationMethodValue[0].slice(
+                0,
+                slicePosition
+              );
               const value = [cutPreviousDeIdentificationMethodValue, fallbackDeIdentificationMethodValue];
               dataSetDictionary["00120063"] = {
                 vr: DicomValueRepresentations.LO,
@@ -499,9 +505,7 @@ export default class DeIdentificationConfiguration {
                 Value: [deIdentificationMethodValue],
               };
             }
-
         }
-
       }
     } else {
       throw new Error("The values for the de-identification method tag (00120063) are not defined.");
@@ -514,22 +518,21 @@ export default class DeIdentificationConfiguration {
     fallbackDeIdentificationMethodValue,
     maxValueLength
   ) {
-
-    const calculatedSizeAppend = 2 + previousDeIdentificationMethodValue.toString().length + deIdentificationMethodValue.length;
+    const calculatedSizeAppend =
+      2 + previousDeIdentificationMethodValue.toString().length + deIdentificationMethodValue.length;
 
     if (calculatedSizeAppend <= maxValueLength) {
       return "append";
     }
 
-    const calculatedSizeFallback = 2 + previousDeIdentificationMethodValue.toString().length + fallbackDeIdentificationMethodValue.length;
+    const calculatedSizeFallback =
+      2 + previousDeIdentificationMethodValue.toString().length + fallbackDeIdentificationMethodValue.length;
 
     if (calculatedSizeFallback <= maxValueLength) {
       return "useFallBack";
     }
 
-    return "cutPreviousItem"
-
-
+    return "cutPreviousItem";
   }
 
   /**

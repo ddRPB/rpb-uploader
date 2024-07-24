@@ -28,7 +28,7 @@ describe("Clean Descriptors Option Integration Test", () => {
   const dicomUidReplacements = new Map();
 
   const deIdentificationProfileOption = [DeIdentificationProfiles.CLEAN_DESCRIPTORS];
-  const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+  const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
   const deIdentConfig = factory.getConfiguration();
 
   const deIdentComponent = new DicomFileDeIdentificationComponentDcmjs(
@@ -641,7 +641,10 @@ describe("Clean Descriptors Option Integration Test", () => {
   test("Additional tags will indicate that the Clean Structured Content Option was applied on the data set", () => {
     const uploaderVersion = "dummy-version-string";
     const deIdentificationProfileOption = DeIdentificationProfiles.CLEAN_DESCRIPTORS;
-    const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption, uploaderVersion}, uploadSlot);
+    const factory = new DeIdentificationConfigurationFactory(
+      { deIdentificationProfileOption, uploaderVersion },
+      uploadSlot
+    );
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 

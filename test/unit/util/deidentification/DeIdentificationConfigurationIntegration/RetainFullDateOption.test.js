@@ -48,7 +48,7 @@ describe("Retain Patient Characteristics Profile Integration Test", () => {
   const dicomUidReplacements = new Map();
 
   const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_LONG_FULL_DATES;
-  const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+  const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
   const deIdentConfig = factory.getConfiguration();
 
   const deIdentComponent = new DicomFileDeIdentificationComponentDcmjs(
@@ -237,9 +237,12 @@ describe("Retain Patient Characteristics Profile Integration Test", () => {
   });
 
   test("Additional tags will indicate that the RETAIN_LONG_FULL_DATES profile was applied on the data set", () => {
-    const uploaderVersion = "dummy-version-string"
+    const uploaderVersion = "dummy-version-string";
     const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_LONG_FULL_DATES;
-    const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption, uploaderVersion}, uploadSlot);
+    const factory = new DeIdentificationConfigurationFactory(
+      { deIdentificationProfileOption, uploaderVersion },
+      uploadSlot
+    );
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 

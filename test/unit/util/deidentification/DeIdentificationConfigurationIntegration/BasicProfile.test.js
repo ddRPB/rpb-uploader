@@ -39,7 +39,7 @@ describe("DeIdentification Basic Profile Integration Test", () => {
   };
 
   const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
-  const factory = new DeIdentificationConfigurationFactory({deIdentificationProfileOption}, uploadSlot);
+  const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
   factory.addAdditionalDeIdentificationRelatedTags();
   const deIdentConfig = factory.getConfiguration();
 
