@@ -41,8 +41,8 @@ describe("RPB Profile Integration Test", () => {
 
   const studyCommentsReplacementString = "study-comments-replacement";
 
-  const profile = DeIdentificationProfiles.RPB_PROFILE;
-  const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+  const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
+  const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
 
   factory.additionalTagValuesMap.set("00324000", studyCommentsReplacementString);
   factory.addAdditionalDeIdentificationRelatedTags();
@@ -148,8 +148,8 @@ describe("RPB Profile Integration Test", () => {
 
     test("add dummy birthdate if no birthdate is set", () => {
       const dummyItemValue = "dummyValue";
-      const profile = DeIdentificationProfiles.RPB_PROFILE;
-      const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       let dict = {
@@ -165,8 +165,8 @@ describe("RPB Profile Integration Test", () => {
 
     test("add dummy birthdate if the birthdate is an empty string", () => {
       const dummyItemValue = "dummyValue";
-      const profile = DeIdentificationProfiles.RPB_PROFILE;
-      const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       let dict = {
@@ -183,8 +183,8 @@ describe("RPB Profile Integration Test", () => {
 
     test("not add dummy birthdate if a birthdate is set", () => {
       const dummyItemValue = "dummyValue";
-      const profile = DeIdentificationProfiles.RPB_PROFILE;
-      const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfig = factory.getConfiguration();
 
       let dict = {
@@ -223,8 +223,12 @@ describe("RPB Profile Integration Test", () => {
   });
 
   test("Additional tags indicate that the RPB Profile was applied on the data set", () => {
-    const profile = DeIdentificationProfiles.RPB_PROFILE;
-    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    const uploaderVersion = "dummy-version-string";
+    const deIdentificationProfileOption = DeIdentificationProfiles.RPB_PROFILE;
+    const factory = new DeIdentificationConfigurationFactory(
+      { deIdentificationProfileOption, uploaderVersion },
+      uploadSlot
+    );
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 
@@ -234,7 +238,7 @@ describe("RPB Profile Integration Test", () => {
     );
     // De-identification Method Attribute
     expect(deIdentConfig.additionalTagValuesMap.get("00120063"), "addtional 00120063 tag").toBe(
-      "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.3"
+      `Per DICOM PS 3.15 AnnexE. RPB-Uploader ${uploaderVersion}`
     );
     // De-identification Method Code Sequence Attribute
     const usedMethods = deIdentConfig.additionalTagValuesMap.get("00120064");

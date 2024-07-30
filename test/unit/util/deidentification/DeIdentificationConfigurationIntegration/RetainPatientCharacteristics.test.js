@@ -28,8 +28,8 @@ describe("Retain Patient Characteristics Profile Integration Test", () => {
 
   const dicomUidReplacements = new Map();
 
-  const profile = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
-  const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+  const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
+  const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
   const deIdentConfig = factory.getConfiguration();
 
   const deIdentComponent = new DicomFileDeIdentificationComponentDcmjs(
@@ -91,8 +91,12 @@ describe("Retain Patient Characteristics Profile Integration Test", () => {
   });
 
   test("Additional tags will indicate that the RETAIN_PATIENT_CHARACTERISTICS profile was applied on the data set", () => {
-    const profile = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
-    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    const uploaderVersion = "dummy-version-string";
+    const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
+    const factory = new DeIdentificationConfigurationFactory(
+      { deIdentificationProfileOption, uploaderVersion },
+      uploadSlot
+    );
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 
@@ -102,7 +106,7 @@ describe("Retain Patient Characteristics Profile Integration Test", () => {
     );
     // De-identification Method Attribute
     expect(deIdentConfig.additionalTagValuesMap.get("00120063"), "addtional 00120063 tag").toBe(
-      "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.3"
+      `Per DICOM PS 3.15 AnnexE. RPB-Uploader ${uploaderVersion}`
     );
     // De-identification Method Code Sequence Attribute
     const usedMethods = deIdentConfig.additionalTagValuesMap.get("00120064");

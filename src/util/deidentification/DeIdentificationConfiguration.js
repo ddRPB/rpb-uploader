@@ -432,8 +432,12 @@ export default class DeIdentificationConfiguration {
    * Adds or modifies the DeIdentificationMethod tag.
    */
   handleDeidentificationMethodTag(dataSetDictionary) {
-    if (this.additionalTagValuesMap.get("00120063") != undefined) {
-      const maxValueLength = 64;
+    if (
+      this.additionalTagValuesMap.get("00120063") != undefined &&
+      this.additionalTagValuesMap.get("00120063-fallback") != undefined
+    ) {
+      const deIdentificationMethodValue = this.additionalTagValuesMap.get("00120063");
+      const fallbackDeIdentificationMethodValue = this.additionalTagValuesMap.get("00120063-fallback");
 
       const currentDeIdentificationMethodItem = dataSetDictionary["00120063"];
       let currentDeIdentificationMethodValue;
@@ -444,43 +448,91 @@ export default class DeIdentificationConfiguration {
       if (currentDeIdentificationMethodValue === undefined) {
         dataSetDictionary["00120063"] = {
           vr: DicomValueRepresentations.LO,
-          Value: [this.additionalTagValuesMap.get("00120063")],
+          Value: [deIdentificationMethodValue],
         };
       } else {
-        let newDeIdentificationMethodValue;
+        let previousDeIdentificationMethodValue;
 
         if (!Array.isArray(currentDeIdentificationMethodValue)) {
-          newDeIdentificationMethodValue = [currentDeIdentificationMethodValue];
+          previousDeIdentificationMethodValue = [currentDeIdentificationMethodValue];
         } else {
-          newDeIdentificationMethodValue = currentDeIdentificationMethodValue;
+          previousDeIdentificationMethodValue = currentDeIdentificationMethodValue;
         }
 
-        let calculatedSize =
-          2 + newDeIdentificationMethodValue.toString().length + this.additionalTagValuesMap.get("00120063").length;
+        const maxValueLength = 64; // (0012,0063) tag is Long String (LO);
+        const strategie = this.detectDeIdentificationMethodTagHandlingStrategie(
+          previousDeIdentificationMethodValue,
+          deIdentificationMethodValue,
+          fallbackDeIdentificationMethodValue,
+          maxValueLength
+        );
 
-        if (calculatedSize <= maxValueLength) {
-          newDeIdentificationMethodValue.push(this.additionalTagValuesMap.get("00120063"));
-          dataSetDictionary["00120063"] = {
-            vr: DicomValueRepresentations.LO,
-            Value: newDeIdentificationMethodValue,
-          };
-        } else {
-          const dots = "...";
-          calculatedSize = 2 + newDeIdentificationMethodValue.toString().length + dots.length;
-          if (calculatedSize <= maxValueLength) {
-            newDeIdentificationMethodValue.push(dots);
+        switch (strategie) {
+          case "append":
+            previousDeIdentificationMethodValue.push(deIdentificationMethodValue);
             dataSetDictionary["00120063"] = {
               vr: DicomValueRepresentations.LO,
-              Value: newDeIdentificationMethodValue,
+              Value: previousDeIdentificationMethodValue,
             };
-          } else {
-            // do not change the value
-          }
+            break;
+          case "useFallBack":
+            previousDeIdentificationMethodValue.push(fallbackDeIdentificationMethodValue);
+            dataSetDictionary["00120063"] = {
+              vr: DicomValueRepresentations.LO,
+              Value: previousDeIdentificationMethodValue,
+            };
+            break;
+
+          default:
+            // cutPreviousItem
+
+            if (previousDeIdentificationMethodValue.length == 1) {
+              const offset = 1; // slice starts with position 0
+              const slicePosition = maxValueLength - fallbackDeIdentificationMethodValue.length - offset;
+              const cutPreviousDeIdentificationMethodValue = previousDeIdentificationMethodValue[0].slice(
+                0,
+                slicePosition
+              );
+              const value = [cutPreviousDeIdentificationMethodValue, fallbackDeIdentificationMethodValue];
+              dataSetDictionary["00120063"] = {
+                vr: DicomValueRepresentations.LO,
+                Value: value,
+              };
+            } else {
+              // more than one previous item -> fall back to full replacement
+              dataSetDictionary["00120063"] = {
+                vr: DicomValueRepresentations.LO,
+                Value: [deIdentificationMethodValue],
+              };
+            }
         }
       }
     } else {
       throw new Error("The values for the de-identification method tag (00120063) are not defined.");
     }
+  }
+
+  detectDeIdentificationMethodTagHandlingStrategie(
+    previousDeIdentificationMethodValue,
+    deIdentificationMethodValue,
+    fallbackDeIdentificationMethodValue,
+    maxValueLength
+  ) {
+    const calculatedSizeAppend =
+      2 + previousDeIdentificationMethodValue.toString().length + deIdentificationMethodValue.length;
+
+    if (calculatedSizeAppend <= maxValueLength) {
+      return "append";
+    }
+
+    const calculatedSizeFallback =
+      2 + previousDeIdentificationMethodValue.toString().length + fallbackDeIdentificationMethodValue.length;
+
+    if (calculatedSizeFallback <= maxValueLength) {
+      return "useFallBack";
+    }
+
+    return "cutPreviousItem";
   }
 
   /**

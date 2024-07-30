@@ -62,10 +62,7 @@ export default class DicomUploadPackage {
 
     this.setChunkSize(config.chunkSize);
 
-    this.configFactory = new DeIdentificationConfigurationFactory(
-      config.deIdentificationProfileOption,
-      this.uploadSlot
-    );
+    this.configFactory = new DeIdentificationConfigurationFactory(config, this.uploadSlot);
     this.deIdentificationConfiguration = this.configFactory.getConfiguration();
 
     this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);

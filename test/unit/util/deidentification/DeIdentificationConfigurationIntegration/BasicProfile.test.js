@@ -38,8 +38,8 @@ describe("DeIdentification Basic Profile Integration Test", () => {
     siteIdentifier: dummySiteIdentifier,
   };
 
-  const profile = DeIdentificationProfiles.BASIC;
-  const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+  const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+  const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
   factory.addAdditionalDeIdentificationRelatedTags();
   const deIdentConfig = factory.getConfiguration();
 

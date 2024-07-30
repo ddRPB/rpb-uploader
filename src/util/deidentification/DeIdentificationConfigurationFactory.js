@@ -39,7 +39,7 @@ import DeIdentificationConfiguration from "./DeIdentificationConfiguration";
  * It is based on Supplement 142 from the DICOM standard with some RPB specific modifications and implementation details.
  */
 export default class DeIdentificationConfigurationFactory {
-  constructor(profileOptions, uploadSlot) {
+  constructor(config, uploadSlot) {
     this.uploadSlot = uploadSlot;
     this.actionConfigurationMap = new Map();
     this.defaultReplacementsValuesMap = new Map();
@@ -52,11 +52,13 @@ export default class DeIdentificationConfigurationFactory {
     this.retainSafePrivateOption = false; // default - becomes true if the DeIdentificationProfiles.RETAIN_SAFE_PRIVATE_OPTION is set
     this.appliedDeIdentificationSteps = [];
 
+    this.uploaderVersion = config.uploaderVersion;
+
     this.createBasicProfile();
     this.createDefaultReplacementsValuesMap();
     this.createTagSpecificReplacementsValuesMap();
 
-    this.applyProfileOptions(profileOptions);
+    this.applyProfileOptions(config.deIdentificationProfileOption);
 
     if (this.rpbSpecificActions) {
       this.uploadSlot.rpbSpecificActions = this.rpbSpecificActions;
@@ -2660,7 +2662,8 @@ export default class DeIdentificationConfigurationFactory {
 
     this.additionalTagValuesMap.set("00280303", this.longitudinalTemporalInformationModified);
 
-    this.additionalTagValuesMap.set("00120063", "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.3");
+    this.additionalTagValuesMap.set("00120063", `Per DICOM PS 3.15 AnnexE. RPB-Uploader ${this.uploaderVersion}`);
+    this.additionalTagValuesMap.set("00120063-fallback", `RPB-Uploader ${this.uploaderVersion}`);
 
     // https://dicom.innolitics.com/ciods/enhanced-sr/patient/00120064/00080100
     // https://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_8.html#chapter_8

@@ -15,7 +15,8 @@ describe("DeIdentificationConfiguration Tests", () => {
     const dataSetDictionary = {};
 
     test("Configuration is not null", () => {
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       expect(configuration).toBeUndefined;
     });
@@ -28,7 +29,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const tag = "00000000";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag, "abc");
 
@@ -43,7 +45,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const tag = "00000000";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag);
       action(dataSetDictionary, tag, parameter);
@@ -59,7 +62,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const tag = "00000000";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag);
       action(dataSetDictionary, tag, parameter);
@@ -75,7 +79,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const tag = "00000000";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag);
       action(dataSetDictionary, tag, parameter);
@@ -91,7 +96,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const tag = "00000000";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag);
       action(dataSetDictionary, tag, parameter);
@@ -109,8 +115,8 @@ describe("DeIdentificationConfiguration Tests", () => {
 
     const patientIdentityRemoved = "00120062";
 
-    const profile = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
-    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_PATIENT_CHARACTERISTICS;
+    const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 
@@ -144,8 +150,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         "00120062": { Value: [YesNoEnum.NO], vr: DicomValueRepresentations.CS },
       };
 
-      const basicProfile = DeIdentificationProfiles.BASIC;
-      const factoryTwo = new DeIdentificationConfigurationFactory(basicProfile, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factoryTwo = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const deIdentConfigTwo = factoryTwo.getConfiguration();
       deIdentConfigTwo.addAdditionalTags(dict);
 
@@ -163,12 +169,18 @@ describe("DeIdentificationConfiguration Tests", () => {
       pid: "dummyPid",
     };
 
+    const uploaderVersion = "v0.0.3";
+
     const deIdentificationMethodTag = "00120063";
-    const defaultValue = "Per DICOM PS 3.15 AnnexE. RPB-Uploader v0.0.3";
+    const defaultValue = `Per DICOM PS 3.15 AnnexE. RPB-Uploader ${uploaderVersion}`;
+    const fallbackValue = `RPB-Uploader ${uploaderVersion}`;
     const dummyValue = "dummyItemValue";
 
-    const profile = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
-    const factory = new DeIdentificationConfigurationFactory(profile, uploadSlot);
+    const deIdentificationProfileOption = DeIdentificationProfiles.RETAIN_DEVICE_IDENTITY;
+    const factory = new DeIdentificationConfigurationFactory(
+      { deIdentificationProfileOption, uploaderVersion },
+      uploadSlot
+    );
     factory.addAdditionalDeIdentificationRelatedTags();
     const deIdentConfig = factory.getConfiguration();
 
@@ -214,13 +226,13 @@ describe("DeIdentificationConfiguration Tests", () => {
       expect(deidentificationMethodItem.Value[1], "matches the added value").toMatch(defaultValue);
     });
 
-    test("Existing item is keeped and additional '...' is not added to the array if the size would become bigger than 64 characters.", () => {
+    test("Existing item is keeped and additional fallback value is added to the array if the size would become bigger than 64 characters.", () => {
       const tenCharacters = "0123456789";
-      const fiftyCharacters = tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters;
+      const fortyCharacters = tenCharacters + tenCharacters + tenCharacters + tenCharacters;
 
       let dict = {
         "00120063": {
-          Value: [fiftyCharacters],
+          Value: [fortyCharacters],
           vr: DicomValueRepresentations.LO,
         },
       };
@@ -231,14 +243,15 @@ describe("DeIdentificationConfiguration Tests", () => {
       const deidentificationMethodItem = dict[deIdentificationMethodTag];
 
       expect(deidentificationMethodItem.Value.length, "should be two items").toBe(2);
-      expect(deidentificationMethodItem.Value[0], "matches the existing value").toMatch(fiftyCharacters);
-      expect(deidentificationMethodItem.Value[1], "matches the added value").toMatch("...");
+      expect(deidentificationMethodItem.Value[0], "matches the existing value").toMatch(fortyCharacters);
+      expect(deidentificationMethodItem.Value[1], "matches the added value").toMatch(fallbackValue);
     });
 
-    test("Existing item is keeped and additional item is not added to the array if the size would become bigger than 64 characters.", () => {
+    test("Existing item is cut and additional item is added to the array if the size would become bigger than 64 characters", () => {
       const tenCharacters = "0123456789";
       const sixtyCharacters =
         tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters + tenCharacters;
+      const fortyfourCharacters = tenCharacters + tenCharacters + tenCharacters + tenCharacters + "0123";
 
       let dict = {
         "00120063": {
@@ -252,8 +265,29 @@ describe("DeIdentificationConfiguration Tests", () => {
 
       const deidentificationMethodItem = dict[deIdentificationMethodTag];
 
+      expect(deidentificationMethodItem.Value.length, "should be two items").toBe(2);
+      expect(deidentificationMethodItem.Value[0], "matches the existing value").toMatch(fortyfourCharacters);
+      expect(deidentificationMethodItem.Value[1], "matches the added value").toMatch(fallbackValue);
+    });
+
+    test("Existing item is replaced if the size would become bigger than 64 characters and there is more than one previous item", () => {
+      const tenCharacters = "0123456789";
+      const thirtyCharacters = tenCharacters + tenCharacters + tenCharacters;
+
+      let dict = {
+        "00120063": {
+          Value: [thirtyCharacters, thirtyCharacters],
+          vr: DicomValueRepresentations.LO,
+        },
+      };
+      deIdentConfig.addAdditionalTags(dict);
+
+      expect(dict[deIdentificationMethodTag], "DeIdentificationMethod should be added").toBeDefined();
+
+      const deidentificationMethodItem = dict[deIdentificationMethodTag];
+
       expect(deidentificationMethodItem.Value.length, "should be two items").toBe(1);
-      expect(deidentificationMethodItem.Value[0], "matches the existing value").toMatch(sixtyCharacters);
+      expect(deidentificationMethodItem.Value[0], "matches the existing value").toMatch(defaultValue);
     });
   });
 
@@ -263,7 +297,8 @@ describe("DeIdentificationConfiguration Tests", () => {
     const dummyItemPartThree = " abc";
 
     const dummyItemValue = dummyItemPartOne + dummyItemPartTwo + dummyItemPartThree;
-    const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+    const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+    const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
     const configuration = factory.getConfiguration();
 
     test("Empty identity array does not change the value", () => {
@@ -319,7 +354,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = "00080023";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -337,7 +373,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = "00080023";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -355,7 +392,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = "00080023";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -373,7 +411,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = "00080023";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -391,7 +430,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = "00080023";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -409,7 +449,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -428,7 +469,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -447,7 +489,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -467,7 +510,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -496,7 +540,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = exampleTag;
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -514,7 +559,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = exampleTag;
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -532,7 +578,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = exampleTag;
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -550,7 +597,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = exampleTag;
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -568,7 +616,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const tag = exampleTag;
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -586,7 +635,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -605,7 +655,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -624,7 +675,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -644,7 +696,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -664,7 +717,8 @@ describe("DeIdentificationConfiguration Tests", () => {
         const vr = "dummy";
         dataSetDictionary[tag] = element;
 
-        const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
         const configuration = factory.getConfiguration();
         let { action, parameter } = configuration.getTask(tag, vr);
         const replacementParameter = "replacementParameter";
@@ -690,7 +744,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const vr = "dummy";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag, vr);
       const replacementParameter = "replacementParameter";
@@ -724,7 +779,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const vr = "dummy";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.RPB_PROFILE, uploadSlot);
+      const deIdentificationProfileOption = [DeIdentificationProfiles.BASIC, DeIdentificationProfiles.RPB_PROFILE];
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -744,7 +800,8 @@ describe("DeIdentificationConfiguration Tests", () => {
       const vr = "dummy";
       dataSetDictionary[tag] = element;
 
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.RPB_PROFILE, uploadSlot);
+      const deIdentificationProfileOption = [DeIdentificationProfiles.BASIC, DeIdentificationProfiles.RPB_PROFILE];
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       let { action, parameter } = configuration.getTask(tag, vr);
 
@@ -761,7 +818,8 @@ describe("DeIdentificationConfiguration Tests", () => {
     let dataSetDictionary = {};
 
     describe("Basic Profile -> Configuration default value is removed", () => {
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
 
       test("DataSet Attribute is Removed", () => {
@@ -779,7 +837,8 @@ describe("DeIdentificationConfiguration Tests", () => {
     });
 
     describe("Configuration is set to modified", () => {
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       configuration.additionalTagValuesMap.set("00280303", LongitudinalTemporalInformationModifiedAttribute.MODIFIED);
       test("DataSet Attribute is Removed", () => {
@@ -797,7 +856,8 @@ describe("DeIdentificationConfiguration Tests", () => {
     });
 
     describe("Configuration is set to unmodified", () => {
-      const factory = new DeIdentificationConfigurationFactory(DeIdentificationProfiles.BASIC, uploadSlot);
+      const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       configuration.additionalTagValuesMap.set("00280303", LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED);
       test("DataSet Attribute is Removed", () => {
