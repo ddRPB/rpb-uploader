@@ -247,19 +247,22 @@ export default class DeIdentificationConfiguration {
    * Implementation of the function for action code KP
    */
   keepAndAddPrefix(dictionary, propertyName, prefix) {
-    const originalElementValue = dictionary[propertyName].Value;
-    if (Array.isArray(originalElementValue)) {
-      const newElementValue = [];
-      if (originalElementValue.length > 0) {
-        for (let el of originalElementValue) {
-          newElementValue.push("(" + prefix + ")-" + el);
-        }
-      } else {
-        // do nothing
-      }
-      dictionary[propertyName].Value = newElementValue;
+    let elementValue = dictionary[propertyName].Value;
+    if (Array.isArray(elementValue)) {
+      // prefix first element if necessary
+      elementValue[0] = this.ensureOnePrefix(elementValue[0], prefix);
     } else {
-      dictionary[propertyName].Value = "(" + prefix + ")-" + originalElementValue;
+      // no array -  prefix String if necessary
+      elementValue = this.ensureOnePrefix(elementValue, prefix);
+    }
+    dictionary[propertyName].Value = elementValue;
+  }
+
+  ensureOnePrefix(value, prefix) {
+    if (value.startsWith("(" + prefix + ")-")) {
+      return value;
+    } else {
+      return "(" + prefix + ")-" + value;
     }
   }
 
