@@ -84,6 +84,12 @@ export class SlotPanel extends Component {
                 <StyledDivValueComponent>{this.props.siteIdentifier}</StyledDivValueComponent>
               </div>
             ) : null}
+            {this.props.uploaderVersion != null ? (
+              <div className="flex mr-2">
+                <StyledDivNameComponent className="font-bold">Uploader:&nbsp;</StyledDivNameComponent>
+                <StyledDivValueComponent>{this.props.uploaderVersion}</StyledDivValueComponent>
+              </div>
+            ) : null}
           </div>
           <div className="flex flex-wrap card-container text-sm">
             {this.props.subjectId != null ? (

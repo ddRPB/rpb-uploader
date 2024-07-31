@@ -1172,6 +1172,7 @@ class Uploader extends Component {
             yob={this.props.yob}
             gender={this.props.gender}
             language={this.state.language}
+            uploaderVersion={this.props.config.uploaderVersion}
           />
 
           <Divider />
