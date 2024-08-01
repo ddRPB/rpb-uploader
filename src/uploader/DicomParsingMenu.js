@@ -185,6 +185,7 @@ export default class DicomParsingMenu extends Component {
           updateDeIdentificationCheckConfiguration={this.props.updateDeIdentificationCheckConfiguration}
           language={this.props.language}
           resetAll={this.props.resetAll}
+          uploaderConfig={this.props.uploaderConfig}
         />
       </React.Fragment>
     );
