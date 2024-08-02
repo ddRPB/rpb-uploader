@@ -187,34 +187,6 @@ export default class SettingsDialog extends Component {
         style={{ width: "50vw", height: "50vw" }}
       >
         <TabView scrollable="true">
-          <TabPanel header="Configuration">
-            <StyledDataTablediv>
-              <DataTable
-                value={this.buildCommandsRows()}
-                showHeaders="false"
-                dataKey="name"
-                header={uploaderConfigurationCommandsTableHeader}
-              >
-                <Column field="name" className="text-sm" />
-                <Column
-                  className="text-sm"
-                  columnKey="name"
-                  body={this.detailsActionTemplate.bind(this)}
-                />
-              </DataTable>
-            </StyledDataTablediv>
-            <StyledDataTablediv>
-              <DataTable
-                value={this.buildUploaderConfigurationRows()}
-                dataKey="name"
-                header={uploaderConfigurationTableHeader}
-              >
-                <Column field="name" header="Parameter" className="text-sm" sortable />
-                <Column field="value" header="Value" className="text-sm" sortable />
-              </DataTable>
-            </StyledDataTablediv>
-
-          </TabPanel>
           <TabPanel header="Sanity Check">
             <StyledDataTablediv>
               <DataTable
@@ -250,6 +222,34 @@ export default class SettingsDialog extends Component {
                 />
               </DataTable>
             </StyledDataTablediv>
+          </TabPanel>
+          <TabPanel header="Configuration">
+            <StyledDataTablediv>
+              <DataTable
+                value={this.buildCommandsRows()}
+                showHeaders="false"
+                dataKey="name"
+                header={uploaderConfigurationCommandsTableHeader}
+              >
+                <Column field="name" className="text-sm" />
+                <Column
+                  className="text-sm"
+                  columnKey="name"
+                  body={this.detailsActionTemplate.bind(this)}
+                />
+              </DataTable>
+            </StyledDataTablediv>
+            <StyledDataTablediv>
+              <DataTable
+                value={this.buildUploaderConfigurationRows()}
+                dataKey="name"
+                header={uploaderConfigurationTableHeader}
+              >
+                <Column field="name" header="Parameter" className="text-sm" sortable />
+                <Column field="value" header="Value" className="text-sm" sortable />
+              </DataTable>
+            </StyledDataTablediv>
+
           </TabPanel>
         </TabView>
       </Dialog>
