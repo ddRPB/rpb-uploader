@@ -19,6 +19,7 @@
 
 import DeIdentificationActionCodes from "../../constants/DeIdentificationActionCodes";
 import DicomValueRepresentations from "../../constants/DicomValueRepresentations";
+import LongitudinalTemporalInformationModifiedAttribute from "../../constants/LongitudinalTemporalInformationModifiedAttribute";
 import { replaceContingentsWithMaskedNumberTag, replacePrivateTagsWithStringPrivate } from "./DeIdentificationHelper";
 
 /**
@@ -552,6 +553,41 @@ export default class DeIdentificationConfiguration {
    */
   handleLongitudinalTemporalInformationModified(dataSetDictionary) {
     if (this.additionalTagValuesMap.get("00280303") != undefined) {
+      if (dataSetDictionary["00280303"] != undefined && dataSetDictionary["00280303"].Value != undefined) {
+        if (
+          dataSetDictionary["00280303"].Value === LongitudinalTemporalInformationModifiedAttribute.MODIFIED &&
+          this.additionalTagValuesMap.get("00280303") === LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED
+        ) {
+          dataSetDictionary["00280303"] = {
+            vr: DicomValueRepresentations.CS,
+            Value: [LongitudinalTemporalInformationModifiedAttribute.MODIFIED],
+          };
+
+          return;
+        }
+
+        if (
+          dataSetDictionary["00280303"].Value === LongitudinalTemporalInformationModifiedAttribute.MODIFIED &&
+          this.additionalTagValuesMap.get("00280303") === LongitudinalTemporalInformationModifiedAttribute.REMOVED
+        ) {
+          dataSetDictionary["00280303"] = {
+            vr: DicomValueRepresentations.CS,
+            Value: [LongitudinalTemporalInformationModifiedAttribute.REMOVED],
+          };
+
+          return;
+        }
+
+        if (dataSetDictionary["00280303"].Value === LongitudinalTemporalInformationModifiedAttribute.REMOVED) {
+          dataSetDictionary["00280303"] = {
+            vr: DicomValueRepresentations.CS,
+            Value: [LongitudinalTemporalInformationModifiedAttribute.REMOVED],
+          };
+
+          return;
+        }
+      }
+
       dataSetDictionary["00280303"] = {
         vr: DicomValueRepresentations.CS,
         Value: [this.additionalTagValuesMap.get("00280303")],

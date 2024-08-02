@@ -843,9 +843,7 @@ describe("DeIdentificationConfiguration Tests", () => {
       configuration.additionalTagValuesMap.set("00280303", LongitudinalTemporalInformationModifiedAttribute.MODIFIED);
       test("DataSet Attribute is Removed", () => {
         dataSetDictionary = {
-          "00280303": {
-            Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED,
-          },
+          "00280303": undefined,
         };
 
         configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
@@ -860,17 +858,179 @@ describe("DeIdentificationConfiguration Tests", () => {
       const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
       const configuration = factory.getConfiguration();
       configuration.additionalTagValuesMap.set("00280303", LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED);
-      test("DataSet Attribute is Removed", () => {
+      test("DataSet Attribute is null", () => {
         dataSetDictionary = {
-          "00280303": {
-            Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED,
-          },
+          "00280303": undefined,
         };
 
         configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
         expect(dataSetDictionary["00280303"].Value).toStrictEqual([
           LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED,
         ]);
+      });
+    });
+
+    describe("Propagation logic for previous steps", () => {
+      describe("Existing item is UNMODIFIED", () => {
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
+        const configuration = factory.getConfiguration();
+
+        test('new tag "UNMODIFIED" is used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED,
+          ]);
+        });
+
+        test('new tag "MODIFIED" is used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.MODIFIED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.MODIFIED,
+          ]);
+        });
+
+        test('new tag "REMOVED" is used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+          ]);
+        });
+      });
+
+      describe("Existing item is MODIFIED", () => {
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
+        const configuration = factory.getConfiguration();
+
+        test('new tag "UNMODIFIED" is not used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.MODIFIED,
+          ]);
+        });
+
+        test('new tag "MODIFIED" is used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.MODIFIED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.MODIFIED,
+          ]);
+        });
+
+        test('new tag "REMOVED" is used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.MODIFIED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+          ]);
+        });
+      });
+
+      describe("Existing item is REMOVED", () => {
+        const deIdentificationProfileOption = DeIdentificationProfiles.BASIC;
+        const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
+        const configuration = factory.getConfiguration();
+
+        test('new tag "UNMODIFIED" is not used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.UNMODIFIED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+          ]);
+        });
+
+        test('new tag "MODIFIED" is not used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.MODIFIED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+          ]);
+        });
+
+        test('new tag "REMOVED" is used ', () => {
+          dataSetDictionary = {
+            "00280303": {
+              Value: LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+            },
+          };
+          configuration.additionalTagValuesMap.set(
+            "00280303",
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED
+          );
+          configuration.handleLongitudinalTemporalInformationModified(dataSetDictionary);
+          expect(dataSetDictionary["00280303"].Value).toStrictEqual([
+            LongitudinalTemporalInformationModifiedAttribute.REMOVED,
+          ]);
+        });
       });
     });
   });
