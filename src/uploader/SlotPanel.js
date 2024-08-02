@@ -19,10 +19,10 @@
 
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
-import { Menubar } from 'primereact/menubar';
+import { Menubar } from "primereact/menubar";
 import React, { Component } from "react";
 import styledComponents from "styled-components";
-import { Tooltip } from 'primereact/tooltip';
+import { Tooltip } from "primereact/tooltip";
 import { convertOCDateStringToLocaleString } from "../util/DateParser";
 
 /**
@@ -74,28 +74,21 @@ export class SlotPanel extends Component {
 
     const items = [
       {
-        label: 'Back to Portal',
-        icon: 'pi pi-arrow-circle-left',
-        command: (e) => { this.props.redirectToPortal() },
-      }]
+        label: "Back to Portal",
+        icon: "pi pi-arrow-circle-left",
+        command: (e) => {
+          this.props.redirectToPortal();
+        },
+      },
+    ];
 
-    const start = (
-      <div className="flex align-items-center gap-2 text-2xl">
-        DICOM Upload
-      </div>
-    );
+    const start = <div className="flex align-items-center gap-2 text-2xl">DICOM Upload</div>;
 
-    const header = (
-      <Menubar
-        model={items}
-      />
-    );
+    const header = <Menubar model={items} />;
 
     return (
       <div>
-        <Card
-          header={header}
-        >
+        <Card header={header}>
           <div className="flex flex-wrap card-container text-sm">
             {this.props.studyIdentifier != null ? (
               <div className="flex mr-2">

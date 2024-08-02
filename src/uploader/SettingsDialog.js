@@ -70,10 +70,9 @@ export default class SettingsDialog extends Component {
     let configs = [
       {
         name: "Reset to Defaults",
-      }
+      },
     ];
     return Array.from(configs);
-
   }
 
   /**
@@ -135,8 +134,7 @@ export default class SettingsDialog extends Component {
             className="p-button-sm"
             icon="pi pi-refresh"
             onClick={(e) => this.resetAll()}
-          >
-          </StyledButton>
+          ></StyledButton>
         );
         break;
       default:
@@ -160,7 +158,6 @@ export default class SettingsDialog extends Component {
    * Render the component
    */
   render = () => {
-
     const sanityCheckConfigurationParameterTableHeader = (
       <div className="table-header">Sanity Check Configuration Parameter</div>
     );
@@ -169,13 +166,9 @@ export default class SettingsDialog extends Component {
       <div className="table-header">De-Identification Check Configuration Parameter</div>
     );
 
-    const uploaderConfigurationTableHeader = (
-      <div className="table-header">Uploader Configuration</div>
-    );
+    const uploaderConfigurationTableHeader = <div className="table-header">Uploader Configuration</div>;
 
-    const uploaderConfigurationCommandsTableHeader = (
-      <div className="table-header">Commands</div>
-    );
+    const uploaderConfigurationCommandsTableHeader = <div className="table-header">Commands</div>;
 
     const StyledDataTablediv = styledComponents.div`.p-datatable .p-datatable-tbody tr td {padding: 5px 5px; }`;
 
@@ -232,11 +225,7 @@ export default class SettingsDialog extends Component {
                 header={uploaderConfigurationCommandsTableHeader}
               >
                 <Column field="name" className="text-sm" />
-                <Column
-                  className="text-sm"
-                  columnKey="name"
-                  body={this.detailsActionTemplate.bind(this)}
-                />
+                <Column className="text-sm" columnKey="name" body={this.detailsActionTemplate.bind(this)} />
               </DataTable>
             </StyledDataTablediv>
             <StyledDataTablediv>
@@ -249,7 +238,6 @@ export default class SettingsDialog extends Component {
                 <Column field="value" header="Value" className="text-sm" sortable />
               </DataTable>
             </StyledDataTablediv>
-
           </TabPanel>
         </TabView>
       </Dialog>
