@@ -789,8 +789,31 @@ describe("DeIdentificationConfiguration Tests", () => {
       expect(dataSetDictionary[tag].Value).toBe("(" + parameter + ")-" + originalValue);
     });
 
+    test("Does not add a prefix to the the original String value if it already has the same prefix.", () => {
+      const originalValue = "originalValue";
+      const dataSetDictionary = {};
+      const prefix = "(" + uploadSlot.studyEdcCode + ")-";
+
+      const element = {
+        Value: prefix + originalValue,
+      };
+      const tag = "00081030";
+      const vr = "dummy";
+      dataSetDictionary[tag] = element;
+
+      const deIdentificationProfileOption = [DeIdentificationProfiles.BASIC, DeIdentificationProfiles.RPB_PROFILE];
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
+      const configuration = factory.getConfiguration();
+      let { action, parameter } = configuration.getTask(tag, vr);
+
+      action(dataSetDictionary, tag, parameter);
+
+      expect(dataSetDictionary[tag].Value).toBe(prefix + originalValue);
+    });
+
     test("Adds a prefix to the the original String value in an Array.", () => {
-      const originalValue = ["originalValue"];
+      const originalString = "originalValue";
+      const originalValue = [originalString];
       const dataSetDictionary = {};
 
       const element = {
@@ -807,7 +830,30 @@ describe("DeIdentificationConfiguration Tests", () => {
 
       action(dataSetDictionary, tag, parameter);
 
-      expect(dataSetDictionary[tag].Value).toStrictEqual(["(" + parameter + ")-" + originalValue]);
+      expect(dataSetDictionary[tag].Value).toStrictEqual(["(" + parameter + ")-" + originalString]);
+    });
+
+    test("Does not add a prefix to the the original String value in an Array if it already starts with the same prefix.", () => {
+      const prefix = "(" + uploadSlot.studyEdcCode + ")-";
+      const originalString = "originalValue";
+      const originalValue = [prefix + originalString, "dummyString"];
+      const dataSetDictionary = {};
+
+      const element = {
+        Value: originalValue,
+      };
+      const tag = "00081030";
+      const vr = "dummy";
+      dataSetDictionary[tag] = element;
+
+      const deIdentificationProfileOption = [DeIdentificationProfiles.BASIC, DeIdentificationProfiles.RPB_PROFILE];
+      const factory = new DeIdentificationConfigurationFactory({ deIdentificationProfileOption }, uploadSlot);
+      const configuration = factory.getConfiguration();
+      let { action, parameter } = configuration.getTask(tag, vr);
+
+      action(dataSetDictionary, tag, parameter);
+
+      expect(dataSetDictionary[tag].Value).toStrictEqual([prefix + originalString, "dummyString"]);
     });
 
     // keep
