@@ -34,7 +34,7 @@ test("renders DICOM Upload Slot headline", () => {
       <App config={config} />
     </MemoryRouter>
   );
-  const linkElement = getByText(/DICOM Upload Slot/);
+  const linkElement = getByText(/Back to Portal/);
 
   fetch.disableMocks();
 
