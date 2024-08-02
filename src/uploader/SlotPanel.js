@@ -17,9 +17,12 @@
  *
  */
 
+import { Button } from "primereact/button";
+import { Card } from "primereact/card";
+import { Menubar } from 'primereact/menubar';
 import React, { Component } from "react";
 import styledComponents from "styled-components";
-import { Card } from "primereact/card";
+import { Tooltip } from 'primereact/tooltip';
 import { convertOCDateStringToLocaleString } from "../util/DateParser";
 
 /**
@@ -67,9 +70,32 @@ export class SlotPanel extends Component {
              min-width: 150px 
             }`;
 
+    const StyledButton = styledComponents(Button)`{ width: 135px }`;
+
+    const items = [
+      {
+        label: 'Back to Portal',
+        icon: 'pi pi-arrow-circle-left',
+        command: (e) => { this.props.redirectToPortal() },
+      }]
+
+    const start = (
+      <div className="flex align-items-center gap-2 text-2xl">
+        DICOM Upload
+      </div>
+    );
+
+    const header = (
+      <Menubar
+        model={items}
+      />
+    );
+
     return (
       <div>
-        <Card title="DICOM Upload Slot">
+        <Card
+          header={header}
+        >
           <div className="flex flex-wrap card-container text-sm">
             {this.props.studyIdentifier != null ? (
               <div className="flex mr-2">

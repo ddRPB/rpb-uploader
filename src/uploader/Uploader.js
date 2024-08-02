@@ -1184,6 +1184,7 @@ class Uploader extends Component {
             gender={this.props.gender}
             language={this.state.language}
             uploaderVersion={this.props.config.uploaderVersion}
+            redirectToPortal={this.redirectToPortal}
           />
 
           <Divider />
