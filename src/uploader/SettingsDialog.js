@@ -25,7 +25,6 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { InputSwitch } from "primereact/inputswitch";
-import { Menu } from "primereact/menu";
 import { TabPanel, TabView } from "primereact/tabview";
 import styledComponents from "styled-components";
 import SanityCheckTypesUINames from "./../constants/sanityCheck/SanityCheckTypeUINames";
@@ -53,6 +52,26 @@ export default class SettingsDialog extends Component {
       config.value = this.props.deIdentificationCheckConfiguration[configKey];
       configs.push({ ...config });
     }
+    return Array.from(configs);
+  }
+
+  buildUploaderConfigurationRows() {
+    let configs = [];
+    for (let configKey of Object.keys(this.props.uploaderConfig)) {
+      const config = {};
+      config.name = configKey;
+      config.value = this.props.uploaderConfig[configKey];
+      configs.push({ ...config });
+    }
+    return Array.from(configs);
+  }
+
+  buildCommandsRows() {
+    let configs = [
+      {
+        name: "Reset to Defaults",
+      },
+    ];
     return Array.from(configs);
   }
 
@@ -104,6 +123,26 @@ export default class SettingsDialog extends Component {
     );
   }
 
+  detailsActionTemplate(node, column) {
+    const StyledButton = styledComponents(Button)`{ width: 135px }`;
+    switch (node.name) {
+      case "Reset to Defaults":
+        return (
+          <StyledButton
+            type="button"
+            label="Reset"
+            className="p-button-sm"
+            icon="pi pi-refresh"
+            onClick={(e) => this.resetAll()}
+          ></StyledButton>
+        );
+        break;
+      default:
+        // no elememt
+        break;
+    }
+  }
+
   /**
    * Render header
    */
@@ -119,8 +158,6 @@ export default class SettingsDialog extends Component {
    * Render the component
    */
   render = () => {
-    const StyledButton = styledComponents(Button)`{ width: 135px }`;
-
     const sanityCheckConfigurationParameterTableHeader = (
       <div className="table-header">Sanity Check Configuration Parameter</div>
     );
@@ -129,16 +166,9 @@ export default class SettingsDialog extends Component {
       <div className="table-header">De-Identification Check Configuration Parameter</div>
     );
 
-    const factoryTabItems = [
-      {
-        label: "Reset",
-        icon: "pi pi-refresh",
-        iconPos: "right",
-        command: () => {
-          this.resetAll();
-        },
-      },
-    ];
+    const uploaderConfigurationTableHeader = <div className="table-header">Uploader Configuration</div>;
+
+    const uploaderConfigurationCommandsTableHeader = <div className="table-header">Commands</div>;
 
     const StyledDataTablediv = styledComponents.div`.p-datatable .p-datatable-tbody tr td {padding: 5px 5px; }`;
 
@@ -186,15 +216,28 @@ export default class SettingsDialog extends Component {
               </DataTable>
             </StyledDataTablediv>
           </TabPanel>
-          <TabPanel header="Factory">
-            <Menu model={factoryTabItems} />
-            {/* <StyledButton
-                            className={"pr-3 p-button-secondary"}
-                            label="Reset"
-                            icon="pi pi-refresh"
-                            iconPos="right"
-                            onClick={this.props.resetAll}
-                        /> */}
+          <TabPanel header="Configuration">
+            <StyledDataTablediv>
+              <DataTable
+                value={this.buildCommandsRows()}
+                showHeaders="false"
+                dataKey="name"
+                header={uploaderConfigurationCommandsTableHeader}
+              >
+                <Column field="name" className="text-sm" />
+                <Column className="text-sm" columnKey="name" body={this.detailsActionTemplate.bind(this)} />
+              </DataTable>
+            </StyledDataTablediv>
+            <StyledDataTablediv>
+              <DataTable
+                value={this.buildUploaderConfigurationRows()}
+                dataKey="name"
+                header={uploaderConfigurationTableHeader}
+              >
+                <Column field="name" header="Parameter" className="text-sm" sortable />
+                <Column field="value" header="Value" className="text-sm" sortable />
+              </DataTable>
+            </StyledDataTablediv>
           </TabPanel>
         </TabView>
       </Dialog>

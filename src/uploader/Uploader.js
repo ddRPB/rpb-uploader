@@ -702,6 +702,17 @@ class Uploader extends Component {
     this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log, this.config);
     this.ignoredFilesArray = [];
     this.log.trace("Reset Uploader component", {}, {});
+    toast.success(
+      <div>
+        <div>{"Reset succeed."}</div>
+      </div>,
+      {
+        autoClose: true,
+        position: "top-center",
+        closeOnClick: true,
+        pauseOnHover: true,
+      }
+    );
   }
 
   hideUploadCheckResultsPanel() {
@@ -1172,6 +1183,8 @@ class Uploader extends Component {
             yob={this.props.yob}
             gender={this.props.gender}
             language={this.state.language}
+            uploaderVersion={this.props.config.uploaderVersion}
+            redirectToPortal={this.redirectToPortal}
           />
 
           <Divider />
@@ -1209,6 +1222,7 @@ class Uploader extends Component {
             submitUploadPackage={this.submitUploadPackage}
             getServerUploadParameter={this.getServerUploadParameter}
             uploadApiKey={this.state.uploadApiKey}
+            uploaderConfig={this.props.config}
           />
 
           <Divider />
