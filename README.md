@@ -40,6 +40,10 @@ In the current version, you need to adjust the parameters:
 
 - /src/index.js - deIdentificationProfileOption: array of de-identification profiles that will be applied during the upload
 
+#### Uploader Version Number
+
+- /src/index.js - uploaderVersion: version of the uploader that is used in the UI and the De-identification Method Attribute (0012,0063)
+
 ### Start the App
 
 ```
