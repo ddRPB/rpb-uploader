@@ -23,9 +23,9 @@ module.exports = Object.freeze({
   STUDY_DESCRIPTION_IS_CONSISTENT: "Study description is consistent",
   // Patient
   PATIENT_ID_IS_CONSISTENT: "Patient identifier is consistent",
-  PATIENT_BIRTH_DATE_IS_CONSISTENT: "Patient birth date is consitent.",
-  PATIENT_GENDER_IS_CONSISTENT: "Patient gender is consitent",
-  PATIENT_NAME_IS_CONSISTENT: "Patient name is consitent",
+  PATIENT_BIRTH_DATE_IS_CONSISTENT: "Patient birth date is consistent.",
+  PATIENT_GENDER_IS_CONSISTENT: "Patient gender is consistent",
+  PATIENT_NAME_IS_CONSISTENT: "Patient name is consistent",
   // Upload Slot
   PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT: "Patient birth date matches upload slot definition",
   PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT: "Patient birth year matches upload slot definition",
