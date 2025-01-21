@@ -656,7 +656,7 @@ class Uploader extends Component {
         const originalSeries = selectedStudyAllSeriesMap[originalSeriesInstanceUID];
         const instances = originalSeries.getInstancesByUIDArray(virtualNode.sopInstancesUIDs);
 
-        let virtualSeriesObject = selectedSeriesObjects[uid];
+        let virtualSeriesObject = selectedSeriesObjects[originalSeriesInstanceUID];
 
         if (virtualSeriesObject === undefined) {
           const newVirtualSeriesObject = Object.create(Object.getPrototypeOf(originalSeries));
