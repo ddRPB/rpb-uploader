@@ -127,9 +127,11 @@ export default class DicomFile {
       dcmjsResult = DicomMessage.readFile(arrayBuffer);
       if (dcmjsResult != undefined) {
         this.parsable = true;
+        this.parsingMessage = "";
       }
     } catch (error) {
       this.parsable = false;
+      this.parsingMessage = error.message;
     }
   }
 
@@ -849,6 +851,7 @@ export default class DicomFile {
       referencedSopInstanceUids: this.referencedSopInstanceUids,
       description: this.getSeriesDescription(),
       parsable: this.parsable,
+      parsingMessage: this.parsingMessage,
       parsedParameters: this.parsedParameters,
     };
 

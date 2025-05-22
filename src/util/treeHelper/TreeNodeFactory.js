@@ -52,9 +52,9 @@ export default class TreeNodeFactory {
     treeNode.parsable = dicomSeries.getIsParsableState();
 
     if (treeNode.parsable) {
-      treeNode.notParsableFileNames = [];
+      treeNode.getNotParsableFileDetails = [];
     } else {
-      treeNode.notParsableFileNames = dicomSeries.getNotParsableFileNames();
+      treeNode.getNotParsableFileDetails = dicomSeries.getNotParsableFileDetails();
     }
     treeNode.instances = dicomSeries.instances;
   }

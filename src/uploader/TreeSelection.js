@@ -159,8 +159,8 @@ export class TreeSelection extends Component {
     const seriesUid = node.data.seriesInstanceUID;
 
     let fileList = [];
-    if (node.notParsableFileNames.length > 0) {
-      fileList = node.notParsableFileNames.map((item, index) => <div key={key + index}>{item}</div>);
+    if (node.getNotParsableFileDetails.length > 0) {
+      fileList = node.getNotParsableFileDetails.map((item, index) => <div key={key + index}>{item}</div>);
     }
 
     const sanityCheckResults = this.props.sanityCheckResultsPerSeries.get(seriesUid);
