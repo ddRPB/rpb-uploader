@@ -1054,7 +1054,7 @@ class Uploader extends Component {
    * @param {File} file
    */
   read = async (file) => {
-    const dicomFile = new DicomFile(file);
+    const dicomFile = new DicomFile(file, this.log);
     try {
       if (!file.path.endsWith(".dcm")) {
         if (file.path.endsWith(".gz") || file.path.endsWith(".zip")) {
@@ -1209,6 +1209,7 @@ class Uploader extends Component {
             ignoredFilesDetails={this.state.ignoredFilesDetails}
             sanityCheckResults={this.state.sanityCheckResults}
             selectedFilesCanBeParsed={this.state.selectedFilesCanBeParsed}
+            generateLogFile={this.generateLogFile}
             sanityCheckConfiguration={this.state.sanityCheckConfiguration}
             deIdentificationCheckResults={this.state.deIdentificationCheckResults}
             deIdentificationCheckResultsPerSeries={this.state.deIdentificationCheckResultsPerSeries}

@@ -141,6 +141,14 @@ export default class DicomParsingMenu extends Component {
                 }
               />
               <StyledButton
+                label="Log file"
+                onClick={this.props.generateLogFile}
+                icon="pi pi-file"
+                iconPos="right"
+                className="p-button-warning"
+                hidden={this.props.selectedFilesCanBeParsed}
+              />
+              <StyledButton
                 label="Upload"
                 disabled={Object.keys(this.props.selectedNodeKeys).length === 0 || !this.props.selectedFilesCanBeParsed}
                 onClick={this.props.submitUploadPackage}
