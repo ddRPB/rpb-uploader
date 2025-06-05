@@ -158,11 +158,6 @@ export class TreeSelection extends Component {
 
     const seriesUid = node.data.seriesInstanceUID;
 
-    let fileList = [];
-    if (node.getNotParsableFileDetails.length > 0) {
-      fileList = node.getNotParsableFileDetails.map((item, index) => <div key={key + index}>{item}</div>);
-    }
-
     const sanityCheckResults = this.props.sanityCheckResultsPerSeries.get(seriesUid);
     const sanityCheckDetailList = sanityCheckResults.map((item, index) => (
       <div key={key + index}>
@@ -221,8 +216,8 @@ export class TreeSelection extends Component {
             >
               {node.parsable === true ? null : (
                 <Card title="DICOM File Parsing" className="text-pink-600">
-                  There is a problem parsing one or more files from the dataset:
-                  {fileList}
+                  There is a problem parsing one or more files with dcmjs. It is likely that your data set violates some
+                  DICOM standards. Please consider using tools like "dcmodify" from DCMTK to correct the data set.
                 </Card>
               )}
               {sanityCheckResults.length === 0 ? null : (
