@@ -209,12 +209,12 @@ export default class DicomSeries {
   /**
    * Returns an array with the file names if some files cannot be parsed properly by the DICOM tool (dcmjs).
    */
-  getNotParsableFileNames() {
+  getNotParsableFileDetails() {
     const fileNames = [];
     for (let instanceUID of this.instances.keys()) {
       const instanceObject = this.instances.get(instanceUID);
       if (!instanceObject.parsable) {
-        fileNames.push(instanceObject.fileObject.name);
+        fileNames.push(instanceObject.fileObject.name + " - " + instanceObject.parsingMessage);
       }
     }
     return fileNames;

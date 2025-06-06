@@ -33,8 +33,9 @@ import DicomStudy from "./DicomStudy";
 export default class DicomFile {
   dicomDirSopValues = ["1.2.840.10008.1.3.10"];
 
-  constructor(fileObject) {
+  constructor(fileObject, log) {
     this.fileObject = fileObject;
+    this.log = log;
   }
 
   __pFileReader(file) {
@@ -127,9 +128,16 @@ export default class DicomFile {
       dcmjsResult = DicomMessage.readFile(arrayBuffer);
       if (dcmjsResult != undefined) {
         this.parsable = true;
+        this.parsingMessage = "";
       }
     } catch (error) {
       this.parsable = false;
+      this.parsingMessage = error.message;
+      this.log.trace(
+        "File parsing with DCMJS failed",
+        { fileName: this.fileObject.name },
+        { errorMessage: error.message }
+      );
     }
   }
 
@@ -849,6 +857,7 @@ export default class DicomFile {
       referencedSopInstanceUids: this.referencedSopInstanceUids,
       description: this.getSeriesDescription(),
       parsable: this.parsable,
+      parsingMessage: this.parsingMessage,
       parsedParameters: this.parsedParameters,
     };
 
