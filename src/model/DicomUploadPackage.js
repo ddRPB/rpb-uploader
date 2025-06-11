@@ -437,8 +437,8 @@ export default class DicomUploadPackage {
               });
               return { errors: errors };
             default:
-              this.log.debug("Chunk upload failed", {}, data);
-              errors.push({ message: "Chunk upload failed", data });
+              this.log.debug("Chunk upload failed with status: " + response.status, {}, data);
+              errors.push({ message: "Chunk upload failed with status: " + response.status , data });
               return { errors: errors };
           }
         } catch (error) {
