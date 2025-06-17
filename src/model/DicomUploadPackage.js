@@ -402,7 +402,7 @@ export default class DicomUploadPackage {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
             files: chunk.originalFileNames,
-            error,
+            error: error.toString(),
           };
           this.log.debug(message, {}, data);
           errors.push({ message, data });
