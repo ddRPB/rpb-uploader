@@ -331,7 +331,7 @@ export default class DicomUploadPackage {
         {
           studyUid: chunk.originalStudyUid,
           seriesUid: chunk.originalSeriesUid,
-          files: chunk.originalFileNames,
+          files: chunk.getFilePathsAsString(),
         }
       );
 
@@ -349,7 +349,7 @@ export default class DicomUploadPackage {
             {},
             {
               seriesUid: chunk.originalSeriesUid,
-              fileNames: chunk.originalFileNames,
+              fileNames: chunk.getFilePathsAsString(),
             }
           );
 
@@ -389,7 +389,7 @@ export default class DicomUploadPackage {
             {
               studyUid: chunk.originalStudyUid,
               seriesUid: chunk.originalSeriesUid,
-              files: chunk.originalFileNames,
+              files: chunk.getFilePathsAsString(),
             }
           );
 
@@ -397,11 +397,11 @@ export default class DicomUploadPackage {
           this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
           chunk.mimeMessage = mimeMessageBuilder.build();
         } catch (error) {
-          const message = "There was a problem within the de-identification";
+          const message = "There was a problem within the de-identification: " + error.toString();
           const data = {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
+            files: chunk.getFilePathsAsString(),
             error: error.toString(),
           };
           this.log.debug(message, {}, data);
@@ -421,7 +421,7 @@ export default class DicomUploadPackage {
           {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
+            files: chunk.getFilePathsAsString(),
           }
         );
 
@@ -440,7 +440,7 @@ export default class DicomUploadPackage {
           const data = {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
+            files: chunk.getFilePathsAsString(),
             response,
           };
           switch (response.status) {
@@ -481,7 +481,7 @@ export default class DicomUploadPackage {
           const data = {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
+            files: chunk.getFilePathsAsString(),
             error,
           };
           this.log.debug("Chunk upload process failed", {}, data);
@@ -525,9 +525,9 @@ export default class DicomUploadPackage {
     const md5HashStudyInstanceUID = BigInt("0x" + md.digest().toHex()).toString(10);
     this.log.trace(
       "Create MD5 hash from pseudonymized DicomStudyUID: " +
-      this.pseudonymizedStudyInstanceUID +
-      " -> " +
-      md5HashStudyInstanceUID
+        this.pseudonymizedStudyInstanceUID +
+        " -> " +
+        md5HashStudyInstanceUID
     );
     return md5HashStudyInstanceUID;
   }

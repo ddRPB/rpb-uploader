@@ -24,8 +24,6 @@ export default class DicomUploadChunk {
     this.deIdentifiedSeriesUid = "";
     this.originalSoapInstanceUids = [];
 
-    this.originalFileNames = [];
-
     this.deIdentified = false;
     this.transfered = false;
     this.uploadVerified = false;
@@ -65,6 +63,10 @@ export default class DicomUploadChunk {
 
   getSoapInstanceUids() {
     return this.originalInstances.map((fileObject) => fileObject.sopInstanceUid);
+  }
+
+  getFilePathsAsString() {
+    return this.getFilePaths().join(", ");
   }
 
   cleanupAfterTransfer() {
