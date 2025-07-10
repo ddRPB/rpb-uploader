@@ -68,6 +68,8 @@ export default class DicomUploadPackage {
     this.log.trace("De-identification configuration created.", {}, this.deIdentificationConfiguration);
 
     this.bindFunctionsToContext();
+
+    this.delay = (ms) => new Promise((res) => setTimeout(res, ms));
   }
 
   /**
@@ -264,6 +266,41 @@ export default class DicomUploadPackage {
   }
 
   /**
+   * Promise of a REST call to the dicomweb studies service
+   * @param {*} args Argument of the REST call
+   * @returns promise that consists of the response
+   */
+  async performUploadPostRequest(args) {
+    return fetch(`${this.uploadServiceUrl}/api/v1/dicomweb/studies/${this.pseudonymizedStudyInstanceUID}`, args);
+  }
+
+  /**
+   * Sets the internal logic if the chunk upload was successful (response status = 200)
+   * @param {*} chunk Internal representation of the chunk
+   * @param {*} processedChunksCount Int count of processed chunks
+   * @param {*} setUploadedFilesCountValue function that changes the overall uploaded file counter
+   * @param {*} data meta data of the chunk
+   * @returns
+   */
+  handleUploadSuccessForChunk(chunk, processedChunksCount, setUploadedFilesCountValue, data) {
+    chunk.transfered = true;
+    this.uploadedFiles = this.uploadedFiles.concat(chunk.getFileNames());
+
+    const uploadedFilesCount = this.uploadedFiles.length;
+    if (
+      processedChunksCount === 1 ||
+      processedChunksCount % 10 == 0 ||
+      processedChunksCount > this.uploadChunks.length - 5
+    ) {
+      setUploadedFilesCountValue(uploadedFilesCount);
+    }
+
+    chunk.cleanupAfterTransfer();
+    this.log.trace("Upload of chunk was successful", {}, data);
+    return;
+  }
+
+  /**
    * De-identifies the data, based on the provided configuration and uploads the de-identified data to the RPB backend.
    */
   async deidentifyAndUpload(
@@ -294,7 +331,7 @@ export default class DicomUploadPackage {
         {
           studyUid: chunk.originalStudyUid,
           seriesUid: chunk.originalSeriesUid,
-          files: chunk.originalFileNames,
+          files: chunk.getFilePathsAsString(),
         }
       );
 
@@ -312,7 +349,7 @@ export default class DicomUploadPackage {
             {},
             {
               seriesUid: chunk.originalSeriesUid,
-              fileNames: chunk.originalFileNames,
+              fileNames: chunk.getFilePathsAsString(),
             }
           );
 
@@ -352,7 +389,7 @@ export default class DicomUploadPackage {
             {
               studyUid: chunk.originalStudyUid,
               seriesUid: chunk.originalSeriesUid,
-              files: chunk.originalFileNames,
+              files: chunk.getFilePathsAsString(),
             }
           );
 
@@ -360,12 +397,12 @@ export default class DicomUploadPackage {
           this.pseudomizedFiles = this.pseudomizedFiles.concat(chunk.getFileNames());
           chunk.mimeMessage = mimeMessageBuilder.build();
         } catch (error) {
-          const message = "There was a problem within the de-identification";
+          const message = "There was a problem within the de-identification: " + error.toString();
           const data = {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
-            error,
+            files: chunk.getFilePathsAsString(),
+            error: error.toString(),
           };
           this.log.debug(message, {}, data);
           errors.push({ message, data });
@@ -384,7 +421,7 @@ export default class DicomUploadPackage {
           {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
+            files: chunk.getFilePathsAsString(),
           }
         );
 
@@ -398,32 +435,31 @@ export default class DicomUploadPackage {
         };
 
         try {
-          let response = await fetch(
-            `${this.uploadServiceUrl}/api/v1/dicomweb/studies/${this.pseudonymizedStudyInstanceUID}`,
-            args
-          );
+          let response = await this.performUploadPostRequest(args);
+
           const data = {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
+            files: chunk.getFilePathsAsString(),
             response,
           };
           switch (response.status) {
             case 200:
-              chunk.transfered = true;
-              this.uploadedFiles = this.uploadedFiles.concat(chunk.getFileNames());
-
-              const uploadedFilesCount = this.uploadedFiles.length;
-              if (
-                processedChunksCount === 1 ||
-                processedChunksCount % 10 == 0 ||
-                processedChunksCount > this.uploadChunks.length - 5
-              ) {
-                setUploadedFilesCountValue(uploadedFilesCount);
+              this.handleUploadSuccessForChunk(chunk, processedChunksCount, setUploadedFilesCountValue, data);
+              break;
+            case 502:
+              this.log.debug("Chunk upload failed with 502. Retry with a short delay", {}, data);
+              await this.delay(5000);
+              const secondResponse = await this.performUploadPostRequest(args);
+              if (secondResponse.status == 200) {
+                this.handleUploadSuccessForChunk(chunk, processedChunksCount, setUploadedFilesCountValue, data);
+                this.log.debug("Retry status == 200", {}, data);
+              } else {
+                this.log.debug("Chunk upload retry failed with status: " + secondResponse.status, {}, data);
+                errors.push({ message: "Chunk upload failed with status: " + response.status, data });
+                errors.push({ message: "Second chunk upload failed with status: " + secondResponse.status, data });
+                return { errors: errors };
               }
-
-              chunk.cleanupAfterTransfer();
-              this.log.trace("Upload of chunk was successful", {}, data);
               break;
             case 413:
               this.log.debug(
@@ -437,15 +473,15 @@ export default class DicomUploadPackage {
               });
               return { errors: errors };
             default:
-              this.log.debug("Chunk upload failed", {}, data);
-              errors.push({ message: "Chunk upload failed", data });
+              this.log.debug("Chunk upload failed with status: " + response.status, {}, data);
+              errors.push({ message: "Chunk upload failed with status: " + response.status, data });
               return { errors: errors };
           }
         } catch (error) {
           const data = {
             studyUid: chunk.originalStudyUid,
             seriesUid: chunk.originalSeriesUid,
-            files: chunk.originalFileNames,
+            files: chunk.getFilePathsAsString(),
             error,
           };
           this.log.debug("Chunk upload process failed", {}, data);
@@ -522,20 +558,21 @@ export default class DicomUploadPackage {
       if (selectedSeries.getInstancesSize() != null) {
         this.log.trace("Query specific series", {}, data);
 
-        //https://www.npmjs.com/package/promise-poller
-        const interval = 5000;
-        const timeout = 20000;
-        const retries = 50;
-        const pollTask = () =>
-          this.evaluateUploadOfSeries(
-            this.uploadSlot.pid,
-            this.pseudonymizedStudyInstanceUID,
-            deIdentifiedSeriesUid,
-            selectedSeries.getInstancesSize()
-          );
-
-        let poller;
         try {
+          //https://www.npmjs.com/package/promise-poller
+          const interval = 5000;
+          const timeout = 20000;
+          const retries = 50;
+          const pollTask = () =>
+            this.evaluateUploadOfSeries(
+              this.uploadSlot.pid,
+              this.pseudonymizedStudyInstanceUID,
+              deIdentifiedSeriesUid,
+              selectedSeries.getInstancesSize()
+            );
+
+          let poller;
+
           poller = promisePoller({
             taskFn: pollTask,
             interval: interval,
