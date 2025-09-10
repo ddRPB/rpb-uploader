@@ -43,6 +43,8 @@ export default class DicomSeries {
     this.burnedInAnnotation = new Set([parsedParameters.get("BurnedInAnnotation")]);
     this.identityRemoved = new Set([parsedParameters.get("IdentityRemoved")]);
 
+    this.sopClassUID = new Set([parsedParameters.get("SOPClassUID")]);
+
     this.availableDicomTags = availableDicomTags;
   }
 
@@ -58,6 +60,7 @@ export default class DicomSeries {
 
     this.burnedInAnnotation = new Set([...this.burnedInAnnotation, ...seriesObject.burnedInAnnotation]);
     this.identityRemoved = new Set([...this.identityRemoved, ...seriesObject.identityRemoved]);
+    this.sopClassUID = new Set([...this.sopClassUID, ...seriesObject.sopClassUID]);
   }
 
   getSeriesInstanceUID() {

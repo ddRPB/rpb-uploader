@@ -159,6 +159,7 @@ export default class DicomFile {
     this.parsedParameters.set("SeriesMetaParameter", []);
     this.parsedParameters.set("BurnedInAnnotation", this.getBurnedInAnnotationTag());
     this.parsedParameters.set("IdentityRemoved", this.getIdentityRemovedTag());
+    this.parsedParameters.set("SOPClassUID", this.getSOPClassUID());
 
     this.parsedParameters.set("patientID", this.getPatientID());
     this.parsedParameters.set("patientName", this.getPatientName());
@@ -752,11 +753,15 @@ export default class DicomFile {
     return this._getDicomTag("0020000e");
   }
 
+  getSOPClassUID() {
+    return this._getDicomTag("00080016");
+  }
+
   getSOPInstanceUID() {
     return this._getDicomTag("00080018");
   }
 
-  getSOPClassUID() {
+  getMediaStorageSOPClassUID() {
     return this._getDicomTag("00020002");
   }
 
@@ -805,7 +810,7 @@ export default class DicomFile {
   }
 
   isDicomDir() {
-    return this.dicomDirSopValues.includes(this.getSOPClassUID());
+    return this.dicomDirSopValues.includes(this.getMediaStorageSOPClassUID());
   }
 
   getFilePath() {
@@ -854,6 +859,7 @@ export default class DicomFile {
   getDicomInstanceObject() {
     const fileObjectDetails = {
       sopInstanceUID: this.getSOPInstanceUID(),
+      sopClassUID: this.getSOPClassUID(),
       referencedSopInstanceUids: this.referencedSopInstanceUids,
       description: this.getSeriesDescription(),
       parsable: this.parsable,

@@ -86,6 +86,7 @@ export default class SanityCheckHelper {
       [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
+      [SanityCheckTypes.SOP_CLASS_SUPPORTED]: true,
     };
   }
 
@@ -217,6 +218,7 @@ export default class SanityCheckHelper {
     let patientBirthDate = new Set();
     let patientSex = new Set();
     let patientName = new Set();
+    let sopClassUID = new Set();
 
     for (let key of Object.keys(series)) {
       const seriesObject = series[key];
@@ -224,6 +226,7 @@ export default class SanityCheckHelper {
       patientBirthDate = new Set([...patientBirthDate, ...seriesObject.patientBirthDate]);
       patientSex = new Set([...patientSex, ...seriesObject.patientSex]);
       patientName = new Set([...patientName, ...seriesObject.patientName]);
+      sopClassUID = new Set([...sopClassUID, ...seriesObject.sopClassUID]);
     }
 
     const results = [];
@@ -236,6 +239,8 @@ export default class SanityCheckHelper {
     this.evaluatePatientGenderMatchesUploadSlot(patientSex, results);
     this.evaluatePatientBirthDateMatchesUploadSlot(patientBirthDate, results);
     this.evaluatePatientBirthYearMatchesUploadSlot(patientBirthDate, results);
+
+    this.evaluateSOPClassUIDs(sopClassUID, results);
 
     return results;
   }
@@ -536,5 +541,30 @@ export default class SanityCheckHelper {
     );
 
     return;
+  }
+
+  evaluateSOPClassUIDs(sopClassUID, result) {
+    if (this.sanityCheckConfiguration[[SanityCheckTypes.SOP_CLASS_SUPPORTED]] != true) {
+      return;
+    }
+
+    if (this.sopClassUID === null) {
+      return;
+    }
+
+    const halcyonRTPlanSOPClassUid = "1.2.246.352.70.1.70";
+
+    for (const sopId of sopClassUID) {
+      if (sopId == halcyonRTPlanSOPClassUid) {
+        result.push(
+          new EvaluationResultItem(
+            SanityCheckResult.NOT_COMPATIBLE,
+            SanityCheckTypes.SOP_CLASS_SUPPORTED,
+            `This type (SOP Class UID: ${sopId}) is not compatible to all systems. Please contact us.`,
+            SanityCheckSeverity.WARNING
+          )
+        );
+      }
+    }
   }
 }

@@ -30,4 +30,6 @@ module.exports = Object.freeze({
   PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT: "Patient birth date matches upload slot definition",
   PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT: "Patient birth year matches upload slot definition",
   PATIENT_GENDER_MATCHES_UPLOADSLOT: "Patient gender matches upload slot definition",
+  // SOP Class
+  SOP_CLASS_SUPPORTED: "SOP CLASS is supported for Upload",
 });

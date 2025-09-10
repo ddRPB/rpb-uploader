@@ -144,6 +144,7 @@ class Uploader extends Component {
       [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
+      [SanityCheckTypes.SOP_CLASS_SUPPORTED]: true,
     };
   }
 
@@ -271,7 +272,7 @@ class Uploader extends Component {
       missingValueNames.push("DicomPatientIdItemOid");
     }
 
-    if(missingValueNames.length > 0) {
+    if (missingValueNames.length > 0) {
       propsComplete = false;
       this.toastAndLogMissingProp(missingValueNames.join());
     }
