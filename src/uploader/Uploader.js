@@ -144,6 +144,7 @@ class Uploader extends Component {
       [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
+      [SanityCheckTypes.SOP_CLASS_SUPPORTED]: true,
     };
   }
 
@@ -208,10 +209,10 @@ class Uploader extends Component {
    */
   verifyProps() {
     let propsComplete = true;
+    const missingValueNames = [];
 
     if (this.props.studyIdentifier == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("StudyIdentifier");
+      missingValueNames.push("StudyIdentifier");
     }
 
     // if (this.props.siteIdentifier == null) {
@@ -220,79 +221,72 @@ class Uploader extends Component {
     // }
 
     if (this.props.studyInstanceItemOid == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("StudyInstanceItemOid");
+      missingValueNames.push("StudyInstanceItemOid");
     }
 
     if (this.props.studyOid == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("StudyOid");
+      missingValueNames.push("StudyOid");
     }
 
     if (this.props.studyEdcCode == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("StudyEdcCode");
+      missingValueNames.push("StudyEdcCode");
     }
 
     if (this.props.eventOid == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("EventOid");
+      missingValueNames.push("EventOid");
     }
 
     if (this.props.eventRepeatKey == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("EventRepeatKey");
+      missingValueNames.push("EventRepeatKey");
     }
 
     if (this.props.formOid == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("FormOid");
+      missingValueNames.push("FormOid");
     }
 
     if (this.props.itemGroupOid == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("ItemGroupOid");
+      missingValueNames.push("ItemGroupOid");
     }
 
     if (this.props.itemGroupRepeatKey == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("ItemGroupRepeatKey");
+      missingValueNames.push("ItemGroupRepeatKey");
     }
 
     if (this.props.itemLabel == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("ItemLabel");
+      missingValueNames.push("ItemLabel");
     }
 
     if (this.props.subjectId == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("SubjectId");
+      missingValueNames.push("SubjectId");
     }
 
     if (this.props.subjectKey == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("SubjectKey");
+      missingValueNames.push("SubjectKey");
     }
 
     if (this.props.pid == null) {
-      propsComplete = false;
-      this.toastAndLogMissingProp("Pid");
+      missingValueNames.push("Pid");
     }
 
     if (this.props.dicomPatientIdItemOid == null) {
+      missingValueNames.push("DicomPatientIdItemOid");
+    }
+
+    if (missingValueNames.length > 0) {
       propsComplete = false;
-      this.toastAndLogMissingProp("DicomPatientIdItemOid");
+      this.toastAndLogMissingProp(missingValueNames.join());
     }
 
     return propsComplete;
   }
 
-  toastAndLogMissingProp(propName) {
-    this.log.trace("Property " + propName + " is null.");
+  toastAndLogMissingProp(propNames) {
+    this.log.trace(propNames + " null.");
 
+    toast.dismiss();
     toast.error(
       <div>
-        <div>{propName + " is null."}</div>
+        <div>{propNames + " null."}</div>
         <div>{"Please verify that the URL has all parameters."}</div>
       </div>,
       {

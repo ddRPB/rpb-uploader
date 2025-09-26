@@ -25,5 +25,6 @@ module.exports = Object.freeze({
   CONFLICT: "Conflict", // The upload slot definition does not fit to the parameter -> user needs to decide
   MATCHES: "Match", // The upload slot definition fits to the parameter
   ONE_MATCHES: "One parameter matches", // Property is not consistent in all files and one of the properties matches the upload slot
-  INCONSISTENT: "Inconsistent",
+  INCONSISTENT: "Inconsistent", // Property items are not consistent in all files
+  NOT_COMPATIBLE: "Not compatible", // SOPClassUID has problems to be processed in the backend
 });
