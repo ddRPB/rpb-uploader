@@ -126,76 +126,92 @@ export default class TreeBuilder {
 
     for (let rTImage of base.rTImageArray) {
       const refSequence = rTImage["ReferencedRTPlanSequence"];
-      for (let reference of refSequence) {
-        const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-        if (base.rtPlans[refSOPUID] !== undefined) {
-          if (base.rtPlans[refSOPUID].children !== undefined) {
-            base.rtPlans[refSOPUID].children.push(rTImage);
-            rTImage.addParentNode(base.rtPlans[refSOPUID]);
+      if (refSequence !== undefined) {
+        for (let reference of refSequence) {
+          const refSOPUID = reference.get("ReferencedSOPInstanceUID");
+          if (base.rtPlans[refSOPUID] !== undefined) {
+            if (base.rtPlans[refSOPUID].children !== undefined) {
+              base.rtPlans[refSOPUID].children.push(rTImage);
+              rTImage.addParentNode(base.rtPlans[refSOPUID]);
+            }
+          } else {
+            result.root.push(rTImage);
           }
-        } else {
-          result.root.push(rTImage);
         }
+      } else {
+        result.root.push(rTImage);
       }
     }
 
     for (let rTDose of base.rTDoseArray) {
       const refSequence = rTDose["ReferencedRTPlanSequence"];
-      for (let reference of refSequence) {
-        const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-        if (base.rtPlans[refSOPUID] !== undefined) {
-          if (base.rtPlans[refSOPUID].children !== undefined) {
-            base.rtPlans[refSOPUID].children.push(rTDose);
-            rTDose.addParentNode(base.rtPlans[refSOPUID]);
+      if (refSequence !== undefined) {
+        for (let reference of refSequence) {
+          const refSOPUID = reference.get("ReferencedSOPInstanceUID");
+          if (base.rtPlans[refSOPUID] !== undefined) {
+            if (base.rtPlans[refSOPUID].children !== undefined) {
+              base.rtPlans[refSOPUID].children.push(rTDose);
+              rTDose.addParentNode(base.rtPlans[refSOPUID]);
+            }
+          } else {
+            result.root.push(rTDose);
           }
-        } else {
-          result.root.push(rTDose);
         }
+      } else {
+        result.root.push(rTDose);
       }
     }
 
     for (let rTPlan of base.rtPlanArray) {
       const refSequence = rTPlan["ReferencedStructureSetSequence"];
-      for (let reference of refSequence) {
-        const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-        if (base.rTStructs[refSOPUID] !== undefined) {
-          if (base.rTStructs[refSOPUID].children !== undefined) {
-            base.rTStructs[refSOPUID].children.push(rTPlan);
-            rTPlan.addParentNode(base.rTStructs[refSOPUID]);
+      if (refSequence !== undefined) {
+        for (let reference of refSequence) {
+          const refSOPUID = reference.get("ReferencedSOPInstanceUID");
+          if (base.rTStructs[refSOPUID] !== undefined) {
+            if (base.rTStructs[refSOPUID].children !== undefined) {
+              base.rTStructs[refSOPUID].children.push(rTPlan);
+              rTPlan.addParentNode(base.rTStructs[refSOPUID]);
+            }
+          } else {
+            result.root.push(rTPlan);
           }
-        } else {
-          result.root.push(rTPlan);
         }
+      } else {
+        result.root.push(rTPlan);
       }
     }
 
     for (let rTStruct of base.rTStructArray) {
       const refSequence = rTStruct["ReferencedFrameOfReferenceSequence"];
-      for (let frameOfReferenceItem of refSequence) {
-        if (frameOfReferenceItem.get("RTReferencedStudySequence") !== undefined) {
-          for (let reference of frameOfReferenceItem.get("RTReferencedStudySequence")) {
-            const refSOPUID = reference.get("ReferencedSOPInstanceUID");
-            if (base.cTs[refSOPUID] !== undefined) {
-              if (base.cTs[refSOPUID].children !== undefined) {
-                base.cTs[refSOPUID].children.push(rTStruct);
-                rTStruct.addParentNode(base.cTs[refSOPUID]);
-              }
-            } else {
-              for (let contourImage of reference.get("ContourImageSequence")) {
-                if (base.cTs[contourImage.get("SeriesInstanceUID")] !== undefined) {
-                  if (base.cTs[contourImage.get("SeriesInstanceUID")].children !== undefined) {
-                    base.cTs[contourImage.get("SeriesInstanceUID")].children.push(rTStruct);
-                    rTStruct.addParentNode(base.cTs[contourImage.get("SeriesInstanceUID")]);
+      if (refSequence !== undefined) {
+        for (let frameOfReferenceItem of refSequence) {
+          if (frameOfReferenceItem.get("RTReferencedStudySequence") !== undefined) {
+            for (let reference of frameOfReferenceItem.get("RTReferencedStudySequence")) {
+              const refSOPUID = reference.get("ReferencedSOPInstanceUID");
+              if (base.cTs[refSOPUID] !== undefined) {
+                if (base.cTs[refSOPUID].children !== undefined) {
+                  base.cTs[refSOPUID].children.push(rTStruct);
+                  rTStruct.addParentNode(base.cTs[refSOPUID]);
+                }
+              } else {
+                for (let contourImage of reference.get("ContourImageSequence")) {
+                  if (base.cTs[contourImage.get("SeriesInstanceUID")] !== undefined) {
+                    if (base.cTs[contourImage.get("SeriesInstanceUID")].children !== undefined) {
+                      base.cTs[contourImage.get("SeriesInstanceUID")].children.push(rTStruct);
+                      rTStruct.addParentNode(base.cTs[contourImage.get("SeriesInstanceUID")]);
+                    }
                   }
                 }
               }
-            }
 
-            if (rTStruct.parentNodes.length === 0) {
-              result.root.push(rTStruct);
+              if (rTStruct.parentNodes.length === 0) {
+                result.root.push(rTStruct);
+              }
             }
           }
         }
+      } else {
+        result.root.push(rTStruct);
       }
     }
 
