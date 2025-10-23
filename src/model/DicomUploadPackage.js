@@ -37,8 +37,10 @@ export default class DicomUploadPackage {
   constructor(
     uploadSlot,
     logger = new Logger(LogLevels.FATAL),
-    config = { chunkSize: 5, deIdentificationProfileOption: [] }
+    config = { chunkSize: 5, deIdentificationProfileOption: [] },
+    mailService
   ) {
+    this.mailService = mailService;
     this.setUploadSlotProperty(uploadSlot);
 
     this.initializeLogger(logger);
@@ -536,11 +538,18 @@ export default class DicomUploadPackage {
    * Verifies that the uploaded DICOM data passed the backend and are available there.
    * A polling mechanism allows to wait until the process has been finished.
    */
-  async verifySeriesUpload(dicomUidReplacements, setVerifiedUploadedFilesCountValue) {
+  async verifySeriesUpload(
+    dicomUidReplacements,
+    setVerifiedUploadedFilesCountValue,
+    setSkippedVerificationFilesCountValue
+  ) {
     this.log.trace("Start verification of series", {}, { dicomUidReplacements });
 
     let errors = [];
     let verifiedInstances = 0;
+    let skippedInstances = 0;
+    let verifiedUploads = [];
+    let skippedUploadVerifications = [];
 
     for (let seriesUid in this.selectedSeriesObjects) {
       this.log.trace("Start upload verification of specific series", {}, { seriesUid });
@@ -556,48 +565,76 @@ export default class DicomUploadPackage {
       };
 
       if (selectedSeries.getInstancesSize() != null) {
-        this.log.trace("Query specific series", {}, data);
+        if (selectedSeries.skipVerification) {
+          this.log.trace("Skip verification for the specific series", {}, data);
+          skippedUploadVerifications.push(data);
+          skippedInstances += selectedSeries.getInstancesSize();
+          setSkippedVerificationFilesCountValue(skippedInstances);
+        } else {
+          this.log.trace("Query specific series", {}, data);
+          try {
+            //https://www.npmjs.com/package/promise-poller
+            const interval = 5000;
+            const timeout = 20000;
+            const retries = 50;
+            const pollTask = () =>
+              this.evaluateUploadOfSeries(
+                this.uploadSlot.pid,
+                this.pseudonymizedStudyInstanceUID,
+                deIdentifiedSeriesUid,
+                selectedSeries.getInstancesSize()
+              );
 
-        try {
-          //https://www.npmjs.com/package/promise-poller
-          const interval = 5000;
-          const timeout = 20000;
-          const retries = 50;
-          const pollTask = () =>
-            this.evaluateUploadOfSeries(
-              this.uploadSlot.pid,
-              this.pseudonymizedStudyInstanceUID,
-              deIdentifiedSeriesUid,
-              selectedSeries.getInstancesSize()
-            );
+            let poller;
 
-          let poller;
+            poller = promisePoller({
+              taskFn: pollTask,
+              interval: interval,
+              timeout: timeout,
+              retries: retries,
+            });
 
-          poller = promisePoller({
-            taskFn: pollTask,
-            interval: interval,
-            timeout: timeout,
-            retries: retries,
-          });
+            const pollResult = await poller;
 
-          const pollResult = await poller;
+            data.pollResult = pollResult;
+            this.log.trace("Query result for specific series", {}, data);
+          } catch (e) {
+            data.error = e;
+            this.log.debug({ message: "Query for specific series failed", data });
+            errors.push({
+              message: "Query for series validation failed - please wait some seconds and push the retry button.",
+              data,
+            });
+            return { errors: errors };
+          }
 
-          data.pollResult = pollResult;
-          this.log.trace("Query result for specific series", {}, data);
-        } catch (e) {
-          data.error = e;
-          this.log.debug({ message: "Query for specific series failed", data });
-          errors.push({
-            message: "Query for series validation failed - please wait some seconds and push the retry button.",
-            data,
-          });
-          return { errors: errors };
+          selectedSeries.setUploadVerified(true);
+          verifiedInstances += selectedSeries.getInstancesSize();
+          verifiedUploads.push(data);
+          setVerifiedUploadedFilesCountValue(verifiedInstances);
+
+          this.log.trace("DICOM upload verification for " + JSON.stringify(data));
         }
-
-        selectedSeries.setUploadVerified(true);
-        verifiedInstances += selectedSeries.getInstancesSize();
-        setVerifiedUploadedFilesCountValue(verifiedInstances);
       }
+    }
+
+    if (skippedUploadVerifications.length > 0) {
+      const skippedDicomVerificationSummaryString =
+        "DICOM Upload verification skipped for upload slot: \n" +
+        JSON.stringify(this.uploadSlot) +
+        "\n  DICOM Series Details: \n" +
+        JSON.stringify(skippedUploadVerifications);
+      this.mailService.sendMail(skippedDicomVerificationSummaryString);
+      this.log.trace("Skipped DICOM verification for " + JSON.stringify(skippedUploadVerifications));
+    }
+
+    if (verifiedUploads.length > 0) {
+      const dicomVerificationSummaryString =
+        "DICOM Upload verified for upload slot: \n" +
+        JSON.stringify(this.uploadSlot) +
+        "\n  DICOM Series Details: \n" +
+        JSON.stringify(verifiedUploads);
+      this.mailService.sendMail(dicomVerificationSummaryString);
     }
 
     return { errors: errors };

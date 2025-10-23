@@ -60,7 +60,7 @@ export default class SettingsDialog extends Component {
     for (let configKey of Object.keys(this.props.uploaderConfig)) {
       const config = {};
       config.name = configKey;
-      config.value = this.props.uploaderConfig[configKey];
+      config.value = this.props.uploaderConfig[configKey].toString();
       configs.push({ ...config });
     }
     return Array.from(configs);

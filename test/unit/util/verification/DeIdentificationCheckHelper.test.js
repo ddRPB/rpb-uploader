@@ -65,11 +65,15 @@ describe("DeIdentificationCheckHelper", () => {
 
   const availableDicomTags = new Map();
 
+  const configuration = {
+    skipUploadVerification: false,
+  };
+
   const parameters = new Map();
   parameters.set("BurnedInAnnotation", new Set(""));
   parameters.set("IdentityRemoved", new Set(""));
 
-  const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+  const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
   const deIdentificationCheckConfiguration = {
     [DeIdentificationCheckTypes.BURNED_IN_ANNOTATION_IS_YES]: true,
@@ -89,7 +93,7 @@ describe("DeIdentificationCheckHelper", () => {
       const parametersTwo = new Map([...parameters]);
       parametersTwo.set("BurnedInAnnotation", new Set(["NO"]));
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       const result = deIdentificationCheckHelper.evaluateSeries(
         { seriesInstanceUID: secondDicomSeries },
@@ -102,7 +106,7 @@ describe("DeIdentificationCheckHelper", () => {
       const parametersTwo = new Map([...parameters]);
       parametersTwo.set("BurnedInAnnotation", "YES");
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersTwo, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(seriesDetails, parametersTwo, availableDicomTags, configuration);
 
       const result = deIdentificationCheckHelper.evaluateSeries(
         { seriesInstanceUID: secondDicomSeries },
@@ -129,7 +133,7 @@ describe("DeIdentificationCheckHelper", () => {
       const availableDicomTagsTwo = new Map();
       availableDicomTagsTwo.set("EncryptedAttributesSequence", true);
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersTwo, availableDicomTagsTwo);
+      const secondDicomSeries = new DicomSeries(seriesDetails, parametersTwo, availableDicomTagsTwo, configuration);
 
       const result = deIdentificationCheckHelper.evaluateSeries(
         { seriesInstanceUID: secondDicomSeries },

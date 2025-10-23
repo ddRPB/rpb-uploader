@@ -21,7 +21,9 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
     [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
     [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
     [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
+    [SanityCheckTypes.DICOM_SERIES_UPLOAD_VERIFICATION]: true,
   };
+
   const studyInstanceUID = "dummyStudyInstanceUID";
   const seriesInstanceUID = "dummySeriesInstanceUID";
   const studyDate = "20020202";
@@ -49,6 +51,9 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
   patientData.patientName = patientName;
 
   const availableDicomTags = new Map();
+  const configuration = {
+    skipUploadVerification: false,
+  };
 
   function getBasicParameters() {
     const parameters = new Map();
@@ -85,7 +90,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -117,7 +122,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.O);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -149,7 +154,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", "");
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -181,7 +186,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -219,9 +224,19 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parametersSecondDicomSeries.set("patientSex", DicomGenderEnum.M);
       parametersSecondDicomSeries.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parametersFirstDicomSeries, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersFirstDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersSecondDicomSeries, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersSecondDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -264,7 +279,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -304,7 +319,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -346,9 +361,19 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parametersSecondDicomSeries.set("patientSex", DicomGenderEnum.O);
       parametersSecondDicomSeries.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parametersFirstDicomSeries, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersFirstDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersSecondDicomSeries, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersSecondDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -397,7 +422,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -429,7 +454,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -461,7 +486,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -493,7 +518,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -525,7 +550,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -563,9 +588,19 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parametersSecondDicomSeries.set("patientSex", DicomGenderEnum.O);
       parametersSecondDicomSeries.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parametersFirstDicomSeries, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersFirstDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersSecondDicomSeries, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersSecondDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -608,7 +643,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.O);
       parameters.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -654,9 +689,19 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parametersSecondDicomSeries.set("patientSex", DicomGenderEnum.O);
       parametersSecondDicomSeries.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parametersFirstDicomSeries, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersFirstDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersSecondDicomSeries, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersSecondDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -705,7 +750,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -737,7 +782,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -769,7 +814,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -801,7 +846,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -833,7 +878,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.F);
       parameters.set("patientName", patientName);
 
-      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const dicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -871,9 +916,19 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parametersSecondDicomSeries.set("patientSex", DicomGenderEnum.O);
       parametersSecondDicomSeries.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parametersFirstDicomSeries, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersFirstDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersSecondDicomSeries, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersSecondDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -916,7 +971,7 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parameters.set("patientSex", DicomGenderEnum.O);
       parameters.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(seriesDetails, parameters, availableDicomTags, configuration);
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();
@@ -962,9 +1017,19 @@ describe("SanityCheckHelper update sanitity check results, based on series data"
       parametersSecondDicomSeries.set("patientSex", DicomGenderEnum.O);
       parametersSecondDicomSeries.set("patientName", patientName);
 
-      const firstDicomSeries = new DicomSeries(seriesDetails, parametersFirstDicomSeries, availableDicomTags);
+      const firstDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersFirstDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
-      const secondDicomSeries = new DicomSeries(seriesDetails, parametersSecondDicomSeries, availableDicomTags);
+      const secondDicomSeries = new DicomSeries(
+        seriesDetails,
+        parametersSecondDicomSeries,
+        availableDicomTags,
+        configuration
+      );
 
       sanityCheckHelper = new SanityCheckHelper(dicomStudy, uploadSlot, sanityCheckConfiguration);
       sanityCheckHelper.getUploadSlotEvaluationResults();

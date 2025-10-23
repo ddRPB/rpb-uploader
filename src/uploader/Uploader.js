@@ -40,6 +40,7 @@ import TreeBuilder from "../util/TreeBuilder";
 import DeIdentificationCheckHelper from "../util/verification/DeIdentificationCheckHelper";
 import SanityCheckHelper from "../util/verification/SanityCheckHelper";
 // UI components
+import MailService from "../util/MailService";
 import DicomDropZone from "./DicomDropZone";
 import DicomParsingMenu from "./DicomParsingMenu";
 import { DicomStudySelection } from "./DicomStudySelection";
@@ -81,6 +82,7 @@ class Uploader extends Component {
     deIdentifiedFilesCount: 0,
     uploadedFilesCount: 0,
     verifiedUploadedFilesCount: 0,
+    skippedVerificationFilesCount: 0,
     studyIsLinked: false,
     uploadProcessState: 0,
     blockedPanel: false,
@@ -124,7 +126,13 @@ class Uploader extends Component {
 
     this.bindFunctionsToContext();
 
-    this.dicomUploadPackage = new DicomUploadPackage(this.createUploadSlotParameterObject(), this.log, this.config);
+    this.mailService = new MailService(this.config.rpbUploadServiceUrl);
+    this.dicomUploadPackage = new DicomUploadPackage(
+      this.createUploadSlotParameterObject(),
+      this.log,
+      this.config,
+      this.mailService
+    );
 
     this.verifyPropsAndDownloadServerUploadParameter();
 
@@ -144,7 +152,7 @@ class Uploader extends Component {
       [SanityCheckTypes.PATIENT_BIRTH_DATE_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_BIRTH_YEAR_MATCHES_UPLOADSLOT]: true,
       [SanityCheckTypes.PATIENT_GENDER_MATCHES_UPLOADSLOT]: true,
-      [SanityCheckTypes.SOP_CLASS_SUPPORTED]: true,
+      [SanityCheckTypes.DICOM_SERIES_UPLOAD_VERIFICATION]: true,
     };
   }
 
@@ -171,6 +179,7 @@ class Uploader extends Component {
     this.setDeIdentifiedFilesCountValue = this.setDeIdentifiedFilesCountValue.bind(this);
     this.setUploadedFilesCountValue = this.setUploadedFilesCountValue.bind(this);
     this.setVerifiedUploadedFilesCountValue = this.setVerifiedUploadedFilesCountValue.bind(this);
+    this.setSkippedVerificationFilesCountValue = this.setSkippedVerificationFilesCountValue.bind(this);
     this.setStudyIsLinked = this.setStudyIsLinked.bind(this);
     this.updateSanityCheckConfiguration = this.updateSanityCheckConfiguration.bind(this);
     this.updateDeIdentificationCheckConfiguration = this.updateDeIdentificationCheckConfiguration.bind(this);
@@ -406,6 +415,7 @@ class Uploader extends Component {
       this.setState({ uploadApiKey: responseJson.apiKey });
       this.dicomUploadPackage.setApiKey(this.state.uploadApiKey);
       this.dicomUploadPackage.setUploadServiceUrl(this.config.rpbUploadServiceUrl);
+      this.mailService.setApiKey(this.state.uploadApiKey);
 
       this.log.trace("Requesting upload parameters succeed.", {}, {});
 
@@ -434,6 +444,10 @@ class Uploader extends Component {
 
   setVerifiedUploadedFilesCountValue(value) {
     this.setState({ verifiedUploadedFilesCount: value });
+  }
+
+  setSkippedVerificationFilesCountValue(value) {
+    this.setState({ skippedVerificationFilesCount: value });
   }
 
   setStudyIsLinked(value) {
@@ -770,6 +784,8 @@ class Uploader extends Component {
       logs: logs,
     });
 
+    this.mailService.sendMail("DICOM upload failed with log file: \n" + content);
+
     const logFileBlob = new Blob([content], {
       type: "application/json;charset=utf-8",
     });
@@ -945,7 +961,8 @@ class Uploader extends Component {
 
     const verificationResults = await this.dicomUploadPackage.verifySeriesUpload(
       this.state.dicomUidReplacements,
-      this.setVerifiedUploadedFilesCountValue
+      this.setVerifiedUploadedFilesCountValue,
+      this.setSkippedVerificationFilesCountValue
     );
 
     if (verificationResults.errors.length > 0) {
@@ -1048,7 +1065,7 @@ class Uploader extends Component {
    * @param {File} file
    */
   read = async (file) => {
-    const dicomFile = new DicomFile(file, this.log);
+    const dicomFile = new DicomFile(file, this.log, this.config);
     try {
       if (!file.path.endsWith(".dcm")) {
         if (file.path.endsWith(".gz") || file.path.endsWith(".zip")) {
@@ -1291,12 +1308,14 @@ class Uploader extends Component {
           setDeIdentifiedFilesCountValue={this.setDeIdentifiedFilesCountValue}
           setUploadedFilesCountValue={this.setUploadedFilesCountValue}
           setVerifiedUploadedFilesCountValue={this.setVerifiedUploadedFilesCountValue}
+          setSkippedVerificationFilesCountValue={this.setSkippedVerificationFilesCountValue}
           setStudyIsLinked={this.setStudyIsLinked}
           redirectToPortal={this.redirectToPortal}
           analysedFilesCount={this.state.analysedFilesCount}
           deIdentifiedFilesCount={this.state.deIdentifiedFilesCount}
           uploadedFilesCount={this.state.uploadedFilesCount}
           verifiedUploadedFilesCount={this.state.verifiedUploadedFilesCount}
+          skippedVerificationFilesCount={this.state.skippedVerificationFilesCount}
           studyIsLinked={this.state.studyIsLinked}
           evaluationUploadCheckResults={this.state.evaluationUploadCheckResults}
           dicomUidReplacements={this.state.dicomUidReplacements}

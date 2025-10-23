@@ -25,8 +25,9 @@ export default class DicomSeries {
   deIdentifiedStudyInstanceUID = null;
   deIdentifiedSeriesInstanceUID = null;
   uploadVerified = false;
+  skipVerification = false;
 
-  constructor(seriesDetails, parsedParameters, availableDicomTags) {
+  constructor(seriesDetails, parsedParameters, availableDicomTags, configuration) {
     this.seriesInstanceUID = seriesDetails.seriesInstanceUID;
     this.seriesDate = seriesDetails.seriesDate;
     this.seriesDescription = seriesDetails.seriesDescription;
@@ -45,7 +46,21 @@ export default class DicomSeries {
 
     this.sopClassUID = new Set([parsedParameters.get("SOPClassUID")]);
 
+    this.calculateVerification(configuration);
+
     this.availableDicomTags = availableDicomTags;
+  }
+
+  calculateVerification(configuration) {
+    if (configuration.skipUploadVerification != null) {
+      if (configuration.skipUploadVerification.length > 0) {
+        configuration.skipUploadVerification.forEach((element) => {
+          if (this.sopClassUID.has(element)) {
+            this.skipVerification = true;
+          }
+        });
+      }
+    }
   }
 
   /**
