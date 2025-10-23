@@ -97,7 +97,8 @@ export default class FileUploadDialogPanel extends Component {
                   hidden={
                     !(
                       this.props.studyIsLinked &&
-                      this.props.verifiedUploadedFilesCount === this.props.uploadedFilesCount &&
+                      this.props.verifiedUploadedFilesCount + this.props.skippedVerificationFilesCount ===
+                        this.props.uploadedFilesCount &&
                       this.props.uploadedFilesCount > 0
                     )
                   }

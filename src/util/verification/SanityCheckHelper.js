@@ -219,6 +219,7 @@ export default class SanityCheckHelper {
     let patientSex = new Set();
     let patientName = new Set();
     let sopClassUID = new Set();
+    let skipVerification = new Set();
 
     for (let key of Object.keys(series)) {
       const seriesObject = series[key];
@@ -227,6 +228,7 @@ export default class SanityCheckHelper {
       patientSex = new Set([...patientSex, ...seriesObject.patientSex]);
       patientName = new Set([...patientName, ...seriesObject.patientName]);
       sopClassUID = new Set([...sopClassUID, ...seriesObject.sopClassUID]);
+      skipVerification = new Set([...skipVerification, seriesObject.skipVerification]);
     }
 
     const results = [];
@@ -240,7 +242,7 @@ export default class SanityCheckHelper {
     this.evaluatePatientBirthDateMatchesUploadSlot(patientBirthDate, results);
     this.evaluatePatientBirthYearMatchesUploadSlot(patientBirthDate, results);
 
-    this.evaluateSOPClassUIDs(sopClassUID, results);
+    this.evaluateAutomatedUploadVerification(skipVerification, results);
 
     return results;
   }
@@ -543,28 +545,24 @@ export default class SanityCheckHelper {
     return;
   }
 
-  evaluateSOPClassUIDs(sopClassUID, result) {
-    if (this.sanityCheckConfiguration[[SanityCheckTypes.SOP_CLASS_SUPPORTED]] != true) {
+  evaluateAutomatedUploadVerification(skipVerification, result) {
+    if (this.sanityCheckConfiguration[[SanityCheckTypes.DICOM_SERIES_UPLOAD_VERIFICATION]] != true) {
       return;
     }
 
-    if (this.sopClassUID === null) {
+    if (skipVerification.size === 0) {
       return;
     }
 
-    const halcyonRTPlanSOPClassUid = "1.2.246.352.70.1.70";
-
-    for (const sopId of sopClassUID) {
-      if (sopId == halcyonRTPlanSOPClassUid) {
-        result.push(
-          new EvaluationResultItem(
-            SanityCheckResult.NOT_COMPATIBLE,
-            SanityCheckTypes.SOP_CLASS_SUPPORTED,
-            `This type (SOP Class UID: ${sopId}) is not compatible to all systems. Please contact us.`,
-            SanityCheckSeverity.WARNING
-          )
-        );
-      }
+    if (skipVerification.has(true)) {
+      result.push(
+        new EvaluationResultItem(
+          SanityCheckResult.SKIP_VERIFICATION,
+          SanityCheckTypes.DICOM_SERIES_UPLOAD_VERIFICATION,
+          `This DICOM series needs manual processing in our backend after the upload. The Uploader will upload the DICOM series, but it will skip the upload verification for this specific series.`,
+          SanityCheckSeverity.WARNING
+        )
+      );
     }
   }
 }

@@ -26,5 +26,5 @@ module.exports = Object.freeze({
   MATCHES: "Match", // The upload slot definition fits to the parameter
   ONE_MATCHES: "One parameter matches", // Property is not consistent in all files and one of the properties matches the upload slot
   INCONSISTENT: "Inconsistent", // Property items are not consistent in all files
-  NOT_COMPATIBLE: "Not compatible", // SOPClassUID has problems to be processed in the backend
+  SKIP_VERIFICATION: "Skip Upload Verification", // Series needs manual processing after upload - upload verification not possible automatically
 });

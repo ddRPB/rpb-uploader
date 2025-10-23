@@ -33,9 +33,10 @@ import DicomStudy from "./DicomStudy";
 export default class DicomFile {
   dicomDirSopValues = ["1.2.840.10008.1.3.10"];
 
-  constructor(fileObject, log) {
+  constructor(fileObject, log, configuration) {
     this.fileObject = fileObject;
     this.log = log;
+    this.configuration = configuration;
   }
 
   __pFileReader(file) {
@@ -850,7 +851,7 @@ export default class DicomFile {
       studyInstanceUID: this.getStudyInstanceUID(),
     };
 
-    return new DicomSeries(seriesDetails, this.parsedParameters, this.availableDicomTags);
+    return new DicomSeries(seriesDetails, this.parsedParameters, this.availableDicomTags, this.configuration);
   }
 
   /**

@@ -34,8 +34,11 @@ describe("DicomSeries Tests", () => {
 
   const parsedParameters = new Map();
   const availableDicomTags = new Map();
+  const configuration = {
+    skipUploadVerification: false,
+  };
 
-  const dicomSeries = new DicomSeries(seriesDetails, parsedParameters, availableDicomTags);
+  const dicomSeries = new DicomSeries(seriesDetails, parsedParameters, availableDicomTags, configuration);
 
   describe("Instances and References", () => {
     test("getInstancesReferencesDetails and getReferencedInstancesUIDs ", () => {

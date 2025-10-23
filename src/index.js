@@ -54,6 +54,10 @@ const config = {
   language: navigator.language,
   userAgent: navigator.userAgent,
   uploaderVersion: "v0.0.4",
+  mailServiceEnabled: true,
+  skipUploadVerification: [
+    "1.2.246.352.70.1.70", // halcyonRTPlanSOPClassUid
+  ],
 };
 
 // Application entry point
